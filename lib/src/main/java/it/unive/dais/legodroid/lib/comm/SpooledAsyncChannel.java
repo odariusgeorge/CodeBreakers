@@ -2,8 +2,7 @@ package it.unive.dais.legodroid.lib.comm;
 
 import android.annotation.SuppressLint;
 import android.os.AsyncTask;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import androidx.annotation.*;
 import android.util.Log;
 
 import java.io.IOException;
