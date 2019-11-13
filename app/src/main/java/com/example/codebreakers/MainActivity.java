@@ -37,6 +37,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String TAG = Prelude.ReTAG("MainActivity");
 
     private TextView textView;
+    private TextView textView2;
     private final Map<String, Object> statusMap = new HashMap<>();
     @Nullable
     private TachoMotor motor;   // this is a class field because we need to access it from multiple methods
