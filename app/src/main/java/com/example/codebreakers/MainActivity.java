@@ -130,10 +130,11 @@ public class MainActivity extends AppCompatActivity {
         final String TAG = Prelude.ReTAG("legoMain");
 
         // get sensors
+        // don't know if we will need the GyroSensor, for sure we don't need the touch... ()
         final LightSensor lightSensor = api.getLightSensor(EV3.InputPort._1);
         final UltrasonicSensor ultraSensor = api.getUltrasonicSensor(EV3.InputPort._2);
-        final TouchSensor touchSensor = api.getTouchSensor(EV3.InputPort._3);
-        final GyroSensor gyroSensor = api.getGyroSensor(EV3.InputPort._4);
+        //final TouchSensor touchSensor = api.getTouchSensor(EV3.InputPort._3);
+        //final GyroSensor gyroSensor = api.getGyroSensor(EV3.InputPort._4);
 
         // get motors
         motor1 = api.getTachoMotor(EV3.OutputPort.A);
@@ -145,9 +146,10 @@ public class MainActivity extends AppCompatActivity {
             while (!api.ev3.isCancelled()) {    // loop until cancellation signal is fired
                 try {
                     // values returned by getters are boxed within a special Future object
+                    /*
                     Future<Float> gyro = gyroSensor.getAngle();
                     updateStatus(gyroSensor, "gyro angle", gyro.get()); // call get() for actually reading the value - this may block!
-
+                    */
                     Future<Short> ambient = lightSensor.getAmbient();
                     updateStatus(lightSensor, "ambient", ambient.get());
 
@@ -162,10 +164,10 @@ public class MainActivity extends AppCompatActivity {
                     updateStatus(lightSensor, "color", col);
                     // when you need to deal with the UI, you must do it within a lambda passed to runOnUiThread()
                     runOnUiThread(() -> findViewById(R.id.colorView).setBackgroundColor(col.toARGB32()));
-
+                    /*
                     Future<Boolean> touched = touchSensor.getPressed();
                     updateStatus(touchSensor, "touch", touched.get() ? 1 : 0);
-
+                    */
                     Future<Float> pos = motor1.getPosition();
                     updateStatus(motor1, "motor position", pos.get());
 
@@ -177,6 +179,12 @@ public class MainActivity extends AppCompatActivity {
                     motor1.setStepSpeed(-20, 0, 1000, 0, true);
                     Log.d(TAG, "waiting for long motor operation completed...");
                     motor1.waitUntilReady();
+                    Log.d(TAG, "long motor operation completed");
+                    motor2.setStepSpeed(50, 0, 1000, 0, true);
+                    motor2.waitCompletion();
+                    motor2.setStepSpeed(-20, 0, 1000, 0, true);
+                    Log.d(TAG, "waiting for long motor operation completed...");
+                    motor2.waitUntilReady();
                     Log.d(TAG, "long motor operation completed");
 
                 } catch (IOException | InterruptedException | ExecutionException e) {
