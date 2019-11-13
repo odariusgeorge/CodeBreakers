@@ -94,7 +94,7 @@ public class MainActivity extends AppCompatActivity {
         textView = findViewById(R.id.textView);
 
         try {
-            BluetoothConnection.BluetoothChannel conn = new BluetoothConnection("EV3").connect(); // replace with your own brick name
+            BluetoothConnection.BluetoothChannel conn = new BluetoothConnection("Willy").connect(); // replace with your own brick name
 
             // connect to EV3 via bluetooth
             GenEV3<MyCustomApi> ev3 = new GenEV3<>(conn);
@@ -130,14 +130,14 @@ public class MainActivity extends AppCompatActivity {
         final String TAG = Prelude.ReTAG("legoMain");
 
         // get sensors
-        final LightSensor lightSensor = api.getLightSensor(EV3.InputPort._3);
+        final LightSensor lightSensor = api.getLightSensor(EV3.InputPort._1);
         final UltrasonicSensor ultraSensor = api.getUltrasonicSensor(EV3.InputPort._2);
-        final TouchSensor touchSensor = api.getTouchSensor(EV3.InputPort._1);
+        final TouchSensor touchSensor = api.getTouchSensor(EV3.InputPort._3);
         final GyroSensor gyroSensor = api.getGyroSensor(EV3.InputPort._4);
 
         // get motors
         motor1 = api.getTachoMotor(EV3.OutputPort.A);
-        motor2 = api.getTachoMotor(EV3.OutputPort.B);
+        motor2 = api.getTachoMotor(EV3.OutputPort.D);
 
         try {
             applyMotor(TachoMotor::resetPosition);
@@ -172,9 +172,9 @@ public class MainActivity extends AppCompatActivity {
                     Future<Float> speed = motor1.getSpeed();
                     updateStatus(motor1, "motor speed", speed.get());
 
-                    motor1.setStepSpeed(20, 0, 5000, 0, true);
+                    motor1.setStepSpeed(50, 0, 1000, 0, true);
                     motor1.waitCompletion();
-                    motor1.setStepSpeed(-20, 0, 5000, 0, true);
+                    motor1.setStepSpeed(-20, 0, 1000, 0, true);
                     Log.d(TAG, "waiting for long motor operation completed...");
                     motor1.waitUntilReady();
                     Log.d(TAG, "long motor operation completed");
