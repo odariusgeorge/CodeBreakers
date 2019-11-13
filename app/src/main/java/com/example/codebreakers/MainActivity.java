@@ -39,7 +39,9 @@ public class MainActivity extends AppCompatActivity {
     private TextView textView;
     private final Map<String, Object> statusMap = new HashMap<>();
     @Nullable
-    private TachoMotor motor;   // this is a class field because we need to access it from multiple methods
+    private TachoMotor motor1;
+    private TachoMotor motor2;
+    // this is a class field because we need to access it from multiple methods
 
     private void updateStatus(@NonNull Plug p, String key, Object value) {
         Log.d(TAG, String.format("%s: %s: %s", p, key, value));
@@ -81,8 +83,8 @@ public class MainActivity extends AppCompatActivity {
 
     // quick wrapper for accessing field 'motor' only when not-null; also ignores any exception thrown
     private void applyMotor(@NonNull ThrowingConsumer<TachoMotor, Throwable> f) {
-        if (motor != null)
-            Prelude.trap(() -> f.call(motor));
+        if (motor1 != null)
+            Prelude.trap(() -> f.call(motor1));
     }
 
     @Override
@@ -134,7 +136,8 @@ public class MainActivity extends AppCompatActivity {
         final GyroSensor gyroSensor = api.getGyroSensor(EV3.InputPort._4);
 
         // get motors
-        motor = api.getTachoMotor(EV3.OutputPort.A);
+        motor1 = api.getTachoMotor(EV3.OutputPort.A);
+        motor2 = api.getTachoMotor(EV3.OutputPort.B);
 
         try {
             applyMotor(TachoMotor::resetPosition);
@@ -163,17 +166,17 @@ public class MainActivity extends AppCompatActivity {
                     Future<Boolean> touched = touchSensor.getPressed();
                     updateStatus(touchSensor, "touch", touched.get() ? 1 : 0);
 
-                    Future<Float> pos = motor.getPosition();
-                    updateStatus(motor, "motor position", pos.get());
+                    Future<Float> pos = motor1.getPosition();
+                    updateStatus(motor1, "motor position", pos.get());
 
-                    Future<Float> speed = motor.getSpeed();
-                    updateStatus(motor, "motor speed", speed.get());
+                    Future<Float> speed = motor1.getSpeed();
+                    updateStatus(motor1, "motor speed", speed.get());
 
-                    motor.setStepSpeed(20, 0, 5000, 0, true);
-                    motor.waitCompletion();
-                    motor.setStepSpeed(-20, 0, 5000, 0, true);
+                    motor1.setStepSpeed(20, 0, 5000, 0, true);
+                    motor1.waitCompletion();
+                    motor1.setStepSpeed(-20, 0, 5000, 0, true);
                     Log.d(TAG, "waiting for long motor operation completed...");
-                    motor.waitUntilReady();
+                    motor1.waitUntilReady();
                     Log.d(TAG, "long motor operation completed");
 
                 } catch (IOException | InterruptedException | ExecutionException e) {

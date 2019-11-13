@@ -1,8 +1,8 @@
 package it.unive.dais.legodroid.lib.util;
 
-import androidx.annotation.NonNull;
-
 import android.util.Log;
+
+import androidx.annotation.NonNull;
 
 import java.util.Arrays;
 
