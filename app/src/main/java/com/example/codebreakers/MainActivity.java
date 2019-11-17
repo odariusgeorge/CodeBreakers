@@ -117,118 +117,121 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        rxPermissions
-                .request(Manifest.permission.CAMERA) // ask single or multiple permission once
-                .subscribe(granted -> {
-                    if (granted) {
-                        mScannerView.startCamera();
-                    } else {
-                        // At least one permission is denied
-                    }
-                });
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         textView = findViewById(R.id.textView);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-        if (!OpenCVLoader.initDebug()) {
-            Log.e("AndroidIngSwOpenCV", "Unable to load OpenCV");
-        } else {
-            Log.d("AndroidIngSwOpenCV", "OpenCV loaded");
-        }
-        try {
-            BluetoothConnection.BluetoothChannel conn = new BluetoothConnection("Willy").connect(); // replace with your own brick name
+        rxPermissions
+                .request(Manifest.permission.CAMERA) // ask single or multiple permission once
+                .subscribe(granted -> {
+                    if (granted) {
+                        if (!OpenCVLoader.initDebug()) {
+                            Log.e("AndroidIngSwOpenCV", "Unable to load OpenCV");
+                        } else {
+                            Log.d("AndroidIngSwOpenCV", "OpenCV loaded");
+                        }
+                        try {
+                            BluetoothConnection.BluetoothChannel conn = new BluetoothConnection("Willy").connect(); // replace with your own brick name
 
-            // connect to EV3 via bluetooth
-            GenEV3<MyCustomApi> ev3 = new GenEV3<>(conn);
+                            // connect to EV3 via bluetooth
+                            GenEV3<MyCustomApi> ev3 = new GenEV3<>(conn);
 //            EV3 ev3 = new EV3(conn);  // alternatively an EV3 subclass
 
-            Button stopButton = findViewById(R.id.stopButton);
-            stopButton.setOnClickListener(v -> {
-                ev3.cancel();   // fire cancellation signal to the EV3 task
-            });
+                            Button stopButton = findViewById(R.id.stopButton);
+                            stopButton.setOnClickListener(v -> {
+                                ev3.cancel();   // fire cancellation signal to the EV3 task
+                            });
 
-            Button startButton = findViewById(R.id.startButton);
-            startButton.setOnClickListener(v -> Prelude.trap(() -> ev3.run(this::legoMainCustomApi, MyCustomApi::new)));
-            // alternatively with plain EV3
+                            Button startButton = findViewById(R.id.startButton);
+                            startButton.setOnClickListener(v -> Prelude.trap(() -> ev3.run(this::legoMainCustomApi, MyCustomApi::new)));
+                            // alternatively with plain EV3
 //            startButton.setOnClickListener(v -> Prelude.trap(() -> ev3.run(this::legoMain)));
 
-            setupEditable(R.id.powerEdit, (x) -> applyMotor((m) -> {
-                m.setPower(x);
-                m.start();      // setPower() and setSpeed() require call to start() afterwards
-            }));
-            setupEditable(R.id.speedEdit, (x) -> applyMotor((m) -> {
-                m.setSpeed(x);
-                m.start();
-            }));
-        } catch (IOException e) {
-            Log.e(TAG, "fatal error: cannot connect to EV3");
-            e.printStackTrace();
-        }
-        mOpenCvCameraView = findViewById(R.id.HelloOpenCvView);
-        mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
-        mOpenCvCameraView.setMaxFrameSize(320, 240);
-        mOpenCvCameraView.disableFpsMeter();
-        mOpenCvCameraView.setCvCameraViewListener(new CameraBridgeViewBase.CvCameraViewListener2() {
-            @Override
-            public void onCameraViewStarted(int width, int height) {
-                Log.d(TAG, "Camera Started");
-            }
+                            setupEditable(R.id.powerEdit, (x) -> applyMotor((m) -> {
+                                m.setPower(x);
+                                m.start();      // setPower() and setSpeed() require call to start() afterwards
+                            }));
+                            setupEditable(R.id.speedEdit, (x) -> applyMotor((m) -> {
+                                m.setSpeed(x);
+                                m.start();
+                            }));
+                        } catch (IOException e) {
+                            Log.e(TAG, "fatal error: cannot connect to EV3");
+                            e.printStackTrace();
+                        }
 
-            @Override
-            public void onCameraViewStopped() {
-                Log.d(TAG, "Camera Stopped");
-            }
+                        mOpenCvCameraView = findViewById(R.id.HelloOpenCvView);
+                        mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
+                        mOpenCvCameraView.setMaxFrameSize(320, 240);
+                        mOpenCvCameraView.disableFpsMeter();
+                        mOpenCvCameraView.setCvCameraViewListener(new CameraBridgeViewBase.CvCameraViewListener2() {
+                            @Override
+                            public void onCameraViewStarted(int width, int height) {
+                                Log.d(TAG, "Camera Started");
+                            }
 
-            // Viene eseguito ad ogni frame, con inputFrame l'immagine corrente
-            @Override
-            public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
-                // Salva il frame corrente su un oggetto Mat, ossia una matrice bitmap
-                Mat frame = inputFrame.rgba();
-                // Crea una nuova Mat per effettuare elaborazioni
-                Mat median = new Mat();
+                            @Override
+                            public void onCameraViewStopped() {
+                                Log.d(TAG, "Camera Stopped");
+                            }
 
-                // Converte il formato colore da BGR a RGB
-                Imgproc.cvtColor(frame, median, Imgproc.COLOR_BGR2RGB);
+                            // Viene eseguito ad ogni frame, con inputFrame l'immagine corrente
+                            @Override
+                            public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
+                                // Salva il frame corrente su un oggetto Mat, ossia una matrice bitmap
+                                Mat frame = inputFrame.rgba();
+                                // Crea una nuova Mat per effettuare elaborazioni
+                                Mat median = new Mat();
 
-                // Effettua un filtro mediana di dimensione 5 sull'immagine
-                Imgproc.medianBlur(frame, median, 5);
+                                // Converte il formato colore da BGR a RGB
+                                Imgproc.cvtColor(frame, median, Imgproc.COLOR_BGR2RGB);
 
-                // Disegna una linea in mezzo allo schermo
-                Imgproc.line(median, new Point(0, 120), new Point(320, 120), new Scalar(0, 255, 0), 1);
+                                // Effettua un filtro mediana di dimensione 5 sull'immagine
+                                Imgproc.medianBlur(frame, median, 5);
 
-                ImageScanner mScanner = new ImageScanner();
-                mScanner.setConfig(0, Config.X_DENSITY, 3);
-                mScanner.setConfig(0, Config.Y_DENSITY, 3);
-                mScanner.setConfig(Symbol.NONE, Config.ENABLE, 0);
-                for(BarcodeFormat format : BarcodeFormat.ALL_FORMATS) {
-                    mScanner.setConfig(format.getId(), Config.ENABLE, 1);
-                }
+                                // Disegna una linea in mezzo allo schermo
+                                Imgproc.line(median, new Point(0, 120), new Point(320, 120), new Scalar(0, 255, 0), 1);
 
-                Image imageToScan = new Image(frame.cols(), frame.rows(), "Y800");
-                byte[] return_buff = new byte[(int) (frame.total() *
-                        frame.channels())];
-                frame.get(0, 0, return_buff);
-                imageToScan.setData(return_buff);
-                int qrResult = mScanner.scanImage(imageToScan);
-                if (qrResult != 0) {
-                    SymbolSet sym = mScanner.getResults();
-                    for (Symbol s : sym) {
-                        Log.d(TAG, "Found QR: " + s.getData());
-                    }
-                }
+                                ImageScanner mScanner = new ImageScanner();
 
-                // Ritorna il frame da visualizzare a schermo
-                return frame;
-            }
-        });
+                                mScanner.setConfig(0, Config.X_DENSITY, 3);
+                                mScanner.setConfig(0, Config.Y_DENSITY, 3);
+                                mScanner.setConfig(Symbol.NONE, Config.ENABLE, 0);
+                                for(BarcodeFormat format : BarcodeFormat.ALL_FORMATS) {
+                                    mScanner.setConfig(format.getId(), Config.ENABLE, 1);
+                                }
 
-        // Abilita la visualizzazione dell'immagine sullo schermo
-        mOpenCvCameraView.enableView();
+                                Image imageToScan = new Image(frame.cols(), frame.rows(), "Y800");
+                                byte[] return_buff = new byte[(int) (frame.total() *
+                                        frame.channels())];
+                                frame.get(0, 0, return_buff);
+                                imageToScan.setData(return_buff);
+                                int qrResult = mScanner.scanImage(imageToScan);
+                                if (qrResult != 0) {
+                                    SymbolSet sym = mScanner.getResults();
+                                    for (Symbol s : sym) {
+                                        Log.d(TAG, "Found QR: " + s.getData());
+                                    }
+                                }
 
-        mScannerView = new ZBarScannerView(this);
+                                // Ritorna il frame da visualizzare a schermo
+                                return frame;
+                            }
+                        });
+
+                        // Abilita la visualizzazione dell'immagine sullo schermo
+                        mOpenCvCameraView.enableView();
+
+                        mScannerView = new ZBarScannerView(this);
 //        mScannerView.setVisibility(View.INVISIBLE);
 //        LinearLayout layout = findViewById(R.id.layout);
 //        layout.addView(mScannerView);
+                    } else {
+                        // At least one permission is denied
+                    }
+                });
+
+
     }
 
     // main program executed by EV3
@@ -326,6 +329,7 @@ public class MainActivity extends AppCompatActivity {
                 }, 2000);
             }
         });
+        mScannerView.startCamera();
     }
 
     @Override
