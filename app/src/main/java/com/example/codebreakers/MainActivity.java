@@ -60,6 +60,7 @@ import me.dm7.barcodescanner.zbar.ZBarScannerView;
 
 public class MainActivity extends AppCompatActivity {
     final RxPermissions rxPermissions = new RxPermissions(this);
+
     private static final String TAG = Prelude.ReTAG("MainActivity");
     private CameraBridgeViewBase mOpenCvCameraView;
     private ZBarScannerView mScannerView;
@@ -116,6 +117,15 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        rxPermissions
+                .request(Manifest.permission.CAMERA) // ask single or multiple permission once
+                .subscribe(granted -> {
+                    if (granted) {
+                        mScannerView.startCamera();
+                    } else {
+                        // At least one permission is denied
+                    }
+                });
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         textView = findViewById(R.id.textView);
@@ -316,16 +326,6 @@ public class MainActivity extends AppCompatActivity {
                 }, 2000);
             }
         });
-        rxPermissions
-                .request(Manifest.permission.CAMERA) // ask single or multiple permission once
-                .subscribe(granted -> {
-                    if (granted) {
-                        mScannerView.startCamera();
-                    } else {
-                        // At least one permission is denied
-                    }
-                });
-
     }
 
     @Override
