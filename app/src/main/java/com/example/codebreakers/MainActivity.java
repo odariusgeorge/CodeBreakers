@@ -24,6 +24,7 @@ import android.util.Log;
 import android.view.SurfaceView;
 import android.view.WindowManager;
 
+import org.opencv.android.JavaCameraView;
 import it.unive.dais.legodroid.lib.EV3;
 import it.unive.dais.legodroid.lib.GenEV3;
 import it.unive.dais.legodroid.lib.comm.BluetoothConnection;
