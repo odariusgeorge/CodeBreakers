@@ -1,5 +1,6 @@
 package com.example.codebreakers;
 
+import android.Manifest;
 import android.os.Bundle;
 import androidx.annotation.IdRes;
 import androidx.annotation.NonNull;
@@ -23,6 +24,8 @@ import android.os.Handler;
 import android.util.Log;
 import android.view.SurfaceView;
 import android.view.WindowManager;
+
+import com.tbruyelle.rxpermissions2.RxPermissions;
 
 import org.opencv.android.JavaCameraView;
 import it.unive.dais.legodroid.lib.EV3;
@@ -56,7 +59,7 @@ import me.dm7.barcodescanner.zbar.Result;
 import me.dm7.barcodescanner.zbar.ZBarScannerView;
 
 public class MainActivity extends AppCompatActivity {
-
+    final RxPermissions rxPermissions = new RxPermissions(this);
     private static final String TAG = Prelude.ReTAG("MainActivity");
     private CameraBridgeViewBase mOpenCvCameraView;
     private ZBarScannerView mScannerView;
@@ -313,8 +316,16 @@ public class MainActivity extends AppCompatActivity {
                 }, 2000);
             }
         });
+        rxPermissions
+                .request(Manifest.permission.CAMERA) // ask single or multiple permission once
+                .subscribe(granted -> {
+                    if (granted) {
+                        mScannerView.startCamera();
+                    } else {
+                        // At least one permission is denied
+                    }
+                });
 
-        mScannerView.startCamera();
     }
 
     @Override
