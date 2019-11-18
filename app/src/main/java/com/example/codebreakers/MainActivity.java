@@ -19,6 +19,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.ArrayList;
 
 import android.os.Handler;
 import android.util.Log;
@@ -121,10 +122,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         textView = findViewById(R.id.textView);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-        rxPermissions
-                .request(Manifest.permission.CAMERA) // ask single or multiple permission once
-                .subscribe(granted -> {
-                    if (granted) {
+
                         if (!OpenCVLoader.initDebug()) {
                             Log.e("AndroidIngSwOpenCV", "Unable to load OpenCV");
                         } else {
@@ -162,7 +160,7 @@ public class MainActivity extends AppCompatActivity {
 
                         mOpenCvCameraView = findViewById(R.id.HelloOpenCvView);
                         mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
-                        mOpenCvCameraView.setMaxFrameSize(320, 240);
+                        mOpenCvCameraView.setMaxFrameSize(640, 480);
                         mOpenCvCameraView.disableFpsMeter();
                         mOpenCvCameraView.setCvCameraViewListener(new CameraBridgeViewBase.CvCameraViewListener2() {
                             @Override
@@ -181,38 +179,41 @@ public class MainActivity extends AppCompatActivity {
                                 // Salva il frame corrente su un oggetto Mat, ossia una matrice bitmap
                                 Mat frame = inputFrame.rgba();
                                 // Crea una nuova Mat per effettuare elaborazioni
-                                Mat median = new Mat();
-
-                                // Converte il formato colore da BGR a RGB
-                                Imgproc.cvtColor(frame, median, Imgproc.COLOR_BGR2RGB);
-
-                                // Effettua un filtro mediana di dimensione 5 sull'immagine
-                                Imgproc.medianBlur(frame, median, 5);
-
-                                // Disegna una linea in mezzo allo schermo
-                                Imgproc.line(median, new Point(0, 120), new Point(320, 120), new Scalar(0, 255, 0), 1);
-
-                                ImageScanner mScanner = new ImageScanner();
-
-                                mScanner.setConfig(0, Config.X_DENSITY, 3);
-                                mScanner.setConfig(0, Config.Y_DENSITY, 3);
-                                mScanner.setConfig(Symbol.NONE, Config.ENABLE, 0);
-                                for(BarcodeFormat format : BarcodeFormat.ALL_FORMATS) {
-                                    mScanner.setConfig(format.getId(), Config.ENABLE, 1);
-                                }
-
-                                Image imageToScan = new Image(frame.cols(), frame.rows(), "Y800");
-                                byte[] return_buff = new byte[(int) (frame.total() *
-                                        frame.channels())];
-                                frame.get(0, 0, return_buff);
-                                imageToScan.setData(return_buff);
-                                int qrResult = mScanner.scanImage(imageToScan);
-                                if (qrResult != 0) {
-                                    SymbolSet sym = mScanner.getResults();
-                                    for (Symbol s : sym) {
-                                        Log.d(TAG, "Found QR: " + s.getData());
-                                    }
-                                }
+//                                Mat median = new Mat();
+//
+//                                // Converte il formato colore da BGR a RGB
+//                                Imgproc.cvtColor(frame, median, Imgproc.COLOR_BGR2RGB);
+//
+//                                // Effettua un filtro mediana di dimensione 5 sull'immagine
+//                                Imgproc.medianBlur(frame, median, 5);
+//
+//                                // Disegna una linea in mezzo allo schermo
+//                                Imgproc.line(median, new Point(0, 120), new Point(320, 120), new Scalar(0, 255, 0), 1);
+//
+//                                ImageScanner mScanner = new ImageScanner();
+//
+//                                mScanner.setConfig(0, Config.X_DENSITY, 3);
+//                                mScanner.setConfig(0, Config.Y_DENSITY, 3);
+//                                mScanner.setConfig(Symbol.NONE, Config.ENABLE, 0);
+//                                for(BarcodeFormat format : BarcodeFormat.ALL_FORMATS) {
+//                                    mScanner.setConfig(format.getId(), Config.ENABLE, 1);
+//                                }
+//
+//                                Image imageToScan = new Image(frame.cols(), frame.rows(), "Y800");
+//                                byte[] return_buff = new byte[(int) (frame.total() *
+//                                        frame.channels())];
+//                                frame.get(0, 0, return_buff);
+//                                imageToScan.setData(return_buff);
+//                                int qrResult = mScanner.scanImage(imageToScan);
+                                BallFinder ballFinder = new BallFinder(frame, true);
+                                ballFinder.setViewRatio(0.4f);
+                                ArrayList<Ball> f = ballFinder.findBalls();
+//                                if (qrResult != 0) {
+//                                    SymbolSet sym = mScanner.getResults();
+//                                    for (Symbol s : sym) {
+//                                        Log.d(TAG, "Found QR: " + s.getData());
+//                                    }
+//                                }
 
                                 // Ritorna il frame da visualizzare a schermo
                                 return frame;
@@ -226,10 +227,7 @@ public class MainActivity extends AppCompatActivity {
 //        mScannerView.setVisibility(View.INVISIBLE);
 //        LinearLayout layout = findViewById(R.id.layout);
 //        layout.addView(mScannerView);
-                    } else {
-                        // At least one permission is denied
-                    }
-                });
+
 
 
     }
