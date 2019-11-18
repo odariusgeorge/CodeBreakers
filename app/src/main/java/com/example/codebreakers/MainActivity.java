@@ -70,6 +70,7 @@ public class MainActivity extends AppCompatActivity {
     @Nullable
     private TachoMotor motor1;
     private TachoMotor motor2;
+    private TachoMotor motor3;
     // this is a class field because we need to access it from multiple methods
 
     private void updateStatus(@NonNull Plug p, String key, Object value) {
@@ -113,6 +114,10 @@ public class MainActivity extends AppCompatActivity {
     // quick wrapper for accessing field 'motor' only when not-null; also ignores any exception thrown
     private void applyMotor(@NonNull ThrowingConsumer<TachoMotor, Throwable> f) {
         if (motor1 != null)
+            Prelude.trap(() -> f.call(motor1));
+        if (motor2 != null)
+            Prelude.trap(() -> f.call(motor1));
+        if (motor3 != null)
             Prelude.trap(() -> f.call(motor1));
     }
 
@@ -208,6 +213,18 @@ public class MainActivity extends AppCompatActivity {
                                 BallFinder ballFinder = new BallFinder(frame, true);
                                 ballFinder.setViewRatio(0.4f);
                                 ArrayList<Ball> f = ballFinder.findBalls();
+                                if(!f.isEmpty()) {
+                                    try {
+                                        motor2.setStepSpeed(50, 0, 1000, 0, true);
+                                        motor2.waitCompletion();
+                                        motor2.setStepSpeed(-20, 0, 1000, 0, true);
+                                        Log.d(TAG, "waiting for long motor operation completed...");
+                                        motor2.waitUntilReady();
+                                    } catch (IOException | InterruptedException | ExecutionException e) {
+                                        e.printStackTrace();
+                                    }
+
+                                }
 //                                if (qrResult != 0) {
 //                                    SymbolSet sym = mScanner.getResults();
 //                                    for (Symbol s : sym) {
@@ -223,7 +240,7 @@ public class MainActivity extends AppCompatActivity {
                         // Abilita la visualizzazione dell'immagine sullo schermo
                         mOpenCvCameraView.enableView();
 
-                        mScannerView = new ZBarScannerView(this);
+//                        mScannerView = new ZBarScannerView(this);
 //        mScannerView.setVisibility(View.INVISIBLE);
 //        LinearLayout layout = findViewById(R.id.layout);
 //        layout.addView(mScannerView);
@@ -247,6 +264,7 @@ public class MainActivity extends AppCompatActivity {
         // get motors
         motor1 = api.getTachoMotor(EV3.OutputPort.A);
         motor2 = api.getTachoMotor(EV3.OutputPort.D);
+        motor3 = api.getTachoMotor(EV3.OutputPort.B);
 
         try {
             applyMotor(TachoMotor::resetPosition);
