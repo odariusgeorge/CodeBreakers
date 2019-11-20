@@ -20,14 +20,20 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+
 import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.OpenCVLoader;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
+import org.opencv.core.MatOfPoint;
+import org.opencv.core.Point;
+import org.opencv.core.Scalar;
+import org.opencv.core.CvType;
 import org.opencv.imgproc.Imgproc;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -48,15 +54,20 @@ import me.dm7.barcodescanner.zbar.ZBarScannerView;
 public class MainActivity extends AppCompatActivity {
     private static final int CAMERA_PERMISSION_CODE=100;
     private static final String TAG = Prelude.ReTAG("MainActivity");
+    private Mat mRgba, mRgbaF, mRgbaT;
+    private Scalar mBlobColorHsv;
+    private Scalar CONTOUR_COLOR;
+    private Scalar MARKER_COLOR;
+    private Scalar TEXT_COLOR;
     private CameraBridgeViewBase mOpenCvCameraView;
     private ZBarScannerView mScannerView;
+    private ColorBlobDetector mDetector;
     private TextView textView;
     private final Map<String, Object> statusMap = new HashMap<>();
     @Nullable
     private TachoMotor motorLeft;
     private TachoMotor motorRight;
     private TachoMotor motorClaws;
-    // this is a class field because we need to access it from multiple methods
 
     private void updateStatus(@NonNull Plug p, String key, Object value) {
         Log.d(TAG, String.format("%s: %s: %s", p, key, value));
@@ -95,8 +106,6 @@ public class MainActivity extends AppCompatActivity {
 
         public void mySpecialCommand() {}
     }
-
-    // quick wrapper for accessing field 'motor' only when not-null; also ignores any exception thrown
     private void applyMotor(@NonNull ThrowingConsumer<TachoMotor, Throwable> f) {
         if (motorLeft != null)
             Prelude.trap(() -> f.call(motorLeft));
@@ -113,8 +122,6 @@ public class MainActivity extends AppCompatActivity {
     {
         if (ContextCompat.checkSelfPermission(MainActivity.this, permission)
                 == PackageManager.PERMISSION_DENIED) {
-
-            // Requesting the permission
             ActivityCompat.requestPermissions(MainActivity.this,
                     new String[] { permission },
                     requestCode);
@@ -135,7 +142,6 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         textView = findViewById(R.id.textView);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-        //check if the we have the camera permission
         checkPermission(Manifest.permission.CAMERA,CAMERA_PERMISSION_CODE);
 
         if (!OpenCVLoader.initDebug()) {
@@ -145,24 +151,18 @@ public class MainActivity extends AppCompatActivity {
                         }
                         try {
                             BluetoothConnection.BluetoothChannel conn = new BluetoothConnection("Willy").connect(); // replace with your own brick name
-
-                            // connect to EV3 via bluetooth
                             GenEV3<MyCustomApi> ev3 = new GenEV3<>(conn);
-//                          EV3 ev3 = new EV3(conn);  // alternatively an EV3 subclass
-
                             Button stopButton = findViewById(R.id.stopButton);
                             stopButton.setOnClickListener(v -> {
-                                ev3.cancel();   // fire cancellation signal to the EV3 task
+                                ev3.cancel();
                             });
 
                             Button startButton = findViewById(R.id.startButton);
                             startButton.setOnClickListener(v -> Prelude.trap(() -> ev3.run(this::legoMainCustomApi, MyCustomApi::new)));
-                            // alternatively with plain EV3
-//                          startButton.setOnClickListener(v -> Prelude.trap(() -> ev3.run(this::legoMain)));
 
                             setupEditable(R.id.powerEdit, (x) -> applyMotor((m) -> {
                                 m.setPower(x);
-                                m.start();      // setPower() and setSpeed() require call to start() afterwards
+                                m.start();
                             }));
                             setupEditable(R.id.speedEdit, (x) -> applyMotor((m) -> {
                                 m.setSpeed(x);
@@ -181,93 +181,49 @@ public class MainActivity extends AppCompatActivity {
                         mOpenCvCameraView.setCvCameraViewListener(new CameraBridgeViewBase.CvCameraViewListener2() {
                             @Override
                             public void onCameraViewStarted(int width, int height) {
+                                mRgba = new Mat(height, width, CvType.CV_8UC4);
+                                mRgbaF = new Mat(height, width, CvType.CV_8UC4);
+                                mRgbaT = new Mat(width, width, CvType.CV_8UC4);  // NOTE width,width is NOT a typo
+                                mDetector = new ColorBlobDetector();
+                                mBlobColorHsv = new Scalar(280/2,0.65*255,0.75*255,255); // hue in [0,180], saturation in [0,255], value in [0,255]
+                                mDetector.setHsvColor(mBlobColorHsv);
+                                CONTOUR_COLOR = new Scalar(255,0,0,255);
+                                MARKER_COLOR = new Scalar(0,0,255,255);
+                                TEXT_COLOR = new Scalar(255,255,255,255);
                                 Log.d(TAG, "Camera Started");
                             }
 
                             @Override
                             public void onCameraViewStopped() {
                                 Log.d(TAG, "Camera Stopped");
+                                mRgba.release();
                             }
-
-                            // Viene eseguito ad ogni frame, con inputFrame l'immagine corrente
                             @Override
                             public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
-                                // Salva il frame corrente su un oggetto Mat, ossia una matrice bitmap
-                                //Mat frame = inputFrame.rgba();
-                                Mat frame = inputFrame.rgba();
-                                Mat ourCameraFrame = frame.t();
-                                Core.flip(frame.t(), ourCameraFrame, 1);
-                                Imgproc.resize(ourCameraFrame, ourCameraFrame, frame.size());
-                                //Crea una nuova Mat per effettuare elaborazioni
-                                /*
-                                Mat median = new Mat();
+                                mRgba = inputFrame.rgba();
+                                // Rotate mRgba 90 degrees
+                                //Core.transpose(mRgba, mRgbaT);
+                                //Imgproc.resize(mRgbaT, mRgbaF, mRgbaF.size(), 0,0, 0);
+                                //Core.flip(mRgbaF, mRgba, 1 );
+                                //
 
-                                // Converte il formato colore da BGR a RGB
-                                Imgproc.cvtColor(frame, median, Imgproc.COLOR_BGR2RGB);
-
-                                // Effettua un filtro mediana di dimensione 5 sull'immagine
-                                Imgproc.medianBlur(frame, median, 5);
-
-                                // Disegna una linea in mezzo allo schermo
-                                Imgproc.line(median, new Point(0, 120), new Point(320, 120), new Scalar(0, 255, 0), 1);
-
-                                ImageScanner mScanner = new ImageScanner();
-
-                                mScanner.setConfig(0, Config.X_DENSITY, 3);
-                                mScanner.setConfig(0, Config.Y_DENSITY, 3);
-                                mScanner.setConfig(Symbol.NONE, Config.ENABLE, 0);
-                                for(BarcodeFormat format : BarcodeFormat.ALL_FORMATS) {
-                                    mScanner.setConfig(format.getId(), Config.ENABLE, 1);
+                                mDetector.process(mRgba);
+                                List<MatOfPoint> contours = mDetector.getContours();
+                                Imgproc.drawContours(mRgba, contours, -1, CONTOUR_COLOR);
+                                Point center = mDetector.getCenterOfMaxContour();
+                                double direction = 0;
+                                if( center != null ) {
+                                    Imgproc.drawMarker(mRgba, center, MARKER_COLOR);
+                                    direction = (center.x - mRgba.cols()/2)/mRgba.cols(); // portrait orientation
                                 }
 
-                                Image imageToScan = new Image(frame.cols(), frame.rows(), "Y800");
-                                byte[] return_buff = new byte[(int) (frame.total() *
-                                        frame.channels())];
-                                frame.get(0, 0, return_buff);
-                                imageToScan.setData(return_buff);
-                                int qrResult = mScanner.scanImage(imageToScan);
-                                 */
+                                //saveMatToImage(mRgba,"ball");
 
-                                BallFinder ballFinder = new BallFinder(ourCameraFrame, true);
-                                ballFinder.setViewRatio(0.4f);
-                                ArrayList<Ball> f = ballFinder.findBalls();
-
-//code by george but it doesn't work to update later
-                                /*
-                                if(!f.isEmpty()) {
-                                    try {
-                                        motorClaws.setStepSpeed(50, 0, 1000, 0, true);
-                                        motorClaws.waitCompletion();
-                                        motorClaws.setStepSpeed(-20, 0, 1000, 0, true);
-                                        motorClaws.waitUntilReady();
-                                    } catch (IOException | InterruptedException | ExecutionException e) {
-                                        e.printStackTrace();
-                                    }
-
-                                }
-
-                                //don't remember from where is it ahahah
-                                /*
-                                if (qrResult != 0) {
-                                    SymbolSet sym = mScanner.getResults();
-                                    for (Symbol s : sym) {
-                                        Log.d(TAG, "Found QR: " + s.getData());
-                                    }
-                                }
-                                */
-                                // Ritorna il frame da visualizzare a schermo
-                                return ourCameraFrame;
+                                return mRgba;
                             }
                         });
-                        // Abilita la visualizzazione dell'immagine sullo schermo
                         mOpenCvCameraView.enableView();
-
                         mScannerView = new ZBarScannerView(this);
-//        mScannerView.setVisibility(View.INVISIBLE);
-//        LinearLayout layout = findViewById(R.id.layout);
-//        layout.addView(mScannerView);
-
-
 
     }
 
@@ -275,13 +231,10 @@ public class MainActivity extends AppCompatActivity {
 
     private void legoMain(EV3.Api api) {
         final String TAG = Prelude.ReTAG("legoMain");
-
-        // get sensors
         final LightSensor lightSensor = api.getLightSensor(EV3.InputPort._1);
         final UltrasonicSensor ultraSensor = api.getUltrasonicSensor(EV3.InputPort._2);
 
 
-        // get motors
         motorLeft = api.getTachoMotor(EV3.OutputPort.A);
         motorRight = api.getTachoMotor(EV3.OutputPort.D);
         motorClaws = api.getTachoMotor(EV3.OutputPort.B);
@@ -289,9 +242,8 @@ public class MainActivity extends AppCompatActivity {
         try {
             applyMotor(TachoMotor::resetPosition);
 
-            while (!api.ev3.isCancelled()) {    // loop until cancellation signal is fired
+            while (!api.ev3.isCancelled()) {
                 try {
-                    // values returned by getters are boxed within a special Future object
                     Future<Short> ambient = lightSensor.getAmbient();
                     updateStatus(lightSensor, "ambient", ambient.get());
 
@@ -304,7 +256,6 @@ public class MainActivity extends AppCompatActivity {
                     Future<LightSensor.Color> colf = lightSensor.getColor();
                     LightSensor.Color col = colf.get();
                     updateStatus(lightSensor, "color", col);
-                    // when you need to deal with the UI, you must do it within a lambda passed to runOnUiThread()
                     runOnUiThread(() -> findViewById(R.id.colorView).setBackgroundColor(col.toARGB32()));
 
                     Future<Float> posMLeft = motorLeft.getPosition();
@@ -343,28 +294,9 @@ public class MainActivity extends AppCompatActivity {
 
 
     }
-// QR code form an old version don'
     @Override
     public void onResume() {
         super.onResume();
-        /*
-        mScannerView.setResultHandler(new ZBarScannerView.ResultHandler() {
-            private final ZBarScannerView.ResultHandler _this = this;
-
-            @Override
-            public void handleResult(Result rawResult) {
-                Log.d(TAG, "Found QR: " + rawResult.getContents());
-
-                Handler handler = new Handler();
-                handler.postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        mScannerView.resumeCameraPreview(_this);
-                    }
-                }, 2000);
-            }
-        });
-        */
         mScannerView.startCamera();
     }
 
@@ -377,9 +309,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void legoMainCustomApi(MyCustomApi api) {
         final String TAG = Prelude.ReTAG("legoMainCustomApi");
-        // specialized methods can be safely called
         api.mySpecialCommand();
-        // stub the other main
         legoMain(api);
     }
 
