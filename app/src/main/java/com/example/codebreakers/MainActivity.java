@@ -1,76 +1,64 @@
 package com.example.codebreakers;
 
 import android.Manifest;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.os.Handler;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.util.Log;
+import android.view.SurfaceView;
+import android.view.WindowManager;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.TextView;
+import android.widget.Toast;
+
 import androidx.annotation.IdRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-
-import android.text.Editable;
-import android.text.TextWatcher;
-import android.util.Log;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.TextView;
-
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-import java.util.ArrayList;
-
-import android.os.Handler;
-import android.util.Log;
-import android.view.SurfaceView;
-import android.view.WindowManager;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 import com.tbruyelle.rxpermissions2.RxPermissions;
-
-import org.opencv.android.JavaCameraView;
-import it.unive.dais.legodroid.lib.EV3;
-import it.unive.dais.legodroid.lib.GenEV3;
-import it.unive.dais.legodroid.lib.comm.BluetoothConnection;
-import it.unive.dais.legodroid.lib.plugs.GyroSensor;
-import it.unive.dais.legodroid.lib.plugs.LightSensor;
-import it.unive.dais.legodroid.lib.plugs.Plug;
-import it.unive.dais.legodroid.lib.plugs.TachoMotor;
-import it.unive.dais.legodroid.lib.plugs.TouchSensor;
-import it.unive.dais.legodroid.lib.plugs.UltrasonicSensor;
-import it.unive.dais.legodroid.lib.util.Consumer;
-import it.unive.dais.legodroid.lib.util.Prelude;
-import it.unive.dais.legodroid.lib.util.ThrowingConsumer;
-
-import net.sourceforge.zbar.Config;
-import net.sourceforge.zbar.Image;
-import net.sourceforge.zbar.ImageScanner;
-import net.sourceforge.zbar.Symbol;
-import net.sourceforge.zbar.SymbolSet;
 
 import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.OpenCVLoader;
 import org.opencv.core.Mat;
-import org.opencv.core.Point;
-import org.opencv.core.Scalar;
-import org.opencv.imgproc.Imgproc;
 
-import me.dm7.barcodescanner.zbar.BarcodeFormat;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+
+import it.unive.dais.legodroid.lib.EV3;
+import it.unive.dais.legodroid.lib.GenEV3;
+import it.unive.dais.legodroid.lib.comm.BluetoothConnection;
+import it.unive.dais.legodroid.lib.plugs.LightSensor;
+import it.unive.dais.legodroid.lib.plugs.Plug;
+import it.unive.dais.legodroid.lib.plugs.TachoMotor;
+import it.unive.dais.legodroid.lib.plugs.UltrasonicSensor;
+import it.unive.dais.legodroid.lib.util.Consumer;
+import it.unive.dais.legodroid.lib.util.Prelude;
+import it.unive.dais.legodroid.lib.util.ThrowingConsumer;
 import me.dm7.barcodescanner.zbar.Result;
 import me.dm7.barcodescanner.zbar.ZBarScannerView;
 
 public class MainActivity extends AppCompatActivity {
     final RxPermissions rxPermissions = new RxPermissions(this);
-
+    private static final int CAMERA_PERMISSION_CODE=100;
     private static final String TAG = Prelude.ReTAG("MainActivity");
     private CameraBridgeViewBase mOpenCvCameraView;
     private ZBarScannerView mScannerView;
     private TextView textView;
     private final Map<String, Object> statusMap = new HashMap<>();
     @Nullable
-    private TachoMotor motor1;
-    private TachoMotor motor2;
-    private TachoMotor motor3;
+    private TachoMotor motorLeft;
+    private TachoMotor motorRight;
+    private TachoMotor motorClaws;
     // this is a class field because we need to access it from multiple methods
 
     private void updateStatus(@NonNull Plug p, String key, Object value) {
@@ -113,22 +101,42 @@ public class MainActivity extends AppCompatActivity {
 
     // quick wrapper for accessing field 'motor' only when not-null; also ignores any exception thrown
     private void applyMotor(@NonNull ThrowingConsumer<TachoMotor, Throwable> f) {
-        if (motor1 != null)
-            Prelude.trap(() -> f.call(motor1));
-        if (motor2 != null)
-            Prelude.trap(() -> f.call(motor1));
-        if (motor3 != null)
-            Prelude.trap(() -> f.call(motor1));
+        if (motorLeft != null)
+            Prelude.trap(() -> f.call(motorLeft));
+        if (motorRight != null)
+            Prelude.trap(() -> f.call(motorRight));
+        if (motorClaws != null)
+            Prelude.trap(() -> f.call(motorClaws));
     }
 
+
+
+    // Function to check and request permission.
+    public void checkPermission(String permission, int requestCode)
+    {
+        if (ContextCompat.checkSelfPermission(MainActivity.this, permission)
+                == PackageManager.PERMISSION_DENIED) {
+
+            // Requesting the permission
+            ActivityCompat.requestPermissions(MainActivity.this,
+                    new String[] { permission },
+                    requestCode);
+        }
+        else {
+            Toast.makeText(MainActivity.this,
+                    "Permission already granted",
+                    Toast.LENGTH_SHORT)
+                    .show();
+        }
+    }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         textView = findViewById(R.id.textView);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-
-                        if (!OpenCVLoader.initDebug()) {
+        checkPermission(Manifest.permission.CAMERA,CAMERA_PERMISSION_CODE);
+        if (!OpenCVLoader.initDebug()) {
                             Log.e("AndroidIngSwOpenCV", "Unable to load OpenCV");
                         } else {
                             Log.d("AndroidIngSwOpenCV", "OpenCV loaded");
@@ -138,7 +146,7 @@ public class MainActivity extends AppCompatActivity {
 
                             // connect to EV3 via bluetooth
                             GenEV3<MyCustomApi> ev3 = new GenEV3<>(conn);
-//            EV3 ev3 = new EV3(conn);  // alternatively an EV3 subclass
+//                          EV3 ev3 = new EV3(conn);  // alternatively an EV3 subclass
 
                             Button stopButton = findViewById(R.id.stopButton);
                             stopButton.setOnClickListener(v -> {
@@ -148,7 +156,7 @@ public class MainActivity extends AppCompatActivity {
                             Button startButton = findViewById(R.id.startButton);
                             startButton.setOnClickListener(v -> Prelude.trap(() -> ev3.run(this::legoMainCustomApi, MyCustomApi::new)));
                             // alternatively with plain EV3
-//            startButton.setOnClickListener(v -> Prelude.trap(() -> ev3.run(this::legoMain)));
+//                          startButton.setOnClickListener(v -> Prelude.trap(() -> ev3.run(this::legoMain)));
 
                             setupEditable(R.id.powerEdit, (x) -> applyMotor((m) -> {
                                 m.setPower(x);
@@ -213,18 +221,22 @@ public class MainActivity extends AppCompatActivity {
                                 BallFinder ballFinder = new BallFinder(frame, true);
                                 ballFinder.setViewRatio(0.4f);
                                 ArrayList<Ball> f = ballFinder.findBalls();
-                                if(!f.isEmpty()) {
+
+//                              code by george but it doesn't work to update later
+                                /*if(!f.isEmpty()) {
                                     try {
-                                        motor2.setStepSpeed(50, 0, 1000, 0, true);
-                                        motor2.waitCompletion();
-                                        motor2.setStepSpeed(-20, 0, 1000, 0, true);
+                                        motorClaws.setStepSpeed(50, 0, 1000, 0, true);
+                                        motorClaws.waitCompletion();
+                                        motorClaws.setStepSpeed(-20, 0, 1000, 0, true);
                                         Log.d(TAG, "waiting for long motor operation completed...");
-                                        motor2.waitUntilReady();
+                                        motorClaws.waitUntilReady();
                                     } catch (IOException | InterruptedException | ExecutionException e) {
                                         e.printStackTrace();
                                     }
 
                                 }
+                                */
+
 //                                if (qrResult != 0) {
 //                                    SymbolSet sym = mScanner.getResults();
 //                                    for (Symbol s : sym) {
@@ -236,11 +248,10 @@ public class MainActivity extends AppCompatActivity {
                                 return frame;
                             }
                         });
-
                         // Abilita la visualizzazione dell'immagine sullo schermo
                         mOpenCvCameraView.enableView();
 
-//                        mScannerView = new ZBarScannerView(this);
+                        mScannerView = new ZBarScannerView(this);
 //        mScannerView.setVisibility(View.INVISIBLE);
 //        LinearLayout layout = findViewById(R.id.layout);
 //        layout.addView(mScannerView);
@@ -255,16 +266,14 @@ public class MainActivity extends AppCompatActivity {
         final String TAG = Prelude.ReTAG("legoMain");
 
         // get sensors
-        // don't know if we will need the GyroSensor, for sure we don't need the touch... ()
         final LightSensor lightSensor = api.getLightSensor(EV3.InputPort._1);
         final UltrasonicSensor ultraSensor = api.getUltrasonicSensor(EV3.InputPort._2);
-        //final TouchSensor touchSensor = api.getTouchSensor(EV3.InputPort._3);
-        //final GyroSensor gyroSensor = api.getGyroSensor(EV3.InputPort._4);
+
 
         // get motors
-        motor1 = api.getTachoMotor(EV3.OutputPort.A);
-        motor2 = api.getTachoMotor(EV3.OutputPort.D);
-        motor3 = api.getTachoMotor(EV3.OutputPort.B);
+        motorLeft = api.getTachoMotor(EV3.OutputPort.A);
+        motorRight = api.getTachoMotor(EV3.OutputPort.D);
+        motorClaws = api.getTachoMotor(EV3.OutputPort.B);
 
         try {
             applyMotor(TachoMotor::resetPosition);
@@ -272,10 +281,6 @@ public class MainActivity extends AppCompatActivity {
             while (!api.ev3.isCancelled()) {    // loop until cancellation signal is fired
                 try {
                     // values returned by getters are boxed within a special Future object
-                    /*
-                    Future<Float> gyro = gyroSensor.getAngle();
-                    updateStatus(gyroSensor, "gyro angle", gyro.get()); // call get() for actually reading the value - this may block!
-                    */
                     Future<Short> ambient = lightSensor.getAmbient();
                     updateStatus(lightSensor, "ambient", ambient.get());
 
@@ -290,27 +295,30 @@ public class MainActivity extends AppCompatActivity {
                     updateStatus(lightSensor, "color", col);
                     // when you need to deal with the UI, you must do it within a lambda passed to runOnUiThread()
                     runOnUiThread(() -> findViewById(R.id.colorView).setBackgroundColor(col.toARGB32()));
-                    /*
-                    Future<Boolean> touched = touchSensor.getPressed();
-                    updateStatus(touchSensor, "touch", touched.get() ? 1 : 0);
-                    */
-                    Future<Float> pos = motor1.getPosition();
-                    updateStatus(motor1, "motor position", pos.get());
 
-                    Future<Float> speed = motor1.getSpeed();
-                    updateStatus(motor1, "motor speed", speed.get());
+                    Future<Float> posMLeft = motorLeft.getPosition();
+                    updateStatus(motorLeft, "motor position", posMLeft.get());
 
-                    motor1.setStepSpeed(50, 0, 1000, 0, true);
-                    motor1.waitCompletion();
-                    motor1.setStepSpeed(-20, 0, 1000, 0, true);
+                    Future<Float> speedMLeft = motorLeft.getSpeed();
+                    updateStatus(motorLeft, "motor speed", speedMLeft.get());
+
+                    Future<Float> posMRight = motorRight.getPosition();
+                    updateStatus(motorRight, "motor position", posMRight.get());
+
+                    Future<Float> speedMRight = motorLeft.getSpeed();
+                    updateStatus(motorLeft, "motor speed", speedMRight.get());
+
+                    motorLeft.setStepSpeed(50, 0, 1000, 0, true);
+                    motorLeft.waitCompletion();
+                    motorLeft.setStepSpeed(-20, 0, 1000, 0, true);
                     Log.d(TAG, "waiting for long motor operation completed...");
-                    motor1.waitUntilReady();
+                    motorLeft.waitUntilReady();
                     Log.d(TAG, "long motor operation completed");
-                    motor2.setStepSpeed(50, 0, 1000, 0, true);
-                    motor2.waitCompletion();
-                    motor2.setStepSpeed(-20, 0, 1000, 0, true);
+                    motorRight.setStepSpeed(50, 0, 1000, 0, true);
+                    motorRight.waitCompletion();
+                    motorRight.setStepSpeed(-20, 0, 1000, 0, true);
                     Log.d(TAG, "waiting for long motor operation completed...");
-                    motor2.waitUntilReady();
+                    motorRight.waitUntilReady();
                     Log.d(TAG, "long motor operation completed");
 
                 } catch (IOException | InterruptedException | ExecutionException e) {
