@@ -221,6 +221,8 @@ public class MainActivity extends AppCompatActivity {
                                     try {
                                         if(MainActivity.motorLeft != null) {
                                             Future<Float> posMLeft = MainActivity.motorLeft.getPosition();
+                                            MainActivity.motorLeft.start();
+                                            System.out.println(posMLeft);
                                         }
 
                                     } catch (IOException e) {
