@@ -27,7 +27,7 @@ public class BallFinder {
     private int yellow_upper = 25;
 
     private boolean debug = false;
-    private String orientation = "portrait";
+    private String orientation = "landscape";
 
     private Mat frame;
 

@@ -25,10 +25,11 @@ import com.tbruyelle.rxpermissions2.RxPermissions;
 
 import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.OpenCVLoader;
+import org.opencv.core.Core;
 import org.opencv.core.Mat;
+import org.opencv.imgproc.Imgproc;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -129,6 +130,9 @@ public class MainActivity extends AppCompatActivity {
                     .show();
         }
     }
+
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -175,6 +179,7 @@ public class MainActivity extends AppCompatActivity {
                         mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
                         mOpenCvCameraView.setMaxFrameSize(640, 480);
                         mOpenCvCameraView.disableFpsMeter();
+
                         mOpenCvCameraView.setCvCameraViewListener(new CameraBridgeViewBase.CvCameraViewListener2() {
                             @Override
                             public void onCameraViewStarted(int width, int height) {
@@ -190,39 +195,44 @@ public class MainActivity extends AppCompatActivity {
                             @Override
                             public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
                                 // Salva il frame corrente su un oggetto Mat, ossia una matrice bitmap
+                                //Mat frame = inputFrame.rgba();
                                 Mat frame = inputFrame.rgba();
-                                // Crea una nuova Mat per effettuare elaborazioni
-//                                Mat median = new Mat();
-//
-//                                // Converte il formato colore da BGR a RGB
-//                                Imgproc.cvtColor(frame, median, Imgproc.COLOR_BGR2RGB);
-//
-//                                // Effettua un filtro mediana di dimensione 5 sull'immagine
-//                                Imgproc.medianBlur(frame, median, 5);
-//
-//                                // Disegna una linea in mezzo allo schermo
-//                                Imgproc.line(median, new Point(0, 120), new Point(320, 120), new Scalar(0, 255, 0), 1);
-//
-//                                ImageScanner mScanner = new ImageScanner();
-//
-//                                mScanner.setConfig(0, Config.X_DENSITY, 3);
-//                                mScanner.setConfig(0, Config.Y_DENSITY, 3);
-//                                mScanner.setConfig(Symbol.NONE, Config.ENABLE, 0);
-//                                for(BarcodeFormat format : BarcodeFormat.ALL_FORMATS) {
-//                                    mScanner.setConfig(format.getId(), Config.ENABLE, 1);
-//                                }
-//
-//                                Image imageToScan = new Image(frame.cols(), frame.rows(), "Y800");
-//                                byte[] return_buff = new byte[(int) (frame.total() *
-//                                        frame.channels())];
-//                                frame.get(0, 0, return_buff);
-//                                imageToScan.setData(return_buff);
-//                                int qrResult = mScanner.scanImage(imageToScan);
-                                BallFinder ballFinder = new BallFinder(frame, true);
+                                Mat mRgbaT = frame.t();
+                                Core.flip(frame.t(), mRgbaT, 1);
+                                Imgproc.resize(mRgbaT, mRgbaT, frame.size());
+                                //Crea una nuova Mat per effettuare elaborazioni
+                                /*
+                                Mat median = new Mat();
+
+                                // Converte il formato colore da BGR a RGB
+                                Imgproc.cvtColor(frame, median, Imgproc.COLOR_BGR2RGB);
+
+                                // Effettua un filtro mediana di dimensione 5 sull'immagine
+                                Imgproc.medianBlur(frame, median, 5);
+
+                                // Disegna una linea in mezzo allo schermo
+                                Imgproc.line(median, new Point(0, 120), new Point(320, 120), new Scalar(0, 255, 0), 1);
+
+                                ImageScanner mScanner = new ImageScanner();
+
+                                mScanner.setConfig(0, Config.X_DENSITY, 3);
+                                mScanner.setConfig(0, Config.Y_DENSITY, 3);
+                                mScanner.setConfig(Symbol.NONE, Config.ENABLE, 0);
+                                for(BarcodeFormat format : BarcodeFormat.ALL_FORMATS) {
+                                    mScanner.setConfig(format.getId(), Config.ENABLE, 1);
+                                }
+
+                                Image imageToScan = new Image(frame.cols(), frame.rows(), "Y800");
+                                byte[] return_buff = new byte[(int) (frame.total() *
+                                        frame.channels())];
+                                frame.get(0, 0, return_buff);
+                                imageToScan.setData(return_buff);
+                                int qrResult = mScanner.scanImage(imageToScan);
+                                BallFinder ballFinder = new BallFinder(mRgbaT, true);
                                 ballFinder.setViewRatio(0.4f);
                                 ArrayList<Ball> f = ballFinder.findBalls();
-
-//                              code by george but it doesn't work to update later
+                            */
+//code by george but it doesn't work to update later
                                 /*if(!f.isEmpty()) {
                                     try {
                                         motorClaws.setStepSpeed(50, 0, 1000, 0, true);
@@ -236,16 +246,18 @@ public class MainActivity extends AppCompatActivity {
 
                                 }
                                 */
-
-//                                if (qrResult != 0) {
-//                                    SymbolSet sym = mScanner.getResults();
-//                                    for (Symbol s : sym) {
-//                                        Log.d(TAG, "Found QR: " + s.getData());
-//                                    }
-//                                }
+                                //don't remember from where is it ahahah
+                                /*
+                                if (qrResult != 0) {
+                                    SymbolSet sym = mScanner.getResults();
+                                    for (Symbol s : sym) {
+                                        Log.d(TAG, "Found QR: " + s.getData());
+                                    }
+                                }
 
                                 // Ritorna il frame da visualizzare a schermo
-                                return frame;
+                            */
+                                return mRgbaT;
                             }
                         });
                         // Abilita la visualizzazione dell'immagine sullo schermo
