@@ -65,9 +65,9 @@ public class MainActivity extends AppCompatActivity {
     private TextView textView;
     private final Map<String, Object> statusMap = new HashMap<>();
     @Nullable
-    private TachoMotor motorLeft;
-    private TachoMotor motorRight;
-    private TachoMotor motorClaws;
+    private static TachoMotor motorLeft;
+    private static TachoMotor motorRight;
+    private static TachoMotor motorClaws;
 
     private void updateStatus(@NonNull Plug p, String key, Object value) {
         Log.d(TAG, String.format("%s: %s: %s", p, key, value));
@@ -152,6 +152,7 @@ public class MainActivity extends AppCompatActivity {
                         try {
                             BluetoothConnection.BluetoothChannel conn = new BluetoothConnection("Willy").connect(); // replace with your own brick name
                             GenEV3<MyCustomApi> ev3 = new GenEV3<>(conn);
+
                             Button stopButton = findViewById(R.id.stopButton);
                             stopButton.setOnClickListener(v -> {
                                 ev3.cancel();
@@ -217,6 +218,9 @@ public class MainActivity extends AppCompatActivity {
                                     direction = (center.x - mRgba.cols()/2)/mRgba.cols(); // portrait orientation
                                 }
                                 for(MatOfPoint c: contours) {
+                                    if (MainActivity.motorLeft != null) {
+                                        Future<Float> posMLeft = MainActivity.motorLeft.getPosition();
+                                        }
 
                                 }
                                 //saveMatToImage(mRgba,"ball");
