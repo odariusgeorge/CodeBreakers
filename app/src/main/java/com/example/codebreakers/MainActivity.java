@@ -202,9 +202,9 @@ public class MainActivity extends AppCompatActivity {
                             public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
                                 mRgba = inputFrame.rgba();
                                 // Rotate mRgba 90 degrees
-                                //Core.transpose(mRgba, mRgbaT);
-                                //Imgproc.resize(mRgbaT, mRgbaF, mRgbaF.size(), 0,0, 0);
-                                //Core.flip(mRgbaF, mRgba, 1 );
+                                Core.transpose(mRgba, mRgbaT);
+                                Imgproc.resize(mRgbaT, mRgbaF, mRgbaF.size(), 0,0, 0);
+                                Core.flip(mRgbaF, mRgba, 1 );
                                 //
 
                                 mDetector.process(mRgba);
