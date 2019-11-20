@@ -218,10 +218,14 @@ public class MainActivity extends AppCompatActivity {
                                     direction = (center.x - mRgba.cols()/2)/mRgba.cols(); // portrait orientation
                                 }
                                 for(MatOfPoint c: contours) {
-                                    if (MainActivity.motorLeft != null) {
-                                        Future<Float> posMLeft = MainActivity.motorLeft.getPosition();
+                                    try {
+                                        if(MainActivity.motorLeft != null) {
+                                            Future<Float> posMLeft = MainActivity.motorLeft.getPosition();
                                         }
 
+                                    } catch (IOException e) {
+                                        e.printStackTrace();
+                                    }
                                 }
                                 //saveMatToImage(mRgba,"ball");
 
