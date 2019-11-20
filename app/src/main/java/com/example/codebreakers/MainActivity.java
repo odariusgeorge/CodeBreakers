@@ -216,7 +216,9 @@ public class MainActivity extends AppCompatActivity {
                                     Imgproc.drawMarker(mRgba, center, MARKER_COLOR);
                                     direction = (center.x - mRgba.cols()/2)/mRgba.cols(); // portrait orientation
                                 }
+                                for(MatOfPoint c: contours) {
 
+                                }
                                 //saveMatToImage(mRgba,"ball");
 
                                 return mRgba;
@@ -233,8 +235,6 @@ public class MainActivity extends AppCompatActivity {
         final String TAG = Prelude.ReTAG("legoMain");
         final LightSensor lightSensor = api.getLightSensor(EV3.InputPort._1);
         final UltrasonicSensor ultraSensor = api.getUltrasonicSensor(EV3.InputPort._2);
-
-
         motorLeft = api.getTachoMotor(EV3.OutputPort.A);
         motorRight = api.getTachoMotor(EV3.OutputPort.D);
         motorClaws = api.getTachoMotor(EV3.OutputPort.B);
