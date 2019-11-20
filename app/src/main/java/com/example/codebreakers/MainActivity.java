@@ -3,7 +3,6 @@ package com.example.codebreakers;
 import android.Manifest;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
-import android.os.Handler;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -21,8 +20,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
-import com.tbruyelle.rxpermissions2.RxPermissions;
-
 import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.OpenCVLoader;
 import org.opencv.core.Core;
@@ -30,6 +27,7 @@ import org.opencv.core.Mat;
 import org.opencv.imgproc.Imgproc;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -45,11 +43,9 @@ import it.unive.dais.legodroid.lib.plugs.UltrasonicSensor;
 import it.unive.dais.legodroid.lib.util.Consumer;
 import it.unive.dais.legodroid.lib.util.Prelude;
 import it.unive.dais.legodroid.lib.util.ThrowingConsumer;
-import me.dm7.barcodescanner.zbar.Result;
 import me.dm7.barcodescanner.zbar.ZBarScannerView;
 
 public class MainActivity extends AppCompatActivity {
-    final RxPermissions rxPermissions = new RxPermissions(this);
     private static final int CAMERA_PERMISSION_CODE=100;
     private static final String TAG = Prelude.ReTAG("MainActivity");
     private CameraBridgeViewBase mOpenCvCameraView;
@@ -139,7 +135,9 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         textView = findViewById(R.id.textView);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        //check if the we have the camera permission
         checkPermission(Manifest.permission.CAMERA,CAMERA_PERMISSION_CODE);
+
         if (!OpenCVLoader.initDebug()) {
                             Log.e("AndroidIngSwOpenCV", "Unable to load OpenCV");
                         } else {
@@ -177,7 +175,7 @@ public class MainActivity extends AppCompatActivity {
 
                         mOpenCvCameraView = findViewById(R.id.HelloOpenCvView);
                         mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
-                        mOpenCvCameraView.setMaxFrameSize(640, 480);
+                        mOpenCvCameraView.setMaxFrameSize(1920, 1080);
                         mOpenCvCameraView.disableFpsMeter();
 
                         mOpenCvCameraView.setCvCameraViewListener(new CameraBridgeViewBase.CvCameraViewListener2() {
@@ -197,9 +195,9 @@ public class MainActivity extends AppCompatActivity {
                                 // Salva il frame corrente su un oggetto Mat, ossia una matrice bitmap
                                 //Mat frame = inputFrame.rgba();
                                 Mat frame = inputFrame.rgba();
-                                Mat mRgbaT = frame.t();
-                                Core.flip(frame.t(), mRgbaT, 1);
-                                Imgproc.resize(mRgbaT, mRgbaT, frame.size());
+                                Mat ourCameraFrame = frame.t();
+                                Core.flip(frame.t(), ourCameraFrame, 1);
+                                Imgproc.resize(ourCameraFrame, ourCameraFrame, frame.size());
                                 //Crea una nuova Mat per effettuare elaborazioni
                                 /*
                                 Mat median = new Mat();
@@ -228,24 +226,26 @@ public class MainActivity extends AppCompatActivity {
                                 frame.get(0, 0, return_buff);
                                 imageToScan.setData(return_buff);
                                 int qrResult = mScanner.scanImage(imageToScan);
-                                BallFinder ballFinder = new BallFinder(mRgbaT, true);
+                                 */
+
+                                BallFinder ballFinder = new BallFinder(ourCameraFrame, true);
                                 ballFinder.setViewRatio(0.4f);
                                 ArrayList<Ball> f = ballFinder.findBalls();
-                            */
+
 //code by george but it doesn't work to update later
-                                /*if(!f.isEmpty()) {
+                                /*
+                                if(!f.isEmpty()) {
                                     try {
                                         motorClaws.setStepSpeed(50, 0, 1000, 0, true);
                                         motorClaws.waitCompletion();
                                         motorClaws.setStepSpeed(-20, 0, 1000, 0, true);
-                                        Log.d(TAG, "waiting for long motor operation completed...");
                                         motorClaws.waitUntilReady();
                                     } catch (IOException | InterruptedException | ExecutionException e) {
                                         e.printStackTrace();
                                     }
 
                                 }
-                                */
+
                                 //don't remember from where is it ahahah
                                 /*
                                 if (qrResult != 0) {
@@ -254,10 +254,9 @@ public class MainActivity extends AppCompatActivity {
                                         Log.d(TAG, "Found QR: " + s.getData());
                                     }
                                 }
-
+                                */
                                 // Ritorna il frame da visualizzare a schermo
-                            */
-                                return mRgbaT;
+                                return ourCameraFrame;
                             }
                         });
                         // Abilita la visualizzazione dell'immagine sullo schermo
@@ -344,11 +343,11 @@ public class MainActivity extends AppCompatActivity {
 
 
     }
-
+// QR code form an old version don'
     @Override
     public void onResume() {
         super.onResume();
-
+        /*
         mScannerView.setResultHandler(new ZBarScannerView.ResultHandler() {
             private final ZBarScannerView.ResultHandler _this = this;
 
@@ -365,6 +364,7 @@ public class MainActivity extends AppCompatActivity {
                 }, 2000);
             }
         });
+        */
         mScannerView.startCamera();
     }
 
