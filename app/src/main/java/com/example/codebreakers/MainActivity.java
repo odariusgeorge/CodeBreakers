@@ -144,11 +144,6 @@ public class MainActivity extends AppCompatActivity {
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         checkPermission(Manifest.permission.CAMERA,CAMERA_PERMISSION_CODE);
 
-        if (!OpenCVLoader.initDebug()) {
-                            Log.e("AndroidIngSwOpenCV", "Unable to load OpenCV");
-                        } else {
-                            Log.d("AndroidIngSwOpenCV", "OpenCV loaded");
-                        }
                         try {
                             BluetoothConnection.BluetoothChannel conn = new BluetoothConnection("Willy").connect(); // replace with your own brick name
                             GenEV3<MyCustomApi> ev3 = new GenEV3<>(conn);
@@ -174,73 +169,64 @@ public class MainActivity extends AppCompatActivity {
                             e.printStackTrace();
                         }
 
-                        mOpenCvCameraView = findViewById(R.id.HelloOpenCvView);
-                        mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
-                        mOpenCvCameraView.setMaxFrameSize(1920, 1080);
-                        mOpenCvCameraView.disableFpsMeter();
 
-                        mOpenCvCameraView.setCvCameraViewListener(new CameraBridgeViewBase.CvCameraViewListener2() {
-                            @Override
-                            public void onCameraViewStarted(int width, int height) {
-                                mRgba = new Mat(height, width, CvType.CV_8UC4);
-                                mRgbaF = new Mat(height, width, CvType.CV_8UC4);
-                                mRgbaT = new Mat(width, width, CvType.CV_8UC4);  // NOTE width,width is NOT a typo
-                                mDetector = new ColorBlobDetector();
-                                mBlobColorHsv = new Scalar(280/2,0.65*255,0.75*255,255); // hue in [0,180], saturation in [0,255], value in [0,255]
-                                mDetector.setHsvColor(mBlobColorHsv);
-                                CONTOUR_COLOR = new Scalar(255,0,0,255);
-                                MARKER_COLOR = new Scalar(0,0,255,255);
-                                TEXT_COLOR = new Scalar(255,255,255,255);
-                                Log.d(TAG, "Camera Started");
-                            }
 
-                            @Override
-                            public void onCameraViewStopped() {
-                                Log.d(TAG, "Camera Stopped");
-                                mRgba.release();
-                            }
-                            @Override
-                            public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
-                                mRgba = inputFrame.rgba();
-                                // Rotate mRgba 90 degrees
-                                Core.transpose(mRgba, mRgbaT);
-                                Imgproc.resize(mRgbaT, mRgbaF, mRgbaF.size(), 0,0, 0);
-                                Core.flip(mRgbaF, mRgba, 1 );
-                                //
-
-                                mDetector.process(mRgba);
-                                List<MatOfPoint> contours = mDetector.getContours();
-                                Imgproc.drawContours(mRgba, contours, -1, CONTOUR_COLOR);
-                                Point center = mDetector.getCenterOfMaxContour();
-                                double direction = 0;
-                                if( center != null ) {
-                                    Imgproc.drawMarker(mRgba, center, MARKER_COLOR);
-                                    direction = (center.x - mRgba.cols()/2)/mRgba.cols(); // portrait orientation
-                                }
-                                for(MatOfPoint c: contours) {
-                                    try {
-                                        if(MainActivity.motorLeft != null) {
-                                            Future<Float> posMLeft = MainActivity.motorLeft.getPosition();
-                                            MainActivity.motorLeft.start();
-                                            System.out.println(posMLeft);
-                                        }
-
-                                    } catch (IOException e) {
-                                        e.printStackTrace();
-                                    }
-                                }
-                                //saveMatToImage(mRgba,"ball");
-
-                                return mRgba;
-                            }
-                        });
-                        mOpenCvCameraView.enableView();
+//                        mOpenCvCameraView.enableView();
                         mScannerView = new ZBarScannerView(this);
 
     }
 
     // main program executed by EV3
+    void setUpCamera() {
+        mOpenCvCameraView = findViewById(R.id.HelloOpenCvView);
+        mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
+        mOpenCvCameraView.setMaxFrameSize(1920, 1080);
+        mOpenCvCameraView.disableFpsMeter();
+        mOpenCvCameraView.setCvCameraViewListener(new CameraBridgeViewBase.CvCameraViewListener2() {
+            @Override
+            public void onCameraViewStarted(int width, int height) {
+                mRgba = new Mat(height, width, CvType.CV_8UC4);
+                mRgbaF = new Mat(height, width, CvType.CV_8UC4);
+                mRgbaT = new Mat(width, width, CvType.CV_8UC4);  // NOTE width,width is NOT a typo
+                mDetector = new ColorBlobDetector();
+                mBlobColorHsv = new Scalar(280/2,0.65*255,0.75*255,255); // hue in [0,180], saturation in [0,255], value in [0,255]
+                mDetector.setHsvColor(mBlobColorHsv);
+                CONTOUR_COLOR = new Scalar(255,0,0,255);
+                MARKER_COLOR = new Scalar(0,0,255,255);
+                TEXT_COLOR = new Scalar(255,255,255,255);
+                Log.d(TAG, "Camera Started");
+            }
 
+            @Override
+            public void onCameraViewStopped() {
+                Log.d(TAG, "Camera Stopped");
+                mRgba.release();
+            }
+            @Override
+            public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
+                mRgba = inputFrame.rgba();
+                // Rotate mRgba 90 degrees
+                Core.transpose(mRgba, mRgbaT);
+                Imgproc.resize(mRgbaT, mRgbaF, mRgbaF.size(), 0,0, 0);
+                Core.flip(mRgbaF, mRgba, 1 );
+                //
+
+                mDetector.process(mRgba);
+                List<MatOfPoint> contours = mDetector.getContours();
+                Imgproc.drawContours(mRgba, contours, -1, CONTOUR_COLOR);
+                Point center = mDetector.getCenterOfMaxContour();
+                double direction = 0;
+                if( center != null ) {
+                    Imgproc.drawMarker(mRgba, center, MARKER_COLOR);
+                    direction = (center.x - mRgba.cols()/2)/mRgba.cols(); // portrait orientation
+                }
+                //saveMatToImage(mRgba,"ball");
+
+                return mRgba;
+            }
+        });
+        mOpenCvCameraView.enableView();
+    }
     private void legoMain(EV3.Api api) {
         final String TAG = Prelude.ReTAG("legoMain");
         final LightSensor lightSensor = api.getLightSensor(EV3.InputPort._1);
@@ -248,7 +234,8 @@ public class MainActivity extends AppCompatActivity {
         motorLeft = api.getTachoMotor(EV3.OutputPort.A);
         motorRight = api.getTachoMotor(EV3.OutputPort.D);
         motorClaws = api.getTachoMotor(EV3.OutputPort.B);
-
+        setUpCamera();
+//
         try {
             applyMotor(TachoMotor::resetPosition);
 
