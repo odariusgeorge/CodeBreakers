@@ -76,7 +76,7 @@ public class MainActivity extends AppCompatActivity {
         if (motorClaws != null)
             Prelude.trap(() -> f.call(motorClaws));
     }
-
+    Point center;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -86,6 +86,7 @@ public class MainActivity extends AppCompatActivity {
         mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
         mOpenCvCameraView.setMaxFrameSize(640, 480);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
         try {
             BluetoothConnection.BluetoothChannel conn = new BluetoothConnection("Willy").connect(); // replace with your own brick name
             GenEV3<MyCustomApi> ev3 = new GenEV3<>(conn);
@@ -131,12 +132,8 @@ public class MainActivity extends AppCompatActivity {
                 mDetector.process(mRgba);
                 List<MatOfPoint> contours = mDetector.getContours();
                 Imgproc.drawContours(mRgba, contours, -1, CONTOUR_COLOR);
-                Point center = mDetector.getCenterOfMaxContour();
+                center = mDetector.getCenterOfMaxContour();
                 double direction = 0;
-                if( center != null ) {
-                    Imgproc.drawMarker(mRgba, center, MARKER_COLOR);
-                    direction = (center.x - mRgba.cols()/2)/mRgba.cols(); // portrait orientation
-                }
                 return mRgba;
             }
         });
@@ -177,22 +174,34 @@ public class MainActivity extends AppCompatActivity {
 
                     Future<Float> posMRight = motorRight.getPosition();
                     updateStatus(motorRight, "motor position", posMRight.get());
+                    Future<Float> speedMRight = motorRight.getSpeed();
+                    updateStatus(motorRight, "motor speed", speedMRight.get());
 
-                    Future<Float> speedMRight = motorLeft.getSpeed();
-                    updateStatus(motorLeft, "motor speed", speedMRight.get());
+                    Future<Float> postMClaws = motorClaws.getPosition();
+                    updateStatus(motorClaws, "motor position", postMClaws.get());
+                    Future<Float> speedMClawst = motorClaws.getSpeed();
+                    updateStatus(motorRight, "motor speed", speedMClawst.get());
 
-                    motorLeft.setStepSpeed(50, 0, 1000, 0, true);
-                    motorLeft.waitCompletion();
-                    motorLeft.setStepSpeed(-20, 0, 1000, 0, true);
-                    Log.d(TAG, "waiting for long motor operation completed...");
-                    motorLeft.waitUntilReady();
-                    Log.d(TAG, "long motor operation completed");
-                    motorRight.setStepSpeed(50, 0, 1000, 0, true);
-                    motorRight.waitCompletion();
-                    motorRight.setStepSpeed(-20, 0, 1000, 0, true);
-                    Log.d(TAG, "waiting for long motor operation completed...");
-                    motorRight.waitUntilReady();
-                    Log.d(TAG, "long motor operation completed");
+                    if (center!=null) {
+                        motorClaws.setStepSpeed(50, 0, 1000, 0, true);
+                        motorClaws.waitCompletion();
+                        motorClaws.setStepSpeed(-20, 0, 1000, 0, true);
+                        Log.d(TAG, "waiting for long motor operation completed...");
+                        motorClaws.waitUntilReady();
+                        Log.d(TAG, "long motor operation completed");
+                    }
+//                    motorLeft.setStepSpeed(50, 0, 1000, 0, true);
+//                    motorLeft.waitCompletion();
+//                    motorLeft.setStepSpeed(-20, 0, 1000, 0, true);
+//                    Log.d(TAG, "waiting for long motor operation completed...");
+//                    motorLeft.waitUntilReady();
+//                    Log.d(TAG, "long motor operation completed");
+//                    motorRight.setStepSpeed(50, 0, 1000, 0, true);
+//                    motorRight.waitCompletion();
+//                    motorRight.setStepSpeed(-20, 0, 1000, 0, true);
+//                    Log.d(TAG, "waiting for long motor operation completed...");
+//                    motorRight.waitUntilReady();
+//                    Log.d(TAG, "long motor operation completed");
 
                 } catch (IOException | InterruptedException | ExecutionException e) {
                     e.printStackTrace();
