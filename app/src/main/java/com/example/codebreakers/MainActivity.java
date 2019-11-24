@@ -18,9 +18,13 @@ import androidx.appcompat.app.AppCompatActivity;
 import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.OpenCVLoader;
 import org.opencv.core.Mat;
+import org.opencv.core.*;
+import org.opencv.imgproc.Imgproc;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -40,7 +44,15 @@ public class MainActivity extends AppCompatActivity {
     private static final int CAMERA_PERMISSION_CODE=100;
     private static final String TAG = Prelude.ReTAG("MainActivity");
     private CameraBridgeViewBase mOpenCvCameraView;
+    private ColorBlobDetector  mDetector;
     private TextView textView;
+    private Mat                  mRgba, mRgbaF, mRgbaT;
+    private Scalar               mBlobColorHsv;
+    private Scalar CONTOUR_COLOR;
+    private Scalar MARKER_COLOR;
+    private Scalar TEXT_COLOR;
+    private String ipAddress;
+    private Point org;
     private final Map<String, Object> statusMap = new HashMap<>();
     @Nullable
     private static TachoMotor motorLeft;
@@ -134,6 +146,16 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onCameraViewStarted(int width, int height) {
                 Log.d(TAG, "Camera Started");
+                mRgba = new Mat(height, width, CvType.CV_8UC4);
+                mRgbaF = new Mat(height, width, CvType.CV_8UC4);
+                mRgbaT = new Mat(width, width, CvType.CV_8UC4);  // NOTE width,width is NOT a typo
+                mDetector = new ColorBlobDetector();
+                mBlobColorHsv = new Scalar(280/2,0.65*255,0.75*255,255); // hue in [0,180], saturation in [0,255], value in [0,255]
+                mDetector.setHsvColor(mBlobColorHsv);
+                CONTOUR_COLOR = new Scalar(255,0,0,255);
+                MARKER_COLOR = new Scalar(0,0,255,255);
+                TEXT_COLOR = new Scalar(255,255,255,255);
+                org = new Point(1,20);
             }
 
             @Override
@@ -143,19 +165,37 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
-                Mat frame = inputFrame.rgba();
-                BallFinder ballFinder = new BallFinder(frame, true);
-                ballFinder.setViewRatio(0.0f);
-                ballFinder.setOrientation("landscape");
-                ArrayList<Ball> f = ballFinder.findBalls();
-                for (Ball b : f) {
-                    Log.e("ball", String.valueOf(b.center.x));
-                    Log.e("ball", String.valueOf(b.center.y));
-                    Log.e("ball", String.valueOf(b.radius));
-                    Log.e("ball", b.color);
-                }
+//                Mat frame = inputFrame.rgba();
+//                BallFinder ballFinder = new BallFinder(frame, true);
+//                ballFinder.setViewRatio(0.0f);
+//                ballFinder.setOrientation("landscape");
+//                ArrayList<Ball> f = ballFinder.findBalls();
+//                for (Ball b : f) {
+//                    Log.e("ball", String.valueOf(b.center.x));
+//                    Log.e("ball", String.valueOf(b.center.y));
+//                    Log.e("ball", String.valueOf(b.radius));
+//                    Log.e("ball", b.color);
+//                }
+//
+//                return frame;
+                mRgba = inputFrame.rgba();
+                // Rotate mRgba 90 degrees
+//                Core.transpose(mRgba, mRgbaT);
+//                Imgproc.resize(mRgbaT, mRgbaF, mRgbaF.size(), 0,0, 0);
+//                Core.flip(mRgbaF, mRgba, 1 );
+                //
 
-                return frame;
+                mDetector.process(mRgba);
+                List<MatOfPoint> contours = mDetector.getContours();
+                Imgproc.drawContours(mRgba, contours, -1, CONTOUR_COLOR);
+                Point center = mDetector.getCenterOfMaxContour();
+                double direction = 0;
+                if( center != null ) {
+                    Imgproc.drawMarker(mRgba, center, MARKER_COLOR);
+                    direction = (center.x - mRgba.cols()/2)/mRgba.cols(); // portrait orientation
+
+                }
+                return mRgba;
             }
         });
         mOpenCvCameraView.enableView();
