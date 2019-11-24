@@ -1,7 +1,4 @@
 package com.example.codebreakers;
-
-import android.Manifest;
-import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -11,29 +8,18 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.IdRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 
 
 import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.OpenCVLoader;
-import org.opencv.core.Core;
 import org.opencv.core.Mat;
-import org.opencv.core.MatOfPoint;
-import org.opencv.core.Point;
-import org.opencv.core.Scalar;
-import org.opencv.core.CvType;
-import org.opencv.imgproc.Imgproc;
-
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -49,19 +35,11 @@ import it.unive.dais.legodroid.lib.plugs.UltrasonicSensor;
 import it.unive.dais.legodroid.lib.util.Consumer;
 import it.unive.dais.legodroid.lib.util.Prelude;
 import it.unive.dais.legodroid.lib.util.ThrowingConsumer;
-import me.dm7.barcodescanner.zbar.ZBarScannerView;
 
 public class MainActivity extends AppCompatActivity {
     private static final int CAMERA_PERMISSION_CODE=100;
     private static final String TAG = Prelude.ReTAG("MainActivity");
-    private Mat mRgba, mRgbaF, mRgbaT;
-    private Scalar mBlobColorHsv;
-    private Scalar CONTOUR_COLOR;
-    private Scalar MARKER_COLOR;
-    private Scalar TEXT_COLOR;
     private CameraBridgeViewBase mOpenCvCameraView;
-    private ZBarScannerView mScannerView;
-    private ColorBlobDetector mDetector;
     private TextView textView;
     private final Map<String, Object> statusMap = new HashMap<>();
     @Nullable
@@ -115,114 +93,69 @@ public class MainActivity extends AppCompatActivity {
             Prelude.trap(() -> f.call(motorClaws));
     }
 
-
-
-    // Function to check and request permission.
-    public void checkPermission(String permission, int requestCode)
-    {
-        if (ContextCompat.checkSelfPermission(MainActivity.this, permission)
-                == PackageManager.PERMISSION_DENIED) {
-            ActivityCompat.requestPermissions(MainActivity.this,
-                    new String[] { permission },
-                    requestCode);
-        }
-        else {
-            Toast.makeText(MainActivity.this,
-                    "Permission already granted",
-                    Toast.LENGTH_SHORT)
-                    .show();
-        }
-    }
-
-
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         textView = findViewById(R.id.textView);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-        checkPermission(Manifest.permission.CAMERA,CAMERA_PERMISSION_CODE);
+        try {
+            BluetoothConnection.BluetoothChannel conn = new BluetoothConnection("Willy").connect(); // replace with your own brick name
+            GenEV3<MyCustomApi> ev3 = new GenEV3<>(conn);
 
-                        try {
-                            BluetoothConnection.BluetoothChannel conn = new BluetoothConnection("Willy").connect(); // replace with your own brick name
-                            GenEV3<MyCustomApi> ev3 = new GenEV3<>(conn);
-
-                            Button stopButton = findViewById(R.id.stopButton);
-                            stopButton.setOnClickListener(v -> {
-                                ev3.cancel();
-                            });
-
-                            Button startButton = findViewById(R.id.startButton);
-                            startButton.setOnClickListener(v -> Prelude.trap(() -> ev3.run(this::legoMainCustomApi, MyCustomApi::new)));
-
-                            setupEditable(R.id.powerEdit, (x) -> applyMotor((m) -> {
+            Button stopButton = findViewById(R.id.stopButton);
+            stopButton.setOnClickListener(v -> { ev3.cancel(); });
+            Button startButton = findViewById(R.id.startButton);
+            startButton.setOnClickListener(v -> Prelude.trap(() -> ev3.run(this::legoMainCustomApi, MyCustomApi::new)));
+            setupEditable(R.id.powerEdit, (x) -> applyMotor((m) -> {
                                 m.setPower(x);
                                 m.start();
                             }));
-                            setupEditable(R.id.speedEdit, (x) -> applyMotor((m) -> {
-                                m.setSpeed(x);
-                                m.start();
-                            }));
-                        } catch (IOException e) {
-                            Log.e(TAG, "fatal error: cannot connect to EV3");
-                            e.printStackTrace();
-                        }
-
-
-
-//                        mOpenCvCameraView.enableView();
-                        mScannerView = new ZBarScannerView(this);
-
+            setupEditable(R.id.speedEdit, (x) -> applyMotor((m) -> {
+                m.setSpeed(x);
+                m.start();
+            }));
+        } catch (IOException e) {
+            Log.e(TAG, "fatal error: cannot connect to EV3");
+            e.printStackTrace();
+        }
+        setUpCamera();
     }
-
-    // main program executed by EV3
     void setUpCamera() {
+        if (!OpenCVLoader.initDebug()) {
+            Log.e(TAG, "Unable to load OpenCV");
+        } else {
+            Log.d(TAG, "OpenCV loaded");
+        }
         mOpenCvCameraView = findViewById(R.id.HelloOpenCvView);
         mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
-        mOpenCvCameraView.setMaxFrameSize(1920, 1080);
-        mOpenCvCameraView.disableFpsMeter();
+        mOpenCvCameraView.setMaxFrameSize(640, 480);
         mOpenCvCameraView.setCvCameraViewListener(new CameraBridgeViewBase.CvCameraViewListener2() {
             @Override
             public void onCameraViewStarted(int width, int height) {
-                mRgba = new Mat(height, width, CvType.CV_8UC4);
-                mRgbaF = new Mat(height, width, CvType.CV_8UC4);
-                mRgbaT = new Mat(width, width, CvType.CV_8UC4);  // NOTE width,width is NOT a typo
-                mDetector = new ColorBlobDetector();
-                mBlobColorHsv = new Scalar(280/2,0.65*255,0.75*255,255); // hue in [0,180], saturation in [0,255], value in [0,255]
-                mDetector.setHsvColor(mBlobColorHsv);
-                CONTOUR_COLOR = new Scalar(255,0,0,255);
-                MARKER_COLOR = new Scalar(0,0,255,255);
-                TEXT_COLOR = new Scalar(255,255,255,255);
                 Log.d(TAG, "Camera Started");
             }
 
             @Override
             public void onCameraViewStopped() {
                 Log.d(TAG, "Camera Stopped");
-                mRgba.release();
             }
+
             @Override
             public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
-                mRgba = inputFrame.rgba();
-                // Rotate mRgba 90 degrees
-                Core.transpose(mRgba, mRgbaT);
-                Imgproc.resize(mRgbaT, mRgbaF, mRgbaF.size(), 0,0, 0);
-                Core.flip(mRgbaF, mRgba, 1 );
-                //
-
-                mDetector.process(mRgba);
-                List<MatOfPoint> contours = mDetector.getContours();
-                Imgproc.drawContours(mRgba, contours, -1, CONTOUR_COLOR);
-                Point center = mDetector.getCenterOfMaxContour();
-                double direction = 0;
-                if( center != null ) {
-                    Imgproc.drawMarker(mRgba, center, MARKER_COLOR);
-                    direction = (center.x - mRgba.cols()/2)/mRgba.cols(); // portrait orientation
+                Mat frame = inputFrame.rgba();
+                BallFinder ballFinder = new BallFinder(frame, true);
+                ballFinder.setViewRatio(0.0f);
+                ballFinder.setOrientation("landscape");
+                ArrayList<Ball> f = ballFinder.findBalls();
+                for (Ball b : f) {
+                    Log.e("ball", String.valueOf(b.center.x));
+                    Log.e("ball", String.valueOf(b.center.y));
+                    Log.e("ball", String.valueOf(b.radius));
+                    Log.e("ball", b.color);
                 }
-                //saveMatToImage(mRgba,"ball");
 
-                return mRgba;
+                return frame;
             }
         });
         mOpenCvCameraView.enableView();
@@ -234,8 +167,6 @@ public class MainActivity extends AppCompatActivity {
         motorLeft = api.getTachoMotor(EV3.OutputPort.A);
         motorRight = api.getTachoMotor(EV3.OutputPort.D);
         motorClaws = api.getTachoMotor(EV3.OutputPort.B);
-        setUpCamera();
-//
         try {
             applyMotor(TachoMotor::resetPosition);
 
@@ -288,22 +219,7 @@ public class MainActivity extends AppCompatActivity {
         } finally {
             applyMotor(TachoMotor::stop);
         }
-
-
     }
-    @Override
-    public void onResume() {
-        super.onResume();
-        mScannerView.startCamera();
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-        mScannerView.stopCamera();
-    }
-
-
     private void legoMainCustomApi(MyCustomApi api) {
         final String TAG = Prelude.ReTAG("legoMainCustomApi");
         api.mySpecialCommand();
