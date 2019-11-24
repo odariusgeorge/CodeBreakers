@@ -192,19 +192,29 @@ public class MainActivity extends AppCompatActivity {
                     Future<Float> speedMClawst = motorClaws.getSpeed();
                     updateStatus(motorRight, "motor speed", speedMClawst.get());
                     if(center != null) {
-                        motorClaws.setStepSpeed(-50,0,1000,0,true);
+                        motorClaws.setStepSpeed(-50, 0, 1000, 0, true);
                         motorClaws.waitCompletion();
 //                       catchBall(motorClaws);
-                    }
 //                    motorClaws.stop();
-                    motorLeft.setStepSpeed(50, 100, 0, 0, true);
-                    motorLeft.waitCompletion();
+                        //motorLeft.setStepSync(50, 0, 1000, true);
+                        //motorRight.setStepSync(50, 0, 1000, true);
+                        //are sens? nu stiu incercam
+                    motorLeft.setStepSpeed(100, 0, 2000, 0, true);
+                    motorRight.setStepSpeed(100, 0, 2000, 0, true);
+                        motorLeft.waitCompletion();
+                        motorRight.waitCompletion();
 
+//                    motorLeft.waitCompletion();
+//
 //                    releaseBall(motorClaws);
-                    motorClaws.setStepSpeed(50,0,1000,0,true);
-                    motorClaws.waitCompletion();
-                    stopMotors(motorClaws,motorLeft,motorRight);
-
+                        motorClaws.setStepSpeed(50, 0, 1000, 0, true);
+                        motorClaws.waitCompletion();
+                        motorLeft.setStepSpeed(-50, 0, 1000, 0, true);
+                        motorRight.setStepSpeed(-50, 0, 1000, 0, true);
+                        motorLeft.waitCompletion();
+                        motorRight.waitCompletion();
+                        stopMotors(motorClaws, motorLeft, motorRight);
+                    }
                     i++;
                 } catch (IOException | InterruptedException | ExecutionException e) {
                     e.printStackTrace();
