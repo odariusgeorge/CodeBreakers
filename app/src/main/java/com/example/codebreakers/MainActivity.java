@@ -1,28 +1,24 @@
 package com.example.codebreakers;
 import android.os.Bundle;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.util.Log;
 import android.view.SurfaceView;
 import android.view.WindowManager;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.TextView;
 
-import androidx.annotation.IdRes;
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-
 
 import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.OpenCVLoader;
+import org.opencv.core.CvType;
 import org.opencv.core.Mat;
-import org.opencv.core.*;
+import org.opencv.core.MatOfPoint;
+import org.opencv.core.Point;
+import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,7 +32,6 @@ import it.unive.dais.legodroid.lib.plugs.LightSensor;
 import it.unive.dais.legodroid.lib.plugs.Plug;
 import it.unive.dais.legodroid.lib.plugs.TachoMotor;
 import it.unive.dais.legodroid.lib.plugs.UltrasonicSensor;
-import it.unive.dais.legodroid.lib.util.Consumer;
 import it.unive.dais.legodroid.lib.util.Prelude;
 import it.unive.dais.legodroid.lib.util.ThrowingConsumer;
 
@@ -139,6 +134,19 @@ public class MainActivity extends AppCompatActivity {
         });
         mOpenCvCameraView.enableView();
     }
+    void catchBall(TachoMotor claws) throws IOException {
+        claws.setStepSpeed(-50,0,2000,0,true);
+        claws.waitCompletion();
+    }
+    void releaseBall(TachoMotor claws) throws IOException {
+        claws.setStepSpeed(50,0,2000,0,true);
+        claws.waitCompletion();
+    }
+    void stopMotors(TachoMotor m1, TachoMotor m2, TachoMotor m3) throws IOException {
+        m1.stop();
+        m2.stop();
+        m3.stop();
+    }
     private void legoMain(EV3.Api api) {
         final String TAG = Prelude.ReTAG("legoMain");
         final LightSensor lightSensor = api.getLightSensor(EV3.InputPort._1);
@@ -146,11 +154,13 @@ public class MainActivity extends AppCompatActivity {
         motorLeft = api.getTachoMotor(EV3.OutputPort.A);
         motorRight = api.getTachoMotor(EV3.OutputPort.D);
         motorClaws = api.getTachoMotor(EV3.OutputPort.B);
+        boolean ballChatced= false;
         setUpCamera();
         try {
             applyMotor(TachoMotor::resetPosition);
-
-            while (!api.ev3.isCancelled()) {
+            Integer i = new Integer(0);
+//            while (!api.ev3.isCancelled()) {
+            while (i<1) {
                 try {
                     Future<Short> ambient = lightSensor.getAmbient();
                     updateStatus(lightSensor, "ambient", ambient.get());
@@ -181,28 +191,21 @@ public class MainActivity extends AppCompatActivity {
                     updateStatus(motorClaws, "motor position", postMClaws.get());
                     Future<Float> speedMClawst = motorClaws.getSpeed();
                     updateStatus(motorRight, "motor speed", speedMClawst.get());
-
-                    if (center!=null) {
-                        motorClaws.setStepSpeed(50, 0, 1000, 0, true);
+                    if(center != null) {
+                        motorClaws.setStepSpeed(-50,0,1000,0,true);
                         motorClaws.waitCompletion();
-                        motorClaws.setStepSpeed(-20, 0, 1000, 0, true);
-                        Log.d(TAG, "waiting for long motor operation completed...");
-                        motorClaws.waitUntilReady();
-                        Log.d(TAG, "long motor operation completed");
+//                       catchBall(motorClaws);
                     }
-//                    motorLeft.setStepSpeed(50, 0, 1000, 0, true);
-//                    motorLeft.waitCompletion();
-//                    motorLeft.setStepSpeed(-20, 0, 1000, 0, true);
-//                    Log.d(TAG, "waiting for long motor operation completed...");
-//                    motorLeft.waitUntilReady();
-//                    Log.d(TAG, "long motor operation completed");
-//                    motorRight.setStepSpeed(50, 0, 1000, 0, true);
-//                    motorRight.waitCompletion();
-//                    motorRight.setStepSpeed(-20, 0, 1000, 0, true);
-//                    Log.d(TAG, "waiting for long motor operation completed...");
-//                    motorRight.waitUntilReady();
-//                    Log.d(TAG, "long motor operation completed");
+//                    motorClaws.stop();
+                    motorLeft.setStepSpeed(50, 100, 0, 0, true);
+                    motorLeft.waitCompletion();
 
+//                    releaseBall(motorClaws);
+                    motorClaws.setStepSpeed(50,0,1000,0,true);
+                    motorClaws.waitCompletion();
+                    stopMotors(motorClaws,motorLeft,motorRight);
+
+                    i++;
                 } catch (IOException | InterruptedException | ExecutionException e) {
                     e.printStackTrace();
                 }
