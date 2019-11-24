@@ -46,48 +46,20 @@ public class MainActivity extends AppCompatActivity {
     private CameraBridgeViewBase mOpenCvCameraView;
     private ColorBlobDetector  mDetector;
     private TextView textView;
-    private Mat                  mRgba, mRgbaF, mRgbaT;
-    private Scalar               mBlobColorHsv;
+    private Mat mRgba, mRgbaF, mRgbaT;
+    private Scalar mBlobColorHsv;
     private Scalar CONTOUR_COLOR;
     private Scalar MARKER_COLOR;
-    private Scalar TEXT_COLOR;
-    private String ipAddress;
     private Point org;
     private final Map<String, Object> statusMap = new HashMap<>();
-    @Nullable
     private static TachoMotor motorLeft;
     private static TachoMotor motorRight;
     private static TachoMotor motorClaws;
-
     private void updateStatus(@NonNull Plug p, String key, Object value) {
         Log.d(TAG, String.format("%s: %s: %s", p, key, value));
         statusMap.put(key, value);
         runOnUiThread(() -> textView.setText(statusMap.toString()));
     }
-
-    private void setupEditable(@IdRes int id, Consumer<Integer> f) {
-        EditText e = findViewById(id);
-        e.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-            }
-
-            @Override
-            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {
-                int x = 0;
-                try {
-                    x = Integer.parseInt(s.toString());
-                } catch (NumberFormatException ignored) {
-                }
-                f.call(x);
-            }
-        });
-    }
-
     private static class MyCustomApi extends EV3.Api {
 
         private MyCustomApi(@NonNull GenEV3<? extends EV3.Api> ev3) {
@@ -119,21 +91,13 @@ public class MainActivity extends AppCompatActivity {
             stopButton.setOnClickListener(v -> { ev3.cancel(); });
             Button startButton = findViewById(R.id.startButton);
             startButton.setOnClickListener(v -> Prelude.trap(() -> ev3.run(this::legoMainCustomApi, MyCustomApi::new)));
-            setupEditable(R.id.powerEdit, (x) -> applyMotor((m) -> {
-                                m.setPower(x);
-                                m.start();
-                            }));
-            setupEditable(R.id.speedEdit, (x) -> applyMotor((m) -> {
-                m.setSpeed(x);
-                m.start();
-            }));
         } catch (IOException e) {
             Log.e(TAG, "fatal error: cannot connect to EV3");
             e.printStackTrace();
         }
-        setUpCamera();
+
     }
-    void setUpCamera() {
+    private void setUpCamera() {
         if (!OpenCVLoader.initDebug()) {
             Log.e(TAG, "Unable to load OpenCV");
         } else {
@@ -148,43 +112,21 @@ public class MainActivity extends AppCompatActivity {
                 Log.d(TAG, "Camera Started");
                 mRgba = new Mat(height, width, CvType.CV_8UC4);
                 mRgbaF = new Mat(height, width, CvType.CV_8UC4);
-                mRgbaT = new Mat(width, width, CvType.CV_8UC4);  // NOTE width,width is NOT a typo
+                mRgbaT = new Mat(width, width, CvType.CV_8UC4);
                 mDetector = new ColorBlobDetector();
-                mBlobColorHsv = new Scalar(280/2,0.65*255,0.75*255,255); // hue in [0,180], saturation in [0,255], value in [0,255]
+                mBlobColorHsv = new Scalar(280/2,0.65*255,0.75*255,255);
                 mDetector.setHsvColor(mBlobColorHsv);
                 CONTOUR_COLOR = new Scalar(255,0,0,255);
                 MARKER_COLOR = new Scalar(0,0,255,255);
-                TEXT_COLOR = new Scalar(255,255,255,255);
                 org = new Point(1,20);
             }
-
             @Override
             public void onCameraViewStopped() {
                 Log.d(TAG, "Camera Stopped");
             }
-
             @Override
             public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
-//                Mat frame = inputFrame.rgba();
-//                BallFinder ballFinder = new BallFinder(frame, true);
-//                ballFinder.setViewRatio(0.0f);
-//                ballFinder.setOrientation("landscape");
-//                ArrayList<Ball> f = ballFinder.findBalls();
-//                for (Ball b : f) {
-//                    Log.e("ball", String.valueOf(b.center.x));
-//                    Log.e("ball", String.valueOf(b.center.y));
-//                    Log.e("ball", String.valueOf(b.radius));
-//                    Log.e("ball", b.color);
-//                }
-//
-//                return frame;
                 mRgba = inputFrame.rgba();
-                // Rotate mRgba 90 degrees
-//                Core.transpose(mRgba, mRgbaT);
-//                Imgproc.resize(mRgbaT, mRgbaF, mRgbaF.size(), 0,0, 0);
-//                Core.flip(mRgbaF, mRgba, 1 );
-                //
-
                 mDetector.process(mRgba);
                 List<MatOfPoint> contours = mDetector.getContours();
                 Imgproc.drawContours(mRgba, contours, -1, CONTOUR_COLOR);
@@ -193,7 +135,6 @@ public class MainActivity extends AppCompatActivity {
                 if( center != null ) {
                     Imgproc.drawMarker(mRgba, center, MARKER_COLOR);
                     direction = (center.x - mRgba.cols()/2)/mRgba.cols(); // portrait orientation
-
                 }
                 return mRgba;
             }
@@ -207,6 +148,7 @@ public class MainActivity extends AppCompatActivity {
         motorLeft = api.getTachoMotor(EV3.OutputPort.A);
         motorRight = api.getTachoMotor(EV3.OutputPort.D);
         motorClaws = api.getTachoMotor(EV3.OutputPort.B);
+        setUpCamera();
         try {
             applyMotor(TachoMotor::resetPosition);
 
