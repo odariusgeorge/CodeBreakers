@@ -199,53 +199,20 @@ public class MainActivity extends AppCompatActivity {
 
                     Future<Float> speedMLeft = motorLeft.getSpeed();
                     updateStatus(motorLeft, "motor speed", speedMLeft.get());
-
                     Future<Float> posMRight = motorRight.getPosition();
                     updateStatus(motorRight, "motor position", posMRight.get());
                     Future<Float> speedMRight = motorRight.getSpeed();
                     updateStatus(motorRight, "motor speed", speedMRight.get());
-
                     Future<Float> postMClaws = motorClaws.getPosition();
                     updateStatus(motorClaws, "motor position", postMClaws.get());
                     Future<Float> speedMClawst = motorClaws.getSpeed();
                     updateStatus(motorRight, "motor speed", speedMClawst.get());
                     if(center != null) {
-                        //suppose we have a mine at position (i,j)
-                        // our position is at (x,y)
-                        // while(x!=i)
-                        // { if(x > i)
-                        //   {goBack()
-                        //   x++;}
-                        // else {
-                        // goForward() {
-                        // x++;
-                        //same for y
-//                    }
                         catchBall();
+                        api.soundTone(100,100,3000);
                         goForward();
                         releaseBall();
                         goBack();
-//                        motorClaws.setStepSpeed(-50, 0, 1000, 0, true);
-//                        motorClaws.waitCompletion();
-//                       catchBall(motorClaws);
-//                    motorClaws.stop();
-                        //motorLeft.setStepSync(50, 0, 1000, true);
-                        //motorRight.setStepSync(50, 0, 1000, true);
-                        //are sens? nu stiu incercam
-//                    motorLeft.setStepSpeed(100, 0, 2000, 0, true);
-//                    motorRight.setStepSpeed(100, 0, 2000, 0, true);
-//                        motorLeft.waitCompletion();
-//                        motorRight.waitCompletion();
-
-//                    motorLeft.waitCompletion();
-//
-//                    releaseBall(motorClaws);
-//                        motorClaws.setStepSpeed(50, 0, 1000, 0, true);
-//                        motorClaws.waitCompletion();
-//                        motorLeft.setStepSpeed(-50, 0, 1000, 0, true);
-//                        motorRight.setStepSpeed(-50, 0, 1000, 0, true);
-//                        motorLeft.waitCompletion();
-//                        motorRight.waitCompletion();
                         stopMotors();
                     }
                     i++;
