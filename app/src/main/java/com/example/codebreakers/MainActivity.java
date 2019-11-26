@@ -135,11 +135,11 @@ public class MainActivity extends AppCompatActivity {
         mOpenCvCameraView.enableView();
     }
     void catchBall() throws IOException {
-        motorClaws.setStepSpeed(-50,0,2000,0,true);
+        motorClaws.setStepSpeed(-50,0,1000,0,true);
         motorClaws.waitCompletion();
     }
     void releaseBall() throws IOException {
-        motorClaws.setStepSpeed(50,0,2000,0,true);
+        motorClaws.setStepSpeed(50,0,1000,0,true);
         motorClaws.waitCompletion();
     }
     void goForward() throws  IOException {
