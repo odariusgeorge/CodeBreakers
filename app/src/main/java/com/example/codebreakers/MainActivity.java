@@ -134,18 +134,36 @@ public class MainActivity extends AppCompatActivity {
         });
         mOpenCvCameraView.enableView();
     }
-    void catchBall(TachoMotor claws) throws IOException {
-        claws.setStepSpeed(-50,0,2000,0,true);
-        claws.waitCompletion();
+    void catchBall() throws IOException {
+        motorClaws.setStepSpeed(-50,0,2000,0,true);
+        motorClaws.waitCompletion();
     }
-    void releaseBall(TachoMotor claws) throws IOException {
-        claws.setStepSpeed(50,0,2000,0,true);
-        claws.waitCompletion();
+    void releaseBall() throws IOException {
+        motorClaws.setStepSpeed(50,0,2000,0,true);
+        motorClaws.waitCompletion();
     }
-    void stopMotors(TachoMotor m1, TachoMotor m2, TachoMotor m3) throws IOException {
-        m1.stop();
-        m2.stop();
-        m3.stop();
+    void goForward() throws  IOException {
+        motorLeft.setStepSpeed(50, 0, 1000, 0, true);
+        motorRight.setStepSpeed(50, 0, 1000, 0, true);
+        motorLeft.waitCompletion();
+        motorRight.waitCompletion();
+    }
+    void goBack() throws  IOException {
+        motorLeft.setStepSpeed(-50, 0, 1000, 0, true);
+        motorRight.setStepSpeed(-50, 0, 1000, 0, true);
+        motorLeft.waitCompletion();
+        motorRight.waitCompletion();
+    }
+    void goLeft(TachoMotor m1, TachoMotor m2) throws  IOException {
+
+    }
+    void goRight(TachoMotor m1, TachoMotor m2) throws  IOException {
+
+    }
+    void stopMotors() throws IOException {
+        motorRight.stop();
+        motorLeft.stop();
+        motorClaws.stop();
     }
     private void legoMain(EV3.Api api) {
         final String TAG = Prelude.ReTAG("legoMain");
@@ -192,28 +210,43 @@ public class MainActivity extends AppCompatActivity {
                     Future<Float> speedMClawst = motorClaws.getSpeed();
                     updateStatus(motorRight, "motor speed", speedMClawst.get());
                     if(center != null) {
-                        motorClaws.setStepSpeed(-50, 0, 1000, 0, true);
-                        motorClaws.waitCompletion();
+                        //suppose we have a mine at position (i,j)
+                        // our position is at (x,y)
+                        // while(x!=i)
+                        // { if(x > i)
+                        //   {goBack()
+                        //   x++;}
+                        // else {
+                        // goForward() {
+                        // x++;
+                        //same for y
+//                    }
+                        catchBall();
+                        goForward();
+                        releaseBall();
+                        goBack();
+//                        motorClaws.setStepSpeed(-50, 0, 1000, 0, true);
+//                        motorClaws.waitCompletion();
 //                       catchBall(motorClaws);
 //                    motorClaws.stop();
                         //motorLeft.setStepSync(50, 0, 1000, true);
                         //motorRight.setStepSync(50, 0, 1000, true);
                         //are sens? nu stiu incercam
-                    motorLeft.setStepSpeed(100, 0, 2000, 0, true);
-                    motorRight.setStepSpeed(100, 0, 2000, 0, true);
-                        motorLeft.waitCompletion();
-                        motorRight.waitCompletion();
+//                    motorLeft.setStepSpeed(100, 0, 2000, 0, true);
+//                    motorRight.setStepSpeed(100, 0, 2000, 0, true);
+//                        motorLeft.waitCompletion();
+//                        motorRight.waitCompletion();
 
 //                    motorLeft.waitCompletion();
 //
 //                    releaseBall(motorClaws);
-                        motorClaws.setStepSpeed(50, 0, 1000, 0, true);
-                        motorClaws.waitCompletion();
-                        motorLeft.setStepSpeed(-50, 0, 1000, 0, true);
-                        motorRight.setStepSpeed(-50, 0, 1000, 0, true);
-                        motorLeft.waitCompletion();
-                        motorRight.waitCompletion();
-                        stopMotors(motorClaws, motorLeft, motorRight);
+//                        motorClaws.setStepSpeed(50, 0, 1000, 0, true);
+//                        motorClaws.waitCompletion();
+//                        motorLeft.setStepSpeed(-50, 0, 1000, 0, true);
+//                        motorRight.setStepSpeed(-50, 0, 1000, 0, true);
+//                        motorLeft.waitCompletion();
+//                        motorRight.waitCompletion();
+                        stopMotors();
                     }
                     i++;
                 } catch (IOException | InterruptedException | ExecutionException e) {
