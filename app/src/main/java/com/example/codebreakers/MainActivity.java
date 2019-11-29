@@ -59,10 +59,16 @@ public class MainActivity extends AppCompatActivity {
     private int[][] matrix;
     private Integer n;
     private Integer m;
-    private Integer xBall;
-    private Integer yBall;
-    private Integer xRobot;
-    private Integer yRobot;
+    private Integer xBallValue;
+    private Integer yBallValue;
+    private Integer xRobotValue;
+    private Integer yRobotValue;
+    EditText rows = findViewById(R.id.numberOfRows);
+    EditText columns = findViewById(R.id.numberOfColumns);
+    EditText xRobot = findViewById(R.id.xRobotStart);
+    EditText yRobot = findViewById(R.id.yRobotStart);
+    EditText xBall = findViewById(R.id.xStartBall);
+    EditText yBall = findViewById(R.id.yStartBall);
     private void updateStatus(@NonNull Plug p, String key, Object value) {
         Log.d(TAG, String.format("%s: %s: %s", p, key, value));
         statusMap.put(key, value);
@@ -90,12 +96,6 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         textView = findViewById(R.id.textView);
-        EditText rows = findViewById(R.id.numberOfRows);
-        EditText columns = findViewById(R.id.numberOfColumns);
-        EditText xRobot = findViewById(R.id.xRobotStart);
-        EditText yRobot = findViewById(R.id.yRobotStart);
-        EditText xBall = findViewById(R.id.xStartBall);
-        EditText yBall = findViewById(R.id.yStartBall);
         mOpenCvCameraView = findViewById(R.id.HelloOpenCvView);
         mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
         mOpenCvCameraView.setMaxFrameSize(640, 480);
@@ -109,9 +109,6 @@ public class MainActivity extends AppCompatActivity {
             stopButton.setOnClickListener(v -> { ev3.cancel(); });
             Button startButton = findViewById(R.id.startButton);
             startButton.setOnClickListener(v -> Prelude.trap(() -> ev3.run(this::legoMainCustomApi, MyCustomApi::new)));
-            n = Integer.valueOf(rows.getText().toString());
-            m = Integer.valueOf(columns.getText().toString());
-            matrix = constructMatrix(n,m);
         } catch (IOException e) {
             Log.e(TAG, "fatal error: cannot connect to EV3");
             e.printStackTrace();
@@ -265,6 +262,9 @@ public class MainActivity extends AppCompatActivity {
         final String TAG = Prelude.ReTAG("legoMainCustomApi");
         api.mySpecialCommand();
         legoMain(api);
+        n = Integer.valueOf(rows.getText().toString());
+        m = Integer.valueOf(columns.getText().toString());
+        matrix = constructMatrix(n,m);
     }
 
 
