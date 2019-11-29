@@ -96,7 +96,7 @@ public class MainActivity extends AppCompatActivity {
         textView = findViewById(R.id.textView);
         mOpenCvCameraView = findViewById(R.id.HelloOpenCvView);
         mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
-        mOpenCvCameraView.setMaxFrameSize(640, 480);
+        mOpenCvCameraView.setMaxFrameSize(100, 100);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
         try {
@@ -166,8 +166,8 @@ public class MainActivity extends AppCompatActivity {
         motorClaws.waitCompletion();
     }
     void goForward() throws  IOException {
-        motorLeft.setStepSpeed(50, 0, 1000, 0, true);
-        motorRight.setStepSpeed(50, 0, 1000, 0, true);
+        motorLeft.setStepSpeed(50, 0, 610, 0, true);
+        motorRight.setStepSpeed(50, 0, 610, 0, true);
         motorLeft.waitCompletion();
         motorRight.waitCompletion();
     }
@@ -203,8 +203,8 @@ public class MainActivity extends AppCompatActivity {
 //            while (!api.ev3.isCancelled()) {
             while (i<1) {
                 try {
-                    int x = 0;
-                    int y = 0;
+                    Integer x = 0;
+                    Integer y = 0;
                     while(x < n) {
                         goForward();
                         x++;
@@ -245,8 +245,7 @@ public class MainActivity extends AppCompatActivity {
 //                        stopMotors();
 //                    }
                     i++;
-                } catch (IOException e)
-//                        | InterruptedException | ExecutionException e) {
+                } catch (IOException | InterruptedException | ExecutionException e) {
                 {
                     e.printStackTrace();
                 }
@@ -259,12 +258,12 @@ public class MainActivity extends AppCompatActivity {
     private void legoMainCustomApi(MyCustomApi api) {
         final String TAG = Prelude.ReTAG("legoMainCustomApi");
         api.mySpecialCommand();
-        legoMain(api);
         EditText rows = findViewById(R.id.numberOfRows);
         EditText columns = findViewById(R.id.numberOfColumns);
         n = Integer.valueOf(rows.getText().toString());
         m = Integer.valueOf(columns.getText().toString());
-        matrix = constructMatrix(n,m);
+        legoMain(api);
+        //matrix = constructMatrix(n,m);
     }
 
 
