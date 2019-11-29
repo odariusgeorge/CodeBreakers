@@ -63,12 +63,10 @@ public class MainActivity extends AppCompatActivity {
     private Integer yBallValue;
     private Integer xRobotValue;
     private Integer yRobotValue;
-    EditText rows = findViewById(R.id.numberOfRows);
-    EditText columns = findViewById(R.id.numberOfColumns);
-    EditText xRobot = findViewById(R.id.xRobotStart);
-    EditText yRobot = findViewById(R.id.yRobotStart);
-    EditText xBall = findViewById(R.id.xStartBall);
-    EditText yBall = findViewById(R.id.yStartBall);
+//    EditText xRobot = findViewById(R.id.xRobotStart);
+//    EditText yRobot = findViewById(R.id.yRobotStart);
+//    EditText xBall = findViewById(R.id.xStartBall);
+//    EditText yBall = findViewById(R.id.yStartBall);
     private void updateStatus(@NonNull Plug p, String key, Object value) {
         Log.d(TAG, String.format("%s: %s: %s", p, key, value));
         statusMap.put(key, value);
@@ -262,6 +260,8 @@ public class MainActivity extends AppCompatActivity {
         final String TAG = Prelude.ReTAG("legoMainCustomApi");
         api.mySpecialCommand();
         legoMain(api);
+        EditText rows = findViewById(R.id.numberOfRows);
+        EditText columns = findViewById(R.id.numberOfColumns);
         n = Integer.valueOf(rows.getText().toString());
         m = Integer.valueOf(columns.getText().toString());
         matrix = constructMatrix(n,m);
