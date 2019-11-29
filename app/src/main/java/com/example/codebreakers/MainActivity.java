@@ -178,15 +178,14 @@ public class MainActivity extends AppCompatActivity {
         motorRight.waitCompletion();
     }
     void goLeft() throws  IOException {
-        motorLeft.setStepSync(100,0,610,false);
-        motorLeft.setStepSync(0,0,610,false);
-        motorLeft.setStepSpeed(-50, 0, 610, 0, true);
-        motorRight.setStepSpeed(-50, 0, 610, 0, true);
-
+        motorLeft.setStepSpeed(-50, 0, 160, 0, true);
+        motorRight.setStepSpeed(50, 0, 160, 0, true);
+        motorLeft.waitCompletion();
+        motorRight.waitCompletion();
     }
     void goRight() throws  IOException {
-        motorLeft.setStepSpeed(50, 0, 610, 0, true);
-        motorRight.setStepSpeed(-50, 0, 610, 0, true);
+        motorLeft.setStepSpeed(50, 0, 160, 0, true);
+        motorRight.setStepSpeed(-50, 0, 160, 0, true);
         motorLeft.waitCompletion();
         motorRight.waitCompletion();
     }
@@ -207,14 +206,12 @@ public class MainActivity extends AppCompatActivity {
         try {
             applyMotor(TachoMotor::resetPosition);
             Integer i = new Integer(0);
-//            while (!api.ev3.isCancelled()) {
-            while (i<1) {
+            while (i<4) {
                 try {
                     while(xRobotValue < n) {
                         goForward();
                         xRobotValue++;
                     }
-                    goLeft();
                     goRight();
 //                    Future<Short> ambient = lightSensor.getAmbient();
 //                    updateStatus(lightSensor, "ambient", ambient.get());
