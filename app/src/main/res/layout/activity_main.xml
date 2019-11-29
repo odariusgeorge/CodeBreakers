@@ -51,19 +51,23 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal">
 
-        <TextView
+        <EditText
+            android:id="@+id/xRobotStart"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Motor Power:"
-            tools:ignore="HardcodedText" />
+            android:layout_weight="1"
+            android:ems="10"
+            android:hint="xRobot"
+            android:inputType="numberDecimal" />
 
         <EditText
-            android:id="@+id/powerEdit"
+            android:id="@+id/yRobotStart"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:inputType="numberSigned"
-            android:importantForAutofill="no" />
-
+            android:layout_weight="1"
+            android:ems="10"
+            android:hint="yRobot"
+            android:inputType="numberDecimal" />
     </LinearLayout>
 
 
@@ -72,19 +76,46 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal">
 
-        <TextView
+        <EditText
+            android:id="@+id/xStartBall"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Motor Speed:"
-            tools:ignore="HardcodedText" />
+            android:layout_weight="1"
+            android:ems="10"
+            android:hint="xBall"
+            android:inputType="numberDecimal" />
 
         <EditText
-            android:id="@+id/speedEdit"
+            android:id="@+id/yStartBall"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:inputType="numberSigned"
-            android:importantForAutofill="no" />
+            android:layout_weight="1"
+            android:ems="10"
+            android:hint="yBall"
+            android:inputType="numberDecimal" />
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
 
+        <EditText
+            android:id="@+id/numberOfRows"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:ems="10"
+            android:hint=""
+            android:inputType="numberDecimal" />
+
+        <EditText
+            android:id="@+id/numberOfColumns"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:ems="10"
+            android:hint=""
+            android:inputType="numberDecimal" />
     </LinearLayout>
     <LinearLayout
         android:layout_width="match_parent"
