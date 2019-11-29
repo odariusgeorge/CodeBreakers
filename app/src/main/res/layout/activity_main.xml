@@ -58,7 +58,7 @@
             android:layout_weight="1"
             android:ems="10"
             android:hint="xRobot"
-            android:inputType="numberDecimal" />
+            android:inputType="textPersonName" />
 
         <EditText
             android:id="@+id/yRobotStart"
@@ -67,7 +67,7 @@
             android:layout_weight="1"
             android:ems="10"
             android:hint="yRobot"
-            android:inputType="numberDecimal" />
+            android:inputType="textPersonName" />
     </LinearLayout>
 
 
@@ -83,7 +83,7 @@
             android:layout_weight="1"
             android:ems="10"
             android:hint="xBall"
-            android:inputType="numberDecimal" />
+            android:inputType="textPersonName" />
 
         <EditText
             android:id="@+id/yStartBall"
@@ -92,7 +92,7 @@
             android:layout_weight="1"
             android:ems="10"
             android:hint="yBall"
-            android:inputType="numberDecimal" />
+            android:inputType="textPersonName" />
     </LinearLayout>
     <LinearLayout
         android:layout_width="match_parent"
@@ -106,7 +106,7 @@
             android:layout_weight="1"
             android:ems="10"
             android:hint=""
-            android:inputType="numberDecimal" />
+            android:inputType="textPersonName" />
 
         <EditText
             android:id="@+id/numberOfColumns"
@@ -115,7 +115,7 @@
             android:layout_weight="1"
             android:ems="10"
             android:hint=""
-            android:inputType="numberDecimal" />
+            android:inputType="textPersonName" />
     </LinearLayout>
     <LinearLayout
         android:layout_width="match_parent"
