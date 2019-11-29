@@ -5,14 +5,9 @@ import android.view.SurfaceView;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.TextView;
-import android.widget.*;
-import android.text.Editable;
-import android.widget.EditText;
-import android.text.TextWatcher;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.annotation.IdRes;
 
 import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.OpenCVLoader;
@@ -39,7 +34,6 @@ import it.unive.dais.legodroid.lib.plugs.TachoMotor;
 import it.unive.dais.legodroid.lib.plugs.UltrasonicSensor;
 import it.unive.dais.legodroid.lib.util.Prelude;
 import it.unive.dais.legodroid.lib.util.ThrowingConsumer;
-import it.unive.dais.legodroid.lib.util.Consumer;
 
 public class MainActivity extends AppCompatActivity {
     private static final int CAMERA_PERMISSION_CODE=100;
@@ -56,17 +50,6 @@ public class MainActivity extends AppCompatActivity {
     private static TachoMotor motorLeft;
     private static TachoMotor motorRight;
     private static TachoMotor motorClaws;
-    private int[][] matrix;
-    private Integer n;
-    private Integer m;
-    private Integer xBallValue;
-    private Integer yBallValue;
-    private Integer xRobotValue;
-    private Integer yRobotValue;
-//    EditText xRobot = findViewById(R.id.xRobotStart);
-//    EditText yRobot = findViewById(R.id.yRobotStart);
-//    EditText xBall = findViewById(R.id.xStartBall);
-//    EditText yBall = findViewById(R.id.yStartBall);
     private void updateStatus(@NonNull Plug p, String key, Object value) {
         Log.d(TAG, String.format("%s: %s: %s", p, key, value));
         statusMap.put(key, value);
@@ -96,7 +79,7 @@ public class MainActivity extends AppCompatActivity {
         textView = findViewById(R.id.textView);
         mOpenCvCameraView = findViewById(R.id.HelloOpenCvView);
         mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
-        mOpenCvCameraView.setMaxFrameSize(100, 100);
+        mOpenCvCameraView.setMaxFrameSize(640, 480);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
         try {
@@ -113,12 +96,6 @@ public class MainActivity extends AppCompatActivity {
         }
 
     }
-
-    int[][] constructMatrix(int n, int m) {
-        int [][] matrix = new int[n][m];
-        return matrix;
-    }
-
     private void setUpCamera() {
         if (!OpenCVLoader.initDebug()) {
             Log.e(TAG, "Unable to load OpenCV");
@@ -166,8 +143,8 @@ public class MainActivity extends AppCompatActivity {
         motorClaws.waitCompletion();
     }
     void goForward() throws  IOException {
-        motorLeft.setStepSpeed(50, 0, 610, 0, true);
-        motorRight.setStepSpeed(50, 0, 610, 0, true);
+        motorLeft.setStepSpeed(50, 0, 1000, 0, true);
+        motorRight.setStepSpeed(50, 0, 1000, 0, true);
         motorLeft.waitCompletion();
         motorRight.waitCompletion();
     }
@@ -195,73 +172,63 @@ public class MainActivity extends AppCompatActivity {
         motorLeft = api.getTachoMotor(EV3.OutputPort.A);
         motorRight = api.getTachoMotor(EV3.OutputPort.D);
         motorClaws = api.getTachoMotor(EV3.OutputPort.B);
-        boolean ballChatced = false;
+        boolean ballChatced= false;
         setUpCamera();
         try {
             applyMotor(TachoMotor::resetPosition);
             Integer i = new Integer(0);
-            while (i < 1) {
-                Integer x = 0;
-                Integer y = 0;
-                while (x < n) {
-                    goForward();
-                    x++;
-                }
-                Future<Short> ambient = lightSensor.getAmbient();
-                updateStatus(lightSensor, "ambient", ambient.get());
+//            while (!api.ev3.isCancelled()) {
+            while (i<1) {
+                try {
+                    Future<Short> ambient = lightSensor.getAmbient();
+                    updateStatus(lightSensor, "ambient", ambient.get());
 
-                Future<Short> reflected = lightSensor.getReflected();
-                updateStatus(lightSensor, "reflected", reflected.get());
+                    Future<Short> reflected = lightSensor.getReflected();
+                    updateStatus(lightSensor, "reflected", reflected.get());
 
-                Future<Float> distance = ultraSensor.getDistance();
-                updateStatus(ultraSensor, "distance", distance.get());
+                    Future<Float> distance = ultraSensor.getDistance();
+                    updateStatus(ultraSensor, "distance", distance.get());
 
-                Future<LightSensor.Color> colf = lightSensor.getColor();
-                LightSensor.Color col = colf.get();
-                updateStatus(lightSensor, "color", col);
-                runOnUiThread(() -> findViewById(R.id.colorView).setBackgroundColor(col.toARGB32()));
+                    Future<LightSensor.Color> colf = lightSensor.getColor();
+                    LightSensor.Color col = colf.get();
+                    updateStatus(lightSensor, "color", col);
+                    runOnUiThread(() -> findViewById(R.id.colorView).setBackgroundColor(col.toARGB32()));
 
-                Future<Float> posMLeft = motorLeft.getPosition();
-                updateStatus(motorLeft, "motor position", posMLeft.get());
+                    Future<Float> posMLeft = motorLeft.getPosition();
+                    updateStatus(motorLeft, "motor position", posMLeft.get());
 
-                Future<Float> speedMLeft = motorLeft.getSpeed();
-                updateStatus(motorLeft, "motor speed", speedMLeft.get());
-                Future<Float> posMRight = motorRight.getPosition();
-                updateStatus(motorRight, "motor position", posMRight.get());
-                Future<Float> speedMRight = motorRight.getSpeed();
-                updateStatus(motorRight, "motor speed", speedMRight.get());
-                Future<Float> postMClaws = motorClaws.getPosition();
-                updateStatus(motorClaws, "motor position", postMClaws.get());
-                Future<Float> speedMClawst = motorClaws.getSpeed();
-                updateStatus(motorRight, "motor speed", speedMClawst.get());
-                if (center != null) {
-                    catchBall();
-                    api.soundTone(100, 100, 3000);
-                    goForward();
-                    releaseBall();
-                    goBack();
-                    stopMotors();
-                }
-                i++;
-            }
-
-                } catch (IOException | InterruptedException | ExecutionException e) {
-                    {
-                        e.printStackTrace();
+                    Future<Float> speedMLeft = motorLeft.getSpeed();
+                    updateStatus(motorLeft, "motor speed", speedMLeft.get());
+                    Future<Float> posMRight = motorRight.getPosition();
+                    updateStatus(motorRight, "motor position", posMRight.get());
+                    Future<Float> speedMRight = motorRight.getSpeed();
+                    updateStatus(motorRight, "motor speed", speedMRight.get());
+                    Future<Float> postMClaws = motorClaws.getPosition();
+                    updateStatus(motorClaws, "motor position", postMClaws.get());
+                    Future<Float> speedMClawst = motorClaws.getSpeed();
+                    updateStatus(motorRight, "motor speed", speedMClawst.get());
+                    if(center != null) {
+                        catchBall();
+                        api.soundTone(100,100,3000);
+                        goForward();
+                        releaseBall();
+                        goBack();
+                        stopMotors();
                     }
-                } finally {
-                applyMotor(TachoMotor::stop);
+                    i++;
+                } catch (IOException | InterruptedException | ExecutionException e) {
+                    e.printStackTrace();
+                }
             }
-}
+
+        } finally {
+            applyMotor(TachoMotor::stop);
+        }
+    }
     private void legoMainCustomApi(MyCustomApi api) {
         final String TAG = Prelude.ReTAG("legoMainCustomApi");
         api.mySpecialCommand();
-        EditText rows = findViewById(R.id.numberOfRows);
-        EditText columns = findViewById(R.id.numberOfColumns);
-        n = Integer.valueOf(rows.getText().toString());
-        m = Integer.valueOf(columns.getText().toString());
         legoMain(api);
-        //matrix = constructMatrix(n,m);
     }
 
 
