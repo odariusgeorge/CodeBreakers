@@ -259,12 +259,13 @@ public class MainActivity extends AppCompatActivity {
     private void legoMainCustomApi(MyCustomApi api) {
         final String TAG = Prelude.ReTAG("legoMainCustomApi");
         api.mySpecialCommand();
-        legoMain(api);
         EditText rows = findViewById(R.id.numberOfRows);
         EditText columns = findViewById(R.id.numberOfColumns);
         n = Integer.valueOf(rows.getText().toString());
         m = Integer.valueOf(columns.getText().toString());
         matrix = constructMatrix(n,m);
+        legoMain(api);
+
     }
 
 
