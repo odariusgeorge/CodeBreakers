@@ -195,66 +195,64 @@ public class MainActivity extends AppCompatActivity {
         motorLeft = api.getTachoMotor(EV3.OutputPort.A);
         motorRight = api.getTachoMotor(EV3.OutputPort.D);
         motorClaws = api.getTachoMotor(EV3.OutputPort.B);
-        boolean ballChatced= false;
+        boolean ballChatced = false;
         setUpCamera();
         try {
             applyMotor(TachoMotor::resetPosition);
             Integer i = new Integer(0);
-//            while (!api.ev3.isCancelled()) {
-            while (i<1) {
-                try {
-                    Integer x = 0;
-                    Integer y = 0;
-                    while(x < n) {
-                        goForward();
-                        x++;
-                    }
-//                    Future<Short> ambient = lightSensor.getAmbient();
-//                    updateStatus(lightSensor, "ambient", ambient.get());
-//
-//                    Future<Short> reflected = lightSensor.getReflected();
-//                    updateStatus(lightSensor, "reflected", reflected.get());
-//
-//                    Future<Float> distance = ultraSensor.getDistance();
-//                    updateStatus(ultraSensor, "distance", distance.get());
-//
-//                    Future<LightSensor.Color> colf = lightSensor.getColor();
-//                    LightSensor.Color col = colf.get();
-//                    updateStatus(lightSensor, "color", col);
-//                    runOnUiThread(() -> findViewById(R.id.colorView).setBackgroundColor(col.toARGB32()));
-//
-//                    Future<Float> posMLeft = motorLeft.getPosition();
-//                    updateStatus(motorLeft, "motor position", posMLeft.get());
-//
-//                    Future<Float> speedMLeft = motorLeft.getSpeed();
-//                    updateStatus(motorLeft, "motor speed", speedMLeft.get());
-//                    Future<Float> posMRight = motorRight.getPosition();
-//                    updateStatus(motorRight, "motor position", posMRight.get());
-//                    Future<Float> speedMRight = motorRight.getSpeed();
-//                    updateStatus(motorRight, "motor speed", speedMRight.get());
-//                    Future<Float> postMClaws = motorClaws.getPosition();
-//                    updateStatus(motorClaws, "motor position", postMClaws.get());
-//                    Future<Float> speedMClawst = motorClaws.getSpeed();
-//                    updateStatus(motorRight, "motor speed", speedMClawst.get());
-//                    if(center != null) {
-//                        catchBall();
-//                        api.soundTone(100,100,3000);
-//                        goForward();
-//                        releaseBall();
-//                        goBack();
-//                        stopMotors();
-//                    }
-                    i++;
-                } catch (IOException | InterruptedException | ExecutionException e) {
-                {
-                    e.printStackTrace();
+            while (i < 1) {
+                Integer x = 0;
+                Integer y = 0;
+                while (x < n) {
+                    goForward();
+                    x++;
                 }
+                Future<Short> ambient = lightSensor.getAmbient();
+                updateStatus(lightSensor, "ambient", ambient.get());
+
+                Future<Short> reflected = lightSensor.getReflected();
+                updateStatus(lightSensor, "reflected", reflected.get());
+
+                Future<Float> distance = ultraSensor.getDistance();
+                updateStatus(ultraSensor, "distance", distance.get());
+
+                Future<LightSensor.Color> colf = lightSensor.getColor();
+                LightSensor.Color col = colf.get();
+                updateStatus(lightSensor, "color", col);
+                runOnUiThread(() -> findViewById(R.id.colorView).setBackgroundColor(col.toARGB32()));
+
+                Future<Float> posMLeft = motorLeft.getPosition();
+                updateStatus(motorLeft, "motor position", posMLeft.get());
+
+                Future<Float> speedMLeft = motorLeft.getSpeed();
+                updateStatus(motorLeft, "motor speed", speedMLeft.get());
+                Future<Float> posMRight = motorRight.getPosition();
+                updateStatus(motorRight, "motor position", posMRight.get());
+                Future<Float> speedMRight = motorRight.getSpeed();
+                updateStatus(motorRight, "motor speed", speedMRight.get());
+                Future<Float> postMClaws = motorClaws.getPosition();
+                updateStatus(motorClaws, "motor position", postMClaws.get());
+                Future<Float> speedMClawst = motorClaws.getSpeed();
+                updateStatus(motorRight, "motor speed", speedMClawst.get());
+                if (center != null) {
+                    catchBall();
+                    api.soundTone(100, 100, 3000);
+                    goForward();
+                    releaseBall();
+                    goBack();
+                    stopMotors();
+                }
+                i++;
             }
 
-        } finally {
-            applyMotor(TachoMotor::stop);
-        }
-    }
+                } catch (IOException | InterruptedException | ExecutionException e) {
+                    {
+                        e.printStackTrace();
+                    }
+                } finally {
+                applyMotor(TachoMotor::stop);
+            }
+}
     private void legoMainCustomApi(MyCustomApi api) {
         final String TAG = Prelude.ReTAG("legoMainCustomApi");
         api.mySpecialCommand();
