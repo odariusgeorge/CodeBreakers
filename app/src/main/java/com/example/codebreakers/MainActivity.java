@@ -166,20 +166,22 @@ public class MainActivity extends AppCompatActivity {
         motorClaws.waitCompletion();
     }
     void goForward() throws  IOException {
-        motorLeft.setStepSync(50,0,610,false);
-        motorRight.setStepSync(50,0,610,false);
-//        motorLeft.setStepSpeed(50, 0, 1000, 0, true);
-//        motorRight.setStepSpeed(50, 0, 1000, 0, true);
+        motorLeft.setStepSpeed(50, 0, 610, 0, true);
+        motorRight.setStepSpeed(50, 0, 610, 0, true);
         motorLeft.waitCompletion();
         motorRight.waitCompletion();
     }
     void goBack() throws  IOException {
-        motorLeft.setStepSpeed(-50, 0, 1000, 0, true);
-        motorRight.setStepSpeed(-50, 0, 1000, 0, true);
+        motorLeft.setStepSpeed(-50, 0, 610, 0, true);
+        motorRight.setStepSpeed(-50, 0, 610, 0, true);
         motorLeft.waitCompletion();
         motorRight.waitCompletion();
     }
-    void goLeft(TachoMotor m1, TachoMotor m2) throws  IOException {
+    void goLeft() throws  IOException {
+        motorLeft.setStepSync(100,0,610,false);
+        motorLeft.setStepSync(0,0,610,false);
+        motorLeft.setStepSpeed(-50, 0, 610, 0, true);
+        motorRight.setStepSpeed(-50, 0, 610, 0, true);
 
     }
     void goRight(TachoMotor m1, TachoMotor m2) throws  IOException {
@@ -205,12 +207,11 @@ public class MainActivity extends AppCompatActivity {
 //            while (!api.ev3.isCancelled()) {
             while (i<1) {
                 try {
-                    int x = 0;
-                    int y = 0;
-                    while(x < n) {
+                    while(xRobotValue < n) {
                         goForward();
-                        x++;
+                        xRobotValue++;
                     }
+                    goLeft();
 //                    Future<Short> ambient = lightSensor.getAmbient();
 //                    updateStatus(lightSensor, "ambient", ambient.get());
 //
@@ -265,6 +266,10 @@ public class MainActivity extends AppCompatActivity {
         EditText columns = findViewById(R.id.numberOfColumns);
         n = Integer.valueOf(rows.getText().toString());
         m = Integer.valueOf(columns.getText().toString());
+        EditText robotXCoordinate = findViewById(R.id.xRobotStart);
+        EditText robotYCoordinate = findViewById(R.id.yRobotStart);
+        xRobotValue = Integer.valueOf(robotXCoordinate.getText().toString());
+        yRobotValue = Integer.valueOf(robotYCoordinate.getText().toString());
         matrix = constructMatrix(n,m);
         legoMain(api);
 
