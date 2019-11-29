@@ -184,8 +184,11 @@ public class MainActivity extends AppCompatActivity {
         motorRight.setStepSpeed(-50, 0, 610, 0, true);
 
     }
-    void goRight(TachoMotor m1, TachoMotor m2) throws  IOException {
-
+    void goRight() throws  IOException {
+        motorLeft.setStepSpeed(50, 0, 610, 0, true);
+        motorRight.setStepSpeed(-50, 0, 610, 0, true);
+        motorLeft.waitCompletion();
+        motorRight.waitCompletion();
     }
     void stopMotors() throws IOException {
         motorRight.stop();
@@ -212,6 +215,7 @@ public class MainActivity extends AppCompatActivity {
                         xRobotValue++;
                     }
                     goLeft();
+                    goRight();
 //                    Future<Short> ambient = lightSensor.getAmbient();
 //                    updateStatus(lightSensor, "ambient", ambient.get());
 //
