@@ -57,7 +57,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:ems="10"
-            android:hint="xRobot"
+            android:hint="Robot start position X"
             android:inputType="textPersonName" />
 
         <EditText
@@ -66,7 +66,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:ems="10"
-            android:hint="yRobot"
+            android:hint="Robot start position Y"
             android:inputType="textPersonName" />
     </LinearLayout>
 
@@ -82,7 +82,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:ems="10"
-            android:hint="xBall"
+            android:hint="Ball position x"
             android:inputType="textPersonName" />
 
         <EditText
@@ -91,7 +91,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:ems="10"
-            android:hint="yBall"
+            android:hint="Ball position Y"
             android:inputType="textPersonName" />
     </LinearLayout>
     <LinearLayout
@@ -105,7 +105,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:ems="10"
-            android:hint=""
+            android:hint="Matrix number of rows "
             android:inputType="textPersonName" />
 
         <EditText
@@ -114,7 +114,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:ems="10"
-            android:hint=""
+            android:hint="Matrix columns number"
             android:inputType="textPersonName" />
     </LinearLayout>
     <LinearLayout

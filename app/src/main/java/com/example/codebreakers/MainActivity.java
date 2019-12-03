@@ -4,15 +4,11 @@ import android.util.Log;
 import android.view.SurfaceView;
 import android.view.WindowManager;
 import android.widget.Button;
-import android.widget.TextView;
-import android.widget.*;
-import android.text.Editable;
 import android.widget.EditText;
-import android.text.TextWatcher;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.annotation.IdRes;
 
 import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.OpenCVLoader;
@@ -39,7 +35,6 @@ import it.unive.dais.legodroid.lib.plugs.TachoMotor;
 import it.unive.dais.legodroid.lib.plugs.UltrasonicSensor;
 import it.unive.dais.legodroid.lib.util.Prelude;
 import it.unive.dais.legodroid.lib.util.ThrowingConsumer;
-import it.unive.dais.legodroid.lib.util.Consumer;
 
 public class MainActivity extends AppCompatActivity {
     private static final int CAMERA_PERMISSION_CODE=100;
@@ -155,11 +150,11 @@ public class MainActivity extends AppCompatActivity {
         mOpenCvCameraView.enableView();
     }
     void catchBall() throws IOException {
-        motorClaws.setStepSpeed(-50,0,1000,0,true);
+        motorClaws.setStepSpeed(50,0,1000,0,true);
         motorClaws.waitCompletion();
     }
     void releaseBall() throws IOException {
-        motorClaws.setStepSpeed(50,0,1000,0,true);
+        motorClaws.setStepSpeed(-50,0,1000,0,true);
         motorClaws.waitCompletion();
     }
     void goForward() throws  IOException {
