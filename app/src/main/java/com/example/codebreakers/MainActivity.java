@@ -1,4 +1,7 @@
 package com.example.codebreakers;
+
+import android.Manifest;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.SurfaceView;
@@ -9,6 +12,8 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.OpenCVLoader;
@@ -90,6 +95,10 @@ public class MainActivity extends AppCompatActivity {
         mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
         mOpenCvCameraView.setMaxFrameSize(640, 480);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
+                == PackageManager.PERMISSION_DENIED)
+            ActivityCompat.requestPermissions(this, new String[] {Manifest.permission.CAMERA}, CAMERA_PERMISSION_CODE);
+
 
         try {
             BluetoothConnection.BluetoothChannel conn = new BluetoothConnection("Willy").connect(); // replace with your own brick name
@@ -158,26 +167,27 @@ public class MainActivity extends AppCompatActivity {
         motorClaws.waitCompletion();
     }
     void goForward() throws  IOException {
-        motorLeft.setStepSpeed(50, 0, 610, 0, true);
-        motorRight.setStepSpeed(50, 0, 610, 0, true);
+        motorLeft.setStepSpeed(100, 0, 610, 0, true);
+        motorRight.setStepSpeed(100, 0, 610, 0, true);
         motorLeft.waitCompletion();
         motorRight.waitCompletion();
+
     }
     void goBack() throws  IOException {
-        motorLeft.setStepSpeed(-50, 0, 610, 0, true);
-        motorRight.setStepSpeed(-50, 0, 610, 0, true);
+        motorLeft.setStepSpeed(-100, 0, 610, 0, true);
+        motorRight.setStepSpeed(-100, 0, 610, 0, true);
         motorLeft.waitCompletion();
         motorRight.waitCompletion();
     }
     void goLeft() throws  IOException {
-        motorLeft.setStepSpeed(-50, 0, 160, 0, true);
-        motorRight.setStepSpeed(50, 0, 160, 0, true);
+        motorLeft.setStepSpeed(-100, 0, 160, 0, true);
+        motorRight.setStepSpeed(100, 0, 160, 0, true);
         motorLeft.waitCompletion();
         motorRight.waitCompletion();
     }
     void goRight() throws  IOException {
-        motorLeft.setStepSpeed(50, 0, 160, 0, true);
-        motorRight.setStepSpeed(-50, 0, 160, 0, true);
+        motorLeft.setStepSpeed(100, 0, 160, 0, true);
+        motorRight.setStepSpeed(-100, 0, 160, 0, true);
         motorLeft.waitCompletion();
         motorRight.waitCompletion();
     }
@@ -234,8 +244,8 @@ public class MainActivity extends AppCompatActivity {
                     Future<Float> speedMClawst = motorClaws.getSpeed();
                     updateStatus(motorRight, "motor speed", speedMClawst.get());
                     if(center != null) {
-                        catchBall();
-                        api.soundTone(100,100,3000);
+                        //catchBall();
+                        //api.soundTone(100,100,3000);
 //                        goForward();
 //                        releaseBall();
 //                        goBack();
@@ -247,7 +257,7 @@ public class MainActivity extends AppCompatActivity {
                         goForward();
                         tempRobotPosition--;
                     }
-                    releaseBall();
+                    //releaseBall();
                     i++;
                 } catch (IOException | InterruptedException | ExecutionException e) {
                     e.printStackTrace();
