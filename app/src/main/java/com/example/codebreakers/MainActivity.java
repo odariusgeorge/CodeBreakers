@@ -167,8 +167,8 @@ public class MainActivity extends AppCompatActivity {
         motorClaws.waitCompletion();
     }
     void goForward() throws  IOException {
-        motorLeft.setStepSync(100,0,610,false);
-        motorRight.setStepSync(100,0,610,false);
+        motorLeft.setStepSync(100,0,0,false);
+        motorRight.setStepSync(0,0,610,false);
 //        motorLeft.setStepSpeed(100, 0, 610, 0, true);
 //        motorRight.setStepSpeed(100, 0, 610, 0, true);
         motorLeft.waitCompletion();
