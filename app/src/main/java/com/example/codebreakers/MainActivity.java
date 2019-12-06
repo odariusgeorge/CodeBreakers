@@ -6,10 +6,11 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.LinearLayout;
+
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-
 
 import it.unive.dais.legodroid.lib.util.Prelude;
 
@@ -22,6 +23,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Button firstRound = findViewById(R.id.FirstRound);
+        LinearLayout matrixView = findViewById(R.id.matrix);
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
                 == PackageManager.PERMISSION_DENIED) {
             ActivityCompat.requestPermissions(this, new String[] {Manifest.permission.CAMERA}, CAMERA_PERMISSION_CODE);
@@ -33,5 +35,9 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(i);
             }
         });
+        MatrixMap Map = new MatrixMap(this);
+        Map.setNumColumns(20);
+        Map.setNumRows(30);
+        matrixView.addView(Map);
     }
 }

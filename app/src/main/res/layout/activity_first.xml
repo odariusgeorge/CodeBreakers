@@ -102,6 +102,12 @@
             opencv:show_fps="true"
             opencv:camera_id="any" />
 
+        <LinearLayout
+            android:id="@+id/matrix"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal"></LinearLayout>
+
     </LinearLayout>
 
 </LinearLayout>
