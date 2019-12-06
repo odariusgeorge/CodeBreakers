@@ -1,3 +1,11 @@
 <resources>
     <string name="app_name">IntelliW</string>
+    <string name="title_activity_first">First</string>
+    <string name="xrobot">xRobot</string>
+    <string name="textview">TextView</string>
+    <string name="yrobot">yRobot</string>
+    <string name="number_of_rows">Number of Rows</string>
+    <string name="number_of_columns">Number of Columns</string>
+    <string name="number_of_balls">Number of Balls</string>
+    <string name="start">START</string>
 </resources>

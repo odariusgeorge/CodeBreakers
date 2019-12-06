@@ -6,130 +6,21 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <TextView
-        android:id="@+id/textView"
-        android:layout_width="match_parent"
-        android:layout_height="160dp"
-        android:layout_margin="10dp"
-        android:text="Premi START per partire"
-        tools:ignore="HardcodedText" />
-
-    <View
-        android:id="@+id/colorView"
-        android:layout_width="50dp"
-        android:layout_height="50dp"
-        android:background="#ff00ff"
-        />
-
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal">
 
         <Button
-            android:id="@+id/startButton"
+            android:id="@+id/FirstRound"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_margin="10dp"
-            android:text="Start"
-            tools:ignore="HardcodedText" />
-
-        <Button
-            android:id="@+id/stopButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_margin="10dp"
-            android:text="Stop"
+            android:layout_weight="1"
+            android:text="FirstRound"
             tools:ignore="HardcodedText" />
 
     </LinearLayout>
 
 
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
-
-        <EditText
-            android:id="@+id/xRobotStart"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:ems="10"
-            android:hint="Robot start position X"
-            android:inputType="textPersonName" />
-
-        <EditText
-            android:id="@+id/yRobotStart"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:ems="10"
-            android:hint="Robot start position Y"
-            android:inputType="textPersonName" />
-    </LinearLayout>
-
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
-
-        <EditText
-            android:id="@+id/xStartBall"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:ems="10"
-            android:hint="Ball position x"
-            android:inputType="textPersonName" />
-
-        <EditText
-            android:id="@+id/yStartBall"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:ems="10"
-            android:hint="Ball position Y"
-            android:inputType="textPersonName" />
-    </LinearLayout>
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
-
-        <EditText
-            android:id="@+id/numberOfRows"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:ems="10"
-            android:hint="Matrix number of rows "
-            android:inputType="textPersonName" />
-
-        <EditText
-            android:id="@+id/numberOfColumns"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:ems="10"
-            android:hint="Matrix columns number"
-            android:inputType="textPersonName" />
-    </LinearLayout>
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="horizontal"
-        android:id="@+id/layout" >
-
-        <org.opencv.android.JavaCameraView
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent"
-            android:visibility="gone"
-            android:id="@+id/HelloOpenCvView"
-            opencv:show_fps="true"
-            opencv:camera_id="any" />
-
-    </LinearLayout>
 </LinearLayout>
