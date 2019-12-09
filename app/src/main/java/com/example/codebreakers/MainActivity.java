@@ -23,6 +23,8 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Button firstRound = findViewById(R.id.FirstRound);
+        Button secondRound = findViewById(R.id.SecondRound);
+        Button thirdRound = findViewById(R.id.ThirdRound);
         LinearLayout matrixView = findViewById(R.id.matrix);
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
                 == PackageManager.PERMISSION_DENIED) {
@@ -35,9 +37,23 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(i);
             }
         });
+        secondRound.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent i = new Intent(MainActivity.this, Second.class);
+                startActivity(i);
+            }
+        });
+        thirdRound.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent i = new Intent(MainActivity.this, Third.class);
+                startActivity(i);
+            }
+        });
         MatrixMap Map = new MatrixMap(this);
-        Map.setNumColumns(20);
-        Map.setNumRows(30);
+        Map.setNumColumns(10);
+        Map.setNumRows(10);
         matrixView.addView(Map);
     }
 }

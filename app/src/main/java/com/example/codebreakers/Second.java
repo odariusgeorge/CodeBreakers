@@ -1,5 +1,6 @@
 package com.example.codebreakers;
 
+
 import android.os.Bundle;
 import android.util.Log;
 import android.view.SurfaceView;
@@ -38,7 +39,7 @@ import it.unive.dais.legodroid.lib.plugs.UltrasonicSensor;
 import it.unive.dais.legodroid.lib.util.Prelude;
 import it.unive.dais.legodroid.lib.util.ThrowingConsumer;
 
-public class First extends AppCompatActivity {
+public class Second extends AppCompatActivity {
     private static final int CAMERA_PERMISSION_CODE=100;
     private static final String TAG = Prelude.ReTAG("MainActivity");
     private CameraBridgeViewBase mOpenCvCameraView;
@@ -112,7 +113,7 @@ public class First extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_first);
+        setContentView(R.layout.activity_second);
         Button start = findViewById(R.id.Start);
         LinearLayout matrixView = findViewById(R.id.matrix);
         mOpenCvCameraView = findViewById(R.id.HelloOpenCvView);
@@ -146,11 +147,11 @@ public class First extends AppCompatActivity {
         motorClaws.waitCompletion();
     }
     void goForward() throws  IOException {
-            motorLeft.setStepSpeed(50, 0, 610, 0, false);
-            motorRight.setStepSpeed(50, 0, 610, 0, false);
-            motorLeft.waitCompletion();
-            motorRight.waitCompletion();
-            xRobotValue++;
+        motorLeft.setStepSpeed(50, 0, 610, 0, false);
+        motorRight.setStepSpeed(50, 0, 610, 0, false);
+        motorLeft.waitCompletion();
+        motorRight.waitCompletion();
+        xRobotValue++;
     }
 
     void goBack() throws  IOException {
@@ -214,7 +215,7 @@ public class First extends AppCompatActivity {
                     Future<Float> distance = ultraSensor.getDistance();
                     Future<LightSensor.Color> colf = lightSensor.getColor();
                     LightSensor.Color col = colf.get();
-                    
+
 
                     ball_catched++;
 
@@ -237,7 +238,7 @@ public class First extends AppCompatActivity {
         public void mySpecialCommand() {}
     }
 
-    private void legoMainCustomApi(First.MyCustomApi api) {
+    private void legoMainCustomApi(Second.MyCustomApi api) {
         final String TAG = Prelude.ReTAG("legoMainCustomApi");
         api.mySpecialCommand();
         EditText rows = findViewById(R.id.rows);

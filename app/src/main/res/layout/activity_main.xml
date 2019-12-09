@@ -7,26 +7,45 @@
     android:orientation="vertical">
 
     <LinearLayout
+        android:id="@+id/matrix"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_margin="10dp"
+        android:layout_weight="1"
+        android:orientation="horizontal">
+
+    </LinearLayout>
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:orientation="vertical">
 
         <Button
             android:id="@+id/FirstRound"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
             android:layout_margin="10dp"
             android:layout_weight="1"
             android:text="FirstRound"
             tools:ignore="HardcodedText" />
 
-    </LinearLayout>
+        <Button
+            android:id="@+id/SecondRound"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_margin="10dp"
+            android:layout_weight="1"
+            android:text="@string/second_round" />
 
-    <LinearLayout
-        android:id="@+id/matrix"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="horizontal"></LinearLayout>
+        <Button
+            android:id="@+id/ThirdRound"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="10dp"
+            android:layout_weight="1"
+            android:text="@string/third_round" />
+
+    </LinearLayout>
 
 
 </LinearLayout>

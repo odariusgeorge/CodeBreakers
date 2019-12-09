@@ -8,4 +8,7 @@
     <string name="number_of_columns">Number of Columns</string>
     <string name="number_of_balls">Number of Balls</string>
     <string name="start">START</string>
+    <string name="second_round">Second Round</string>
+    <string name="third_round">Third Round</string>
+    <string name="password_for_the_comunication">Password for the comunication</string>
 </resources>
