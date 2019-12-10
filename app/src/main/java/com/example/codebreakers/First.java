@@ -62,6 +62,7 @@ public class First extends AppCompatActivity {
     private Integer yRobotValue;
     private boolean ballIsCatched = false;
     Point center;
+    private float angle0 = (float)0.0;
 
     private void applyMotor(@NonNull ThrowingConsumer<TachoMotor, Throwable> f) {
         if (motorLeft != null)
@@ -214,7 +215,9 @@ public class First extends AppCompatActivity {
                     Future<Float> distance = ultraSensor.getDistance();
                     Future<LightSensor.Color> colf = lightSensor.getColor();
                     LightSensor.Color col = colf.get();
-                    
+
+
+                    System.out.println(gyroSensor.getAngle().get());
 
                     ball_catched++;
 
