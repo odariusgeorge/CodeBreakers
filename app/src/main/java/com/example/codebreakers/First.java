@@ -148,13 +148,14 @@ public class First extends AppCompatActivity {
         motorClaws.setStepSpeed(-50,0,1000,0,true);
         motorClaws.waitCompletion();
     }
-    void goForward() throws  IOException {
+    void goForward(EV3.Api api) throws  IOException {
         int i = 1;
         while(i!=12) {
             motorLeft.setStepSpeed(50, 0, 50, 0, false);
             motorRight.setStepSpeed(50, 0, 50, 0, false);
             motorLeft.waitCompletion();
             motorRight.waitCompletion();
+            turnFront(api);
             i++;
         }
 
@@ -290,7 +291,7 @@ public class First extends AppCompatActivity {
         }
         if (yRobotValue<ySafeZone) {
             while(yRobotValue!=ySafeZone) {
-                goForward();
+                goForward(api);
                 yRobotValue++;
             }
         }
@@ -298,7 +299,7 @@ public class First extends AppCompatActivity {
             goLeft(api);
             xRobotValue--;
             while (xRobotValue!=xSafeZone) {
-                goForward();
+                goForward(api);
                 xRobotValue--;
             }
         }
@@ -361,9 +362,14 @@ public class First extends AppCompatActivity {
                     Future<Float> distance = ultraSensor.getDistance();
                     Future<LightSensor.Color> colf = lightSensor.getColor();
                     LightSensor.Color col = colf.get();
+<<<<<<< HEAD
                     float ballDistance = distance.get();
                     while (ballDistance> 5 && yRobotValue!=n) {
                         goForward();
+=======
+                    while (yRobotValue!=n) {
+                        goForward(api);
+>>>>>>> f75a648eeb2a2f1e14f1a774928aece0eb56077e
                         yRobotValue++;
                         ballDistance=distance.get();
                     }
@@ -371,7 +377,7 @@ public class First extends AppCompatActivity {
                     ball_catched++;
                     goToSafeZone(api);
                     releaseBallToSafeZone(api);
-                    goForward();
+                    goForward(api);
                 } catch (IOException | InterruptedException | ExecutionException e) {
                     e.printStackTrace();
                 }
