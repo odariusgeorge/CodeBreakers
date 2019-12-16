@@ -290,7 +290,7 @@ public class First extends AppCompatActivity {
         }
         if (yRobotValue<ySafeZone) {
             while(yRobotValue!=ySafeZone) {
-                goForward();
+                goForward(api);
                 yRobotValue++;
             }
         }
@@ -298,7 +298,7 @@ public class First extends AppCompatActivity {
             goLeft(api);
             xRobotValue--;
             while (xRobotValue!=xSafeZone) {
-                goForward();
+                goForward(api);
                 xRobotValue--;
             }
         }
@@ -362,14 +362,14 @@ public class First extends AppCompatActivity {
                     Future<LightSensor.Color> colf = lightSensor.getColor();
                     LightSensor.Color col = colf.get();
                     while (yRobotValue!=n) {
-                        goForward();
+                        goForward(api);
                         yRobotValue++;
                     }
                     catchBall();
                     ball_catched++;
                     goToSafeZone(api);
                     releaseBallToSafeZone(api);
-                    goForward();
+                    goForward(api);
                 } catch (IOException | InterruptedException | ExecutionException e) {
                     e.printStackTrace();
                 }
