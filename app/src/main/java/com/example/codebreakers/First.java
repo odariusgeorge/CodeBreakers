@@ -148,13 +148,14 @@ public class First extends AppCompatActivity {
         motorClaws.setStepSpeed(-50,0,1000,0,true);
         motorClaws.waitCompletion();
     }
-    void goForward() throws  IOException {
+    void goForward(EV3.Api api) throws  IOException {
         int i = 1;
         while(i!=12) {
             motorLeft.setStepSpeed(50, 0, 50, 0, false);
             motorRight.setStepSpeed(50, 0, 50, 0, false);
             motorLeft.waitCompletion();
             motorRight.waitCompletion();
+            turnFront(api);
             i++;
         }
 
