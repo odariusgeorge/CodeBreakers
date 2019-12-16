@@ -270,8 +270,9 @@ public class First extends AppCompatActivity {
     }
     void releaseBallToSafeZone(EV3.Api api) throws  IOException {
         turnBack(api);
-        goBack();
         releaseBall();
+        goBack();
+
         turnFront(api);
     }
     void stopMotors() throws IOException {
@@ -360,9 +361,11 @@ public class First extends AppCompatActivity {
                     Future<Float> distance = ultraSensor.getDistance();
                     Future<LightSensor.Color> colf = lightSensor.getColor();
                     LightSensor.Color col = colf.get();
-                    while (yRobotValue!=n) {
+                    float ballDistance = distance.get();
+                    while (ballDistance> 5 && yRobotValue!=n) {
                         goForward();
                         yRobotValue++;
+                        ballDistance=distance.get();
                     }
                     catchBall();
                     ball_catched++;
