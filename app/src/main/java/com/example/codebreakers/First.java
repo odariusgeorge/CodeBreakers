@@ -362,14 +362,11 @@ public class First extends AppCompatActivity {
                     Future<Float> distance = ultraSensor.getDistance();
                     Future<LightSensor.Color> colf = lightSensor.getColor();
                     LightSensor.Color col = colf.get();
-<<<<<<< HEAD
                     float ballDistance = distance.get();
-                    while (ballDistance> 5 && yRobotValue!=n) {
-                        goForward();
-=======
+//                    while (ballDistance > 5 && yRobotValue!=n) {
+//                        goForward(api);
                     while (yRobotValue!=n) {
                         goForward(api);
->>>>>>> f75a648eeb2a2f1e14f1a774928aece0eb56077e
                         yRobotValue++;
                         ballDistance=distance.get();
                     }
