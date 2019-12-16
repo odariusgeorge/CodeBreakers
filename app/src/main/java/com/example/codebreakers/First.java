@@ -150,9 +150,9 @@ public class First extends AppCompatActivity {
     }
     void goForward() throws  IOException {
         int i = 1;
-        while(i!=6) {
-            motorLeft.setStepSpeed(50, 0, 100, 0, false);
-            motorRight.setStepSpeed(50, 0, 100, 0, false);
+        while(i!=12) {
+            motorLeft.setStepSpeed(50, 0, 50, 0, false);
+            motorRight.setStepSpeed(50, 0, 50, 0, false);
             motorLeft.waitCompletion();
             motorRight.waitCompletion();
             i++;
@@ -166,9 +166,9 @@ public class First extends AppCompatActivity {
 
     void goBack() throws  IOException {
         int i = 1;
-        while(i!=6) {
-        motorLeft.setStepSpeed(-50, 0, 100, 0, false);
-        motorRight.setStepSpeed(-50, 0, 100, 0, false);
+        while(i!=12) {
+        motorLeft.setStepSpeed(-50, 0, 50, 0, false);
+        motorRight.setStepSpeed(-50, 0, 50, 0, false);
         motorLeft.waitCompletion();
         motorRight.waitCompletion();
         i++;
@@ -190,10 +190,11 @@ public class First extends AppCompatActivity {
     void goRight() throws  IOException {
 
     }
-    void Turn180() throws  IOException {
+    void releaseBallToSafeZone() throws  IOException {
         goLeft();
         goLeft();
         goBack();
+        releaseBall();
         goLeft();
         goLeft();
     }
@@ -289,7 +290,7 @@ public class First extends AppCompatActivity {
                     }
                     ball_catched++;
                     goToSafeZone();
-                    Turn180();
+                    releaseBallToSafeZone();
                     goForward();
                 } catch (IOException | InterruptedException | ExecutionException e) {
                     e.printStackTrace();
