@@ -158,8 +158,8 @@ public class First extends AppCompatActivity {
             i++;
         }
 
-        motorRight.setStepSpeed(30, 0, 5, 0, false);
-        motorLeft.setStepSpeed(30, 0, 5, 0, false);
+        motorRight.setStepSpeed(50, 0, 5, 0, false);
+        motorLeft.setStepSpeed(50, 0, 5, 0, false);
         motorLeft.waitCompletion();
         motorRight.waitCompletion();
     }
@@ -188,6 +188,10 @@ public class First extends AppCompatActivity {
     }
 
     void goRight() throws  IOException {
+        motorLeft.setStepSpeed(50, 0, 210, 0, true);
+        motorRight.setStepSpeed(-50, 0, 210, 0, true);
+        motorLeft.waitCompletion();
+        motorRight.waitCompletion();
 
     }
     void releaseBallToSafeZone() throws  IOException {
@@ -288,6 +292,7 @@ public class First extends AppCompatActivity {
                         goForward();
                         yRobotValue++;
                     }
+                    catchBall();
                     ball_catched++;
                     goToSafeZone();
                     releaseBallToSafeZone();
