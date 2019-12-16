@@ -60,6 +60,8 @@ public class First extends AppCompatActivity {
     private Integer ball_catched = 0;
     private Integer xRobotValue;
     private Integer yRobotValue;
+    private Integer xSafeZone;
+    private Integer ySafeZone;
     private boolean ballIsCatched = false;
     Point center;
     private float angle0 = (float)0.0;
@@ -147,49 +149,113 @@ public class First extends AppCompatActivity {
         motorClaws.waitCompletion();
     }
     void goForward() throws  IOException {
-            motorLeft.setStepSpeed(50, 0, 610, 0, false);
-            motorRight.setStepSpeed(50, 0, 610, 0, false);
+        int i = 1;
+        while(i!=6) {
+            motorLeft.setStepSpeed(50, 0, 100, 0, false);
+            motorRight.setStepSpeed(50, 0, 100, 0, false);
             motorLeft.waitCompletion();
             motorRight.waitCompletion();
-            xRobotValue++;
+            i++;
+        }
+
+        motorRight.setStepSpeed(30, 0, 5, 0, false);
+        motorLeft.setStepSpeed(30, 0, 5, 0, false);
+        motorLeft.waitCompletion();
+        motorRight.waitCompletion();
     }
 
     void goBack() throws  IOException {
-        motorLeft.setStepSpeed(-100, 0, 610, 0, true);
-        motorRight.setStepSpeed(-100, 0, 610, 0, true);
+        int i = 1;
+        while(i!=6) {
+        motorLeft.setStepSpeed(-50, 0, 100, 0, false);
+        motorRight.setStepSpeed(-50, 0, 100, 0, false);
         motorLeft.waitCompletion();
         motorRight.waitCompletion();
-        xRobotValue--;
+        i++;
+        }
+        motorLeft.setStepSpeed(-50, 0, 5, 0, false);
+        motorRight.setStepSpeed(-50, 0, 5, 0, false);
+        motorLeft.waitCompletion();
+        motorRight.waitCompletion();
     }
 
     void goLeft() throws  IOException {
-        motorLeft.setStepSpeed(-100, 0, 160, 0, true);
-        motorRight.setStepSpeed(100, 0, 160, 0, true);
+        motorLeft.setStepSpeed(-50, 0, 210, 0, true);
+        motorRight.setStepSpeed(50, 0, 210, 0, true);
         motorLeft.waitCompletion();
         motorRight.waitCompletion();
-        yRobotValue--;
-        goForward();
+//        goForward();
     }
 
     void goRight() throws  IOException {
-        motorLeft.setStepSpeed(100, 0, 160, 0, true);
-        motorRight.setStepSpeed(-100, 0, 160, 0, true);
-        motorLeft.waitCompletion();
-        motorRight.waitCompletion();
-        yRobotValue++;
-        goForward();
-    }
 
+    }
+    void Turn180() throws  IOException {
+        goLeft();
+        goLeft();
+        goBack();
+        goLeft();
+        goLeft();
+    }
     void stopMotors() throws IOException {
         motorRight.stop();
         motorLeft.stop();
         motorClaws.stop();
     }
 
+    void goToSafeZone() throws  IOException {
+        if(yRobotValue>ySafeZone) {
+            while(yRobotValue!=ySafeZone) {
+                goBack();
+                yRobotValue--;
+            }
+        }
+        if (yRobotValue<ySafeZone) {
+            while(yRobotValue!=ySafeZone) {
+                goForward();
+                yRobotValue++;
+            }
+        }
+        if (xRobotValue>xSafeZone) {
+            goLeft();
+            xRobotValue--;
+            while (xRobotValue!=xSafeZone) {
+                goForward();
+                xRobotValue--;
+            }
+        }
+        if (xRobotValue<xSafeZone) {
+            goRight();
+            xRobotValue++;
+            while(xRobotValue!=xSafeZone) {
+                goBack();
+                xRobotValue++;
+            }
+        }
+    }
+
+    void computeSafeZone() {
+        if(xRobotValue <= m && yRobotValue == 0) {
+            xSafeZone = xRobotValue;
+            ySafeZone = yRobotValue-1;}
+        if(xRobotValue == m && yRobotValue > 0) {
+            xSafeZone = xRobotValue+1;
+            ySafeZone = yRobotValue;
+        }
+        if(xRobotValue == 0 && yRobotValue > 1) {
+            xSafeZone = xRobotValue-1;
+            ySafeZone = yRobotValue;
+        }
+        if(xRobotValue > 0 && yRobotValue == n) {
+            xSafeZone = xRobotValue;
+            ySafeZone = yRobotValue+1;
+        }
+    }
+
     int[][] constructMatrix(int n, int m) {
         int [][] matrix = new int[n][m];
-        for(int i=0;i<n;i++)
-            for(int j=0;j<m;j++)
+        for(int i=0;i<=n;i++)
+            for(int j=0;j<=m;j++)
                 matrix[n][m] = 0;
         return matrix;
     }
@@ -206,7 +272,9 @@ public class First extends AppCompatActivity {
         motorLeft = api.getTachoMotor(EV3.OutputPort.A);
         motorRight = api.getTachoMotor(EV3.OutputPort.D);
         motorClaws = api.getTachoMotor(EV3.OutputPort.B);
+        computeSafeZone();
         setUpCamera();
+        ball_catched = 0;
         try {
             while (ball_catched < totalBalls) {
                 try {
@@ -215,17 +283,21 @@ public class First extends AppCompatActivity {
                     Future<Float> distance = ultraSensor.getDistance();
                     Future<LightSensor.Color> colf = lightSensor.getColor();
                     LightSensor.Color col = colf.get();
-
-
-                    System.out.println(gyroSensor.getAngle().get());
-
+                    while (yRobotValue!=n) {
+                        goForward();
+                        yRobotValue++;
+                    }
                     ball_catched++;
-
+                    goToSafeZone();
+                    Turn180();
+                    goForward();
                 } catch (IOException | InterruptedException | ExecutionException e) {
                     e.printStackTrace();
                 }
             }
 
+//        } catch (IOException e) {
+//            e.printStackTrace();
         } finally {
             applyMotor(TachoMotor::stop);
         }
@@ -255,7 +327,7 @@ public class First extends AppCompatActivity {
 //        yRobotValue = Integer.valueOf(robotYCoordinate.getText().toString());
         xRobotValue = 0;
         yRobotValue = 0;
-        matrix = constructMatrix(n,m);
+//        matrix = constructMatrix(n,m);
         EditText numberOfBalls  = findViewById(R.id.balls);
 //        totalBalls = Integer.valueOf(numberOfBalls.getText().toString());
         totalBalls = 1;

@@ -52,8 +52,9 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         MatrixMap Map = new MatrixMap(this);
-        Map.setNumColumns(10);
-        Map.setNumRows(10);
+        Map.setNumColumns(5);
+        Map.setNumRows(5);
+//        Map.setBallPos(4,4);
         matrixView.addView(Map);
     }
 }

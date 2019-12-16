@@ -186,13 +186,13 @@ public class Second extends AppCompatActivity {
         motorClaws.stop();
     }
 
-    int[][] constructMatrix(int n, int m) {
-        int [][] matrix = new int[n][m];
-        for(int i=0;i<n;i++)
-            for(int j=0;j<m;j++)
-                matrix[n][m] = 0;
-        return matrix;
-    }
+//    int[][] constructMatrix(int n, int m) {
+//        int [][] matrix = new int[n][m];
+//        for(int i=0;i<n;i++)
+//            for(int j=0;j<m;j++)
+//                matrix[n][m] = 0;
+//        return matrix;
+//    }
 
     void updateMatrix() {
         matrix[xRobotValue][yRobotValue] = 1;
@@ -253,7 +253,7 @@ public class Second extends AppCompatActivity {
 //        yRobotValue = Integer.valueOf(robotYCoordinate.getText().toString());
         xRobotValue = 0;
         yRobotValue = 0;
-        matrix = constructMatrix(n,m);
+//        matrix = constructMatrix(n,m);
         EditText numberOfBalls  = findViewById(R.id.balls);
 //        totalBalls = Integer.valueOf(numberOfBalls.getText().toString());
         totalBalls = 1;
