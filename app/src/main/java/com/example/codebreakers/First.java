@@ -343,7 +343,7 @@ public class First extends AppCompatActivity {
         matrix[xRobotValue][yRobotValue] = 1;
     }
 
-    private void legoMain(EV3.Api api) {
+    private void legoMain(EV3.Api api) throws  IOException, InterruptedException, ExecutionException {
         final String TAG = Prelude.ReTAG("legoMain");
         final LightSensor lightSensor = api.getLightSensor(EV3.InputPort._1);
         final UltrasonicSensor ultraSensor = api.getUltrasonicSensor(EV3.InputPort._2);
@@ -354,9 +354,7 @@ public class First extends AppCompatActivity {
         computeSafeZone();
         setUpCamera();
         ball_catched = 0;
-        try {
             while (ball_catched < totalBalls) {
-                try {
                     Future<Short> ambient = lightSensor.getAmbient();
                     Future<Short> reflected = lightSensor.getReflected();
                     Future<Float> distance = ultraSensor.getDistance();
@@ -375,17 +373,9 @@ public class First extends AppCompatActivity {
                     goToSafeZone(api);
                     releaseBallToSafeZone(api);
                     goForward(api);
-                } catch (IOException | InterruptedException | ExecutionException e) {
-                    e.printStackTrace();
                 }
-            }
-
-//        } catch (IOException e) {
-//            e.printStackTrace();
-        } finally {
-            applyMotor(TachoMotor::stop);
-        }
     }
+
 
     private static class MyCustomApi extends EV3.Api {
 
@@ -396,7 +386,7 @@ public class First extends AppCompatActivity {
         public void mySpecialCommand() {}
     }
 
-    private void legoMainCustomApi(First.MyCustomApi api) {
+    private void legoMainCustomApi(First.MyCustomApi api) throws InterruptedException, ExecutionException, IOException {
         final String TAG = Prelude.ReTAG("legoMainCustomApi");
         api.mySpecialCommand();
         EditText rows = findViewById(R.id.rows);
