@@ -27,13 +27,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-import java.lang.Math.*;
 
 import it.unive.dais.legodroid.lib.EV3;
 import it.unive.dais.legodroid.lib.GenEV3;
 import it.unive.dais.legodroid.lib.comm.BluetoothConnection;
 import it.unive.dais.legodroid.lib.plugs.GyroSensor;
-import it.unive.dais.legodroid.lib.plugs.LightSensor;
 import it.unive.dais.legodroid.lib.plugs.TachoMotor;
 import it.unive.dais.legodroid.lib.plugs.UltrasonicSensor;
 import it.unive.dais.legodroid.lib.util.Prelude;
@@ -67,7 +65,6 @@ public class First extends AppCompatActivity {
     private Integer ySafeZone;
     private boolean ballIsCatched = false;
     Point center;
-    private float angle0 = (float)0.0;
 
     private void applyMotor(@NonNull ThrowingConsumer<TachoMotor, Throwable> f) {
         if (motorLeft != null)
@@ -77,6 +74,7 @@ public class First extends AppCompatActivity {
         if (motorClaws != null)
             Prelude.trap(() -> f.call(motorClaws));
     }
+
     private void setUpCamera() {
         if (!OpenCVLoader.initDebug()) {
             Log.e(TAG, "Unable to load OpenCV");
@@ -115,6 +113,7 @@ public class First extends AppCompatActivity {
         });
         mOpenCvCameraView.enableView();
     }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -142,15 +141,18 @@ public class First extends AppCompatActivity {
         }
 
     }
+
     void catchBall() throws IOException {
         motorClaws.setStepSpeed(50,0,1000,0,true);
         motorClaws.waitCompletion();
         motorClaws.stop();
     }
+
     void releaseBall() throws IOException {
         motorClaws.setStepSpeed(-50,0,1000,0,true);
         motorClaws.waitCompletion();
     }
+
     void goForward(EV3.Api api) throws  IOException {
         if(ballIsCatched == false) {
             int i = 1;
@@ -182,21 +184,32 @@ public class First extends AppCompatActivity {
     }
 
     void goBack(EV3.Api api) throws  IOException {
-        int i = 1;
-        turnBack(api);
-        while(i!=12) {
-        motorLeft.setStepSpeed(50, 0, 50, 0, false);
-        motorRight.setStepSpeed(50, 0, 50, 0, false);
-        motorLeft.waitCompletion();
-        motorRight.waitCompletion();
-        turnBack(api);
-        i++;
+        if(ballIsCatched == false) {
+            int i = 1;
+            turnFront(api);
+            while(i!=3) {
+                turnFront(api);
+                motorLeft.setStepSpeed(-50, 0, 200, 0, false);
+                motorRight.setStepSpeed(-50, 0, 200, 0, false);
+                motorLeft.waitCompletion();
+                motorRight.waitCompletion();
+                turnFront(api);
+                i++;
+            }
+            turnFront(api);
+        } else {
+            int i = 1;
+            turnFront(api);
+            while(i!=6) {
+                motorLeft.setStepSpeed(-40, 0, 100, 0, false);
+                motorRight.setStepSpeed(-40, 0, 100, 0, false);
+                motorLeft.waitCompletion();
+                motorRight.waitCompletion();
+                turnFront(api);
+                i++;
+            }
+            turnFront(api);
         }
-        motorLeft.setStepSpeed(50, 0, 5, 0, false);
-        motorRight.setStepSpeed(50, 0, 5, 0, false);
-        motorLeft.waitCompletion();
-        motorRight.waitCompletion();
-        turnBack(api);
     }
 
     void goLeft(EV3.Api api) throws  IOException {
@@ -233,26 +246,6 @@ public class First extends AppCompatActivity {
             }
             motorRight.setStepSpeed(50,0,1000,0,false);
             motorLeft.setStepSpeed(50,0,1000,0,false);
-        } catch (IOException | InterruptedException | ExecutionException e) {
-            e.printStackTrace();
-        }
-
-    }
-
-    void turnBack(EV3.Api api) throws  IOException {
-        int speed = 2;
-        final GyroSensor gyroSensor = api.getGyroSensor(EV3.InputPort._4);
-        try {
-            float current_angle = gyroSensor.getAngle().get();
-                while ((current_angle) != 180) {
-                        motorLeft.setSpeed(speed);
-                        motorRight.setSpeed(-speed);
-                        motorLeft.start();
-                        motorRight.start();
-                        Log.i("gyrosensor", gyroSensor.getAngle().get().toString());
-                        current_angle = gyroSensor.getAngle().get();
-                }
-                stopMotors();
         } catch (IOException | InterruptedException | ExecutionException e) {
             e.printStackTrace();
         }
@@ -319,12 +312,6 @@ public class First extends AppCompatActivity {
         }
     }
 
-    void releaseBallToSafeZone(EV3.Api api) throws  IOException {
-        turnBack(api);
-        releaseBall();
-        goBack(api);
-        turnFront(api);
-    }
     void stopMotors() throws IOException {
         motorRight.stop();
         motorLeft.stop();
@@ -392,11 +379,14 @@ public class First extends AppCompatActivity {
         matrix[xRobotValue][yRobotValue] = 1;
     }
 
+    int getDistance(EV3.Api api) throws IOException,ExecutionException, InterruptedException {
+        final UltrasonicSensor ultraSensor = api.getUltrasonicSensor(EV3.InputPort._2);
+        return Math.round(ultraSensor.getDistance().get());
+    }
+
     private void legoMain(EV3.Api api) throws  IOException, InterruptedException, ExecutionException {
         final String TAG = Prelude.ReTAG("legoMain");
-        final LightSensor lightSensor = api.getLightSensor(EV3.InputPort._1);
-        final UltrasonicSensor ultraSensor = api.getUltrasonicSensor(EV3.InputPort._2);
-        final GyroSensor gyroSensor = api.getGyroSensor(EV3.InputPort._4);
+
         motorLeft = api.getTachoMotor(EV3.OutputPort.A);
         motorRight = api.getTachoMotor(EV3.OutputPort.D);
         motorClaws = api.getTachoMotor(EV3.OutputPort.B);
@@ -404,22 +394,15 @@ public class First extends AppCompatActivity {
         setUpCamera();
         ball_catched = 0;
             while (ball_catched < totalBalls) {
-//                    Future<Short> ambient = lightSensor.getAmbient();
-//                    Future<Short> reflected = lightSensor.getReflected();
-                Future<Float> distance = ultraSensor.getDistance();
-//                    Future<LightSensor.Color> colf = lightSensor.getColor();
-//                    LightSensor.Color col = colf.get();
-                float ballDistance = distance.get();
-//                        goForward(api);
-//                    goRight(api);
-//                releaseBall();
-//                ballIsCatched = true;
-//                ballDistance = distance.get();
+
                 while (yRobotValue != n) {
                     goForward(api);
+                    if(getDistance(api) < 5) catchBall();
                     yRobotValue++;
                     turnFront(api);
+                    break;
                 }
+                goToSafeZone(api);
                 ball_catched++;
             }
         stopMotors();
@@ -440,8 +423,8 @@ public class First extends AppCompatActivity {
         api.mySpecialCommand();
         EditText rows = findViewById(R.id.rows);
         EditText columns = findViewById(R.id.columns);
-        n = 20;
-        m = 20;
+        n = 5;
+        m = 5;
 //        n = Integer.valueOf(rows.getText().toString());
 //        m = Integer.valueOf(columns.getText().toString());
         EditText robotXCoordinate = findViewById(R.id.xRobot);
