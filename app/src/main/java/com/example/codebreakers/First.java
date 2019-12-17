@@ -26,7 +26,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 
 import it.unive.dais.legodroid.lib.EV3;
 import it.unive.dais.legodroid.lib.GenEV3;
@@ -155,17 +154,27 @@ public class First extends AppCompatActivity {
 
     void goForward(EV3.Api api) throws  IOException {
             int i = 1;
-            turnFront(api);
-            while(i!=3) {
-                turnFront(api);
-                motorLeft.setStepSpeed(50, 0, 200, 0, false);
-                motorRight.setStepSpeed(50, 0, 200, 0, false);
-                motorLeft.waitCompletion();
-                motorRight.waitCompletion();
+            while(i!=4) {
+                turnFrontOneMotorDown(api);
+                if(i%2==0) {
+                    motorLeft.setStepSpeed(50, 0, 300, 0, true);
+                    motorRight.setStepSpeed(50, 0, 300, 0, true );
+                    motorLeft.waitCompletion();
+                    motorRight.waitCompletion();
+                }
+                else {
+                    motorRight.setStepSpeed(50, 0, 300, 0, true);
+                    motorLeft.setStepSpeed(50, 0, 300, 0, true);
+                    motorRight.waitCompletion();
+                    motorLeft.waitCompletion();
+                }
+                turnFrontOneMotorDown(api);
                 i++;
-                turnFront(api);
             }
+            motorLeft.setSpeed(0);
+            motorRight.setSpeed(0);
     }
+
 
     void goBack(EV3.Api api) throws  IOException {
         if(ballIsCatched == false) {
@@ -242,15 +251,15 @@ public class First extends AppCompatActivity {
             final GyroSensor gyroSensor = api.getGyroSensor(EV3.InputPort._4);
             try {
                 float current_angle = gyroSensor.getAngle().get();
-                while (current_angle!=0)  {
-                        if (current_angle > 2) {
+                while ( abs(current_angle) > 1 )  {
+                        if (current_angle > 1) {
                             motorLeft.setSpeed(-speed);
                             motorRight.setSpeed(speed);
                             motorLeft.start();
                             motorRight.start();
                             Log.i("gyrosensor", gyroSensor.getAngle().get().toString());
                             current_angle = gyroSensor.getAngle().get();
-                        } else if (current_angle < -2) {
+                        } else if (current_angle < 1 ) {
                             motorLeft.setSpeed(speed);
                             motorRight.setSpeed(-speed);
                             motorLeft.start();
@@ -272,15 +281,15 @@ public class First extends AppCompatActivity {
             final GyroSensor gyroSensor = api.getGyroSensor(EV3.InputPort._4);
             try {
                 float current_angle = gyroSensor.getAngle().get();
-                while ( current_angle!=0 )  {
-                    if (current_angle > 2) {
+                while ( abs(current_angle) > 1 )  {
+                    if (current_angle > 1) {
                         motorLeft.setSpeed(0);
                         motorRight.setSpeed(speed);
                         motorLeft.start();
                         motorRight.start();
                         Log.i("gyrosensor", gyroSensor.getAngle().get().toString());
                         current_angle = gyroSensor.getAngle().get();
-                    } else if (current_angle < -2) {
+                    } else if (current_angle < 1 ) {
                         motorLeft.setSpeed(speed);
                         motorRight.setSpeed(0);
                         motorLeft.start();
@@ -362,7 +371,6 @@ public class First extends AppCompatActivity {
     void updateMatrix() {
         matrix[xRobotValue][yRobotValue] = 1;
     }
-
     int getDistance(EV3.Api api) throws IOException,ExecutionException, InterruptedException {
         final UltrasonicSensor ultraSensor = api.getUltrasonicSensor(EV3.InputPort._2);
         return Math.round(ultraSensor.getDistance().get());
@@ -377,14 +385,18 @@ public class First extends AppCompatActivity {
         computeSafeZone();
         setUpCamera();
         ball_catched = 0;
-            while (ball_catched < totalBalls) {
 
+            while (ball_catched < totalBalls) {
+                /*
                 while (yRobotValue != n) {
                     goForward(api);
                     yRobotValue++;
-                    break;
+                    turnFrontOneMotorDown(api);
                 }
-                goToSafeZone(api);
+                ball_catched++;
+            }
+         */
+                
                 ball_catched++;
             }
         stopMotors();
@@ -405,8 +417,8 @@ public class First extends AppCompatActivity {
         api.mySpecialCommand();
         EditText rows = findViewById(R.id.rows);
         EditText columns = findViewById(R.id.columns);
-        n = 5;
-        m = 5;
+        n = 10;
+        m = 10;
 //        n = Integer.valueOf(rows.getText().toString());
 //        m = Integer.valueOf(columns.getText().toString());
         EditText robotXCoordinate = findViewById(R.id.xRobot);
