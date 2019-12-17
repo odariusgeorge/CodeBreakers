@@ -407,6 +407,7 @@ public class First extends AppCompatActivity {
         motorRight.setStepSync(50,0,500,true);
         motorRight.start();
         motorLeft.startXYZ();
+        motorLeft.startALL();
         motorRight.waitCompletion();
         motorLeft.waitCompletion();
     }

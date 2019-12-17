@@ -196,6 +196,17 @@ public class TachoMotor extends Plug<EV3.OutputPort> implements AutoCloseable {
         Log.d(TAG, "motor started");
     }
 
+    public void startALL() throws IOException {
+        Bytecode bc = new Bytecode();
+        bc.addOpCode(Const.OUTPUT_START);
+        bc.addParameter(Const.ALL_MOTORS);
+        bc.addParameter(port.toBitmask());
+        api.sendNoReply(bc);
+        Log.d(TAG, "motor started");
+    }
+
+
+
     /**
      * Brake the motor.
      *
