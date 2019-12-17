@@ -439,7 +439,7 @@ public class TachoMotor extends Plug<EV3.OutputPort> implements AutoCloseable {
         bc.addParameter(Const.LAYER_MASTER);
         bc.addParameter(port.toBitmask());
         bc.addParameter((byte) speed);
-        bc.addParameter((short) turnRatio);
+        bc.addParameter((byte) turnRatio);
         bc.addParameter(step);
         bc.addParameter(brake ? Const.BRAKE : Const.COAST);
         api.sendNoReply(bc);
