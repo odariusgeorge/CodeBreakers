@@ -154,7 +154,6 @@ public class First extends AppCompatActivity {
     }
 
     void goForward(EV3.Api api) throws  IOException {
-        if(ballIsCatched == false) {
             int i = 1;
             turnFront(api);
             while(i!=3) {
@@ -163,24 +162,9 @@ public class First extends AppCompatActivity {
                 motorRight.setStepSpeed(50, 0, 200, 0, false);
                 motorLeft.waitCompletion();
                 motorRight.waitCompletion();
-                turnFront(api);
                 i++;
-            }
-            turnFront(api);
-        } else {
-            int i = 1;
-            turnFront(api);
-            while(i!=6) {
-                motorLeft.setStepSpeed(40, 0, 100, 0, false);
-                motorRight.setStepSpeed(40, 0, 100, 0, false);
-                motorLeft.waitCompletion();
-                motorRight.waitCompletion();
                 turnFront(api);
-                i++;
             }
-            turnFront(api);
-        }
-
     }
 
     void goBack(EV3.Api api) throws  IOException {
@@ -258,7 +242,7 @@ public class First extends AppCompatActivity {
             final GyroSensor gyroSensor = api.getGyroSensor(EV3.InputPort._4);
             try {
                 float current_angle = gyroSensor.getAngle().get();
-                while ( current_angle!=0 )  {
+                while (current_angle!=0)  {
                         if (current_angle > 2) {
                             motorLeft.setSpeed(-speed);
                             motorRight.setSpeed(speed);
@@ -274,8 +258,8 @@ public class First extends AppCompatActivity {
                             Log.i("gyrosensor", gyroSensor.getAngle().get().toString());
                             current_angle = gyroSensor.getAngle().get();
                         }
-                    stopMotors();
                 }
+                stopMotors();
             } catch (IOException | InterruptedException | ExecutionException e) {
                 e.printStackTrace();
             }
@@ -397,9 +381,7 @@ public class First extends AppCompatActivity {
 
                 while (yRobotValue != n) {
                     goForward(api);
-                    if(getDistance(api) < 5) catchBall();
                     yRobotValue++;
-                    turnFront(api);
                     break;
                 }
                 goToSafeZone(api);
