@@ -242,11 +242,12 @@ public class First extends AppCompatActivity {
     }
 
     void turnFront(EV3.Api api) throws  IOException {
+        int speed = 5;
         final GyroSensor gyroSensor = api.getGyroSensor(EV3.InputPort._4);
         try {
             float current_angle = gyroSensor.getAngle().get();
-            motorLeft.setSpeed(-5);
-            motorRight.setSpeed(5);
+            motorLeft.setSpeed(-speed);
+            motorRight.setSpeed(speed);
             if (abs(current_angle) > 4) {
                 while (abs(current_angle) > 2) {
 
@@ -254,6 +255,9 @@ public class First extends AppCompatActivity {
                     motorRight.start();
                     Log.i("gyrosensor", gyroSensor.getAngle().get().toString());
                     current_angle = gyroSensor.getAngle().get();
+                    speed *= -1;
+                    motorLeft.setSpeed(-speed);
+                    motorRight.setSpeed(speed);
                 }
                 stopMotors();
             }
