@@ -403,10 +403,14 @@ public class First extends AppCompatActivity {
     }
 
     void syncMotors() throws  IOException {
-        motorLeft.start();
+        motorRight.isBusy();
+        motorLeft.isBusy();
+        motorRight.setSpeed(50);
+        motorLeft.setSpeed(50);
+        motorLeft.isBusy().isDone();
+        motorRight.isBusy().isDone();
         motorRight.start();
-        motorRight.setStepSync(50,0,500,false);
-        motorLeft.setStepSync(50,0,500,false);
+        motorLeft.start();
         motorRight.waitCompletion();
         motorLeft.waitCompletion();
     }
