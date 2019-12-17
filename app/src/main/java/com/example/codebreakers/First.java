@@ -175,7 +175,6 @@ public class First extends AppCompatActivity {
             motorRight.setSpeed(0);
     }
 
-
     void goBack(EV3.Api api) throws  IOException {
         if(ballIsCatched == false) {
             int i = 1;
@@ -404,10 +403,10 @@ public class First extends AppCompatActivity {
 
     void syncMotors() throws  IOException {
 
-        synchronized (motorLeft) {
-            motorLeft.setStepSync(50,0,500,true);
-            motorRight.setStepSync(50,0,500,true);
-        }
+        motorLeft.setStepSync(50,0,500,true);
+        motorRight.setStepSync(50,0,500,true);
+        motorRight.start();
+        motorLeft.startXYZ();
         motorRight.waitCompletion();
         motorLeft.waitCompletion();
     }
