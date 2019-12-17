@@ -288,8 +288,8 @@ public class First extends AppCompatActivity {
                         Log.i("gyrosensor", gyroSensor.getAngle().get().toString());
                         current_angle = gyroSensor.getAngle().get();
                     }
-                    stopMotors();
                 }
+                stopMotors();
             } catch (IOException | InterruptedException | ExecutionException e) {
                 e.printStackTrace();
             }
