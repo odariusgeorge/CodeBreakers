@@ -396,12 +396,18 @@ public class First extends AppCompatActivity {
                 ball_catched++;
             }
          */
-                
+                syncMotors();
                 ball_catched++;
             }
         stopMotors();
     }
 
+    void syncMotors() throws  IOException {
+        motorRight.setStepSync(50,0,500,false);
+        motorLeft.setStepSync(50,0,500,false);
+        motorRight.waitCompletion();
+        motorLeft.waitCompletion();
+    }
 
     private static class MyCustomApi extends EV3.Api {
 

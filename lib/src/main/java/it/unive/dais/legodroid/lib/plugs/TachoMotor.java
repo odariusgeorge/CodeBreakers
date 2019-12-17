@@ -427,23 +427,23 @@ public class TachoMotor extends Plug<EV3.OutputPort> implements AutoCloseable {
      * 100 : One motor will run with specified power while the other will be close to zero.
      * 200: One motor will run with specified power forward while the other will run in the opposite direction at the same power level.
      *
-     * @param power     power level [ -100 - 100 ].
+     * @param speed     power level [ -100 - 100 ].
      * @param turnRatio turn ratio [ -200 - 200 ].
      * @param step      tacho pulses (0 = infinite).
      * @param brake     break level [false: Float, true: Break].
      * @throws IOException thrown when communication errors occur.
      */
-    public void setStepSync(int power, int turnRatio, int step, boolean brake) throws IOException {
+    public void setStepSync(int speed, int turnRatio, int step, boolean brake) throws IOException {
         Bytecode bc = new Bytecode();
         bc.addOpCode(Const.OUTPUT_STEP_SYNC);
         bc.addParameter(Const.LAYER_MASTER);
         bc.addParameter(port.toBitmask());
-        bc.addParameter((byte) power);
+        bc.addParameter((byte) speed);
         bc.addParameter((short) turnRatio);
         bc.addParameter(step);
         bc.addParameter(brake ? Const.BRAKE : Const.COAST);
         api.sendNoReply(bc);
-        Log.d(TAG, String.format("motor step sync: power=%d, turn=%d, step=%d, brake=%s", power, turnRatio, step, brake));
+        Log.d(TAG, String.format("motor step sync: power=%d, turn=%d, step=%d, brake=%s", speed, turnRatio, step, brake));
     }
 
     /**
