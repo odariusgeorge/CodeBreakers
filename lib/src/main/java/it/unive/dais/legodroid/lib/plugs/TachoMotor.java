@@ -454,12 +454,24 @@ public class TachoMotor extends Plug<EV3.OutputPort> implements AutoCloseable {
      * @throws IOException thrown when communication errors occur.
      */
     public void setStepSync(int speed, int turnRatio, int step, boolean brake) throws IOException {
+        /*
+        Bytecode bc = new Bytecode();
+        bc.addOpCode(Const.OUTPUT_TIME_SPEED);
+        bc.addParameter(Const.LAYER_MASTER);
+        bc.addParameter(port.toBitmask());
+        bc.addParameter((byte) speed);
+        bc.addParameter(step1);
+        bc.addParameter(step2);
+        bc.addParameter(step3);
+        bc.addParameter(brake ? Const.BRAKE : Const.COAST);
+        api.sendNoReply(bc);
+         */
         Bytecode bc = new Bytecode();
         bc.addOpCode(Const.OUTPUT_STEP_SYNC);
         bc.addParameter(Const.LAYER_MASTER);
         bc.addParameter(port.toBitmask());
         bc.addParameter((byte) speed);
-        bc.addParameter((short) turnRatio);
+//        bc.addParameter((short) turnRatio);
         bc.addParameter(step);
         bc.addParameter(brake ? Const.BRAKE : Const.COAST);
         api.sendNoReply(bc);
