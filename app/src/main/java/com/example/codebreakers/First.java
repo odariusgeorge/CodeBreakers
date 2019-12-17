@@ -244,17 +244,13 @@ public class First extends AppCompatActivity {
         final GyroSensor gyroSensor = api.getGyroSensor(EV3.InputPort._4);
         try {
             float current_angle = gyroSensor.getAngle().get();
-
-            if (abs(current_angle) != 180 ) {
-                while ((current_angle) <= 180) {
+                while ((current_angle) != 180) {
                         motorLeft.setSpeed(speed);
                         motorRight.setSpeed(-speed);
                         motorLeft.start();
                         motorRight.start();
                         Log.i("gyrosensor", gyroSensor.getAngle().get().toString());
                         current_angle = gyroSensor.getAngle().get();
-                    }
-
                 }
                 stopMotors();
         } catch (IOException | InterruptedException | ExecutionException e) {
@@ -263,15 +259,13 @@ public class First extends AppCompatActivity {
 
     }
 
-    void turnFront(EV3.Api api) throws  IOException {
+    void turnFront(EV3.Api api) {
         if(ballIsCatched == false) {
             int speed = 1;
             final GyroSensor gyroSensor = api.getGyroSensor(EV3.InputPort._4);
             try {
                 float current_angle = gyroSensor.getAngle().get();
-
-                if (abs(current_angle) > 2) {
-                    while (abs(current_angle) > 2) {
+                while ( current_angle!=0 )  {
                         if (current_angle > 2) {
                             motorLeft.setSpeed(-speed);
                             motorRight.setSpeed(speed);
@@ -286,40 +280,36 @@ public class First extends AppCompatActivity {
                             motorRight.start();
                             Log.i("gyrosensor", gyroSensor.getAngle().get().toString());
                             current_angle = gyroSensor.getAngle().get();
-
                         }
-
-                    }
                     stopMotors();
                 }
             } catch (IOException | InterruptedException | ExecutionException e) {
                 e.printStackTrace();
             }
-        } else {
-            int speed = 4;
+        }
+    }
+
+    void turnFrontOneMotorDown(EV3.Api api) {
+        if(ballIsCatched == false) {
+            int speed = 1;
             final GyroSensor gyroSensor = api.getGyroSensor(EV3.InputPort._4);
             try {
                 float current_angle = gyroSensor.getAngle().get();
-
-                if (abs(current_angle) != 0) {
-                    while (abs(current_angle) > 1) {
-                        if (current_angle > 1) {
-                            motorLeft.setSpeed(-speed);
-                            motorRight.setSpeed(speed);
-                            motorLeft.start();
-                            motorRight.start();
-                            Log.i("gyrosensor", gyroSensor.getAngle().get().toString());
-                            current_angle = gyroSensor.getAngle().get();
-                        } else if (current_angle < -1) {
-                            motorLeft.setSpeed(speed);
-                            motorRight.setSpeed(-speed);
-                            motorLeft.start();
-                            motorRight.start();
-                            Log.i("gyrosensor", gyroSensor.getAngle().get().toString());
-                            current_angle = gyroSensor.getAngle().get();
-
-                        }
-
+                while ( current_angle!=0 )  {
+                    if (current_angle > 2) {
+                        motorLeft.setSpeed(0);
+                        motorRight.setSpeed(speed);
+                        motorLeft.start();
+                        motorRight.start();
+                        Log.i("gyrosensor", gyroSensor.getAngle().get().toString());
+                        current_angle = gyroSensor.getAngle().get();
+                    } else if (current_angle < -2) {
+                        motorLeft.setSpeed(speed);
+                        motorRight.setSpeed(0);
+                        motorLeft.start();
+                        motorRight.start();
+                        Log.i("gyrosensor", gyroSensor.getAngle().get().toString());
+                        current_angle = gyroSensor.getAngle().get();
                     }
                     stopMotors();
                 }
@@ -328,11 +318,11 @@ public class First extends AppCompatActivity {
             }
         }
     }
+
     void releaseBallToSafeZone(EV3.Api api) throws  IOException {
         turnBack(api);
         releaseBall();
         goBack(api);
-
         turnFront(api);
     }
     void stopMotors() throws IOException {
@@ -430,11 +420,6 @@ public class First extends AppCompatActivity {
                     yRobotValue++;
                     turnFront(api);
                 }
-//                    catchBall();
-//                    goToSafeZone(api);
-//                    releaseBallToSafeZone(api);
-//                    goBack(api);
-//                    catchBall();
                 ball_catched++;
             }
         stopMotors();
