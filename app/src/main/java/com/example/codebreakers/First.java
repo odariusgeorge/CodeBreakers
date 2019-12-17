@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.lang.Math.*;
 
 import it.unive.dais.legodroid.lib.EV3;
 import it.unive.dais.legodroid.lib.GenEV3;
@@ -37,6 +38,8 @@ import it.unive.dais.legodroid.lib.plugs.TachoMotor;
 import it.unive.dais.legodroid.lib.plugs.UltrasonicSensor;
 import it.unive.dais.legodroid.lib.util.Prelude;
 import it.unive.dais.legodroid.lib.util.ThrowingConsumer;
+
+import static java.lang.Math.abs;
 
 public class First extends AppCompatActivity {
     private static final int CAMERA_PERMISSION_CODE=100;
@@ -203,7 +206,7 @@ public class First extends AppCompatActivity {
         final GyroSensor gyroSensor = api.getGyroSensor(EV3.InputPort._4);
         try {
             float current_angle = gyroSensor.getAngle().get();
-            while (current_angle < 80){
+            while (current_angle < 80) {
                 motorLeft.setSpeed(10);
                 motorRight.setSpeed(-10);
                 motorLeft.start();
@@ -242,19 +245,10 @@ public class First extends AppCompatActivity {
         final GyroSensor gyroSensor = api.getGyroSensor(EV3.InputPort._4);
         try {
             float current_angle = gyroSensor.getAngle().get();
-            motorLeft.setSpeed(-10);
-            motorRight.setSpeed(10);
-            if (current_angle > 0) {
-                while (current_angle > 10){
-
-                    motorLeft.start();
-                    motorRight.start();
-                    Log.i("gyrosensor", gyroSensor.getAngle().get().toString());
-                    current_angle = gyroSensor.getAngle().get();
-                }
-                stopMotors();
-            }else if(current_angle<0){
-                while (current_angle < -10){
+            motorLeft.setSpeed(-5);
+            motorRight.setSpeed(5);
+            if (abs(current_angle) > 4) {
+                while (abs(current_angle) > 2) {
 
                     motorLeft.start();
                     motorRight.start();
@@ -263,7 +257,6 @@ public class First extends AppCompatActivity {
                 }
                 stopMotors();
             }
-
         } catch (IOException | InterruptedException | ExecutionException e) {
             e.printStackTrace();
         }
