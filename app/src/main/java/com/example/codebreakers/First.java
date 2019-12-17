@@ -405,8 +405,8 @@ public class First extends AppCompatActivity {
     void syncMotors() throws  IOException {
         motorRight.isBusy();
         motorLeft.isBusy();
-        motorRight.setSpeed(50);
-        motorLeft.setSpeed(50);
+        motorRight.setSpeed(1000);
+        motorLeft.setSpeed(1000);
         motorLeft.isBusy().isDone();
         motorRight.isBusy().isDone();
         motorRight.start();
