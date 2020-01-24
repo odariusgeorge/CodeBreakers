@@ -15,7 +15,7 @@ import java.io.IOException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
-public class Motors extends Plugs<EV3.OutputPort> {
+public class Motors extends Plugs<EV3.OutputPort, EV3.OutputPort> {
 
     private static final String TAG = Prelude.ReTAG("Motors");
 
