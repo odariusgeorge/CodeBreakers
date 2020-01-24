@@ -21,6 +21,7 @@ import it.unive.dais.legodroid.lib.comm.Const;
 import it.unive.dais.legodroid.lib.comm.Reply;
 import it.unive.dais.legodroid.lib.plugs.GyroSensor;
 import it.unive.dais.legodroid.lib.plugs.LightSensor;
+import it.unive.dais.legodroid.lib.plugs.Motors;
 import it.unive.dais.legodroid.lib.plugs.TachoMotor;
 import it.unive.dais.legodroid.lib.plugs.TouchSensor;
 import it.unive.dais.legodroid.lib.plugs.UltrasonicSensor;
@@ -262,6 +263,10 @@ public class EV3 extends GenEV3<EV3.Api> {
         @NonNull
         public TachoMotor getTachoMotor(@NonNull OutputPort port) {
             return new TachoMotor(this, port);
+        }
+
+        public Motors getMotors(@NonNull OutputPort port1, @NonNull OutputPort port2) {
+            return new Motors(this,port1,port2);
         }
 
         /**

@@ -31,11 +31,16 @@ import it.unive.dais.legodroid.lib.EV3;
 import it.unive.dais.legodroid.lib.GenEV3;
 import it.unive.dais.legodroid.lib.comm.BluetoothConnection;
 import it.unive.dais.legodroid.lib.plugs.GyroSensor;
+import it.unive.dais.legodroid.lib.plugs.Motors;
 import it.unive.dais.legodroid.lib.plugs.TachoMotor;
 import it.unive.dais.legodroid.lib.plugs.UltrasonicSensor;
 import it.unive.dais.legodroid.lib.util.Prelude;
 import it.unive.dais.legodroid.lib.util.ThrowingConsumer;
 
+import static it.unive.dais.legodroid.lib.comm.Const.DIRECT_COMMAND_NOREPLY;
+import static it.unive.dais.legodroid.lib.comm.Const.LAYER_MASTER;
+import static it.unive.dais.legodroid.lib.comm.Const.OUTPUT_SPEED;
+import static it.unive.dais.legodroid.lib.comm.Const.OUTPUT_START;
 import static java.lang.Math.abs;
 
 public class First extends AppCompatActivity {
@@ -53,6 +58,7 @@ public class First extends AppCompatActivity {
     private static TachoMotor motorLeft;
     private static TachoMotor motorRight;
     private static TachoMotor motorClaws;
+    private static Motors motoare;
     private int[][] matrix;
     private Integer n;
     private Integer m;
@@ -381,33 +387,19 @@ public class First extends AppCompatActivity {
         motorLeft = api.getTachoMotor(EV3.OutputPort.A);
         motorRight = api.getTachoMotor(EV3.OutputPort.D);
         motorClaws = api.getTachoMotor(EV3.OutputPort.B);
+        motoare = api.getMotors(EV3.OutputPort.A, EV3.OutputPort.D);
         computeSafeZone();
         setUpCamera();
         ball_catched = 0;
-
             while (ball_catched < totalBalls) {
-                /*
-                while (yRobotValue != n) {
-                    goForward(api);
-                    yRobotValue++;
-                    turnFrontOneMotorDown(api);
-                }
-                ball_catched++;
-            }
-         */
-                syncMotors();
+//                motorLeft.start();
+//                motorRight.start();
+                for(int i=0;i<100;i++)
+                motoare.setStepSync(10,0,200,true);
+//                motorLeft.setStepSync(100,10,100,false);
                 ball_catched++;
             }
         stopMotors();
-    }
-
-    void syncMotors() throws  IOException {
-
-        motorLeft.setStepSync(50,0,500,true);
-        motorRight.setStepSync(50,0,500,true);
-        motorRight.start();
-        motorRight.waitCompletion();
-        motorLeft.waitCompletion();
     }
 
     private static class MyCustomApi extends EV3.Api {
@@ -424,8 +416,8 @@ public class First extends AppCompatActivity {
         api.mySpecialCommand();
         EditText rows = findViewById(R.id.rows);
         EditText columns = findViewById(R.id.columns);
-        n = 10;
-        m = 10;
+        n = 3;
+        m = 3;
 //        n = Integer.valueOf(rows.getText().toString());
 //        m = Integer.valueOf(columns.getText().toString());
         EditText robotXCoordinate = findViewById(R.id.xRobot);
