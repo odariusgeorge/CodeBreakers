@@ -439,32 +439,22 @@ public class First extends AppCompatActivity {
         motoare = api.getMotors(EV3.OutputPort.A, EV3.OutputPort.D);
         computeSafeZone();
         setUpCamera();
+        markZone(xCurrentPosition, yCurrentPosition);
         ball_catched = 0;
             while (ball_catched!=1) {
 
-                markZone(xCurrentPosition,yCurrentPosition);
-
-                for(int line=xCurrentPosition;line<=m;line++)
-                {
-                    while(checkLine(xCurrentPosition)!=true) {
+                for (int line = xCurrentPosition; line >= 0; line--) {
+                    while (checkLine(xCurrentPosition) != true) {
                         goForward(api);
-                        markZone(xCurrentPosition,yCurrentPosition);
+                        markZone(xCurrentPosition, yCurrentPosition);
                     }
-                    for(int j=1;j<2;j++) {
+                    for (int j = 1; j < 2; j++) {
                         goBack(api);
                     }
-                    goLeft(api,line);
-
+                    goLeft(api, 1);
                 }
-
                 ball_catched++;
             }
-//        goToSafeZone(api);
-//            afisare();
-        for(int j=1;j<2;j++) {
-            goBack(api);
-        }
-        stopMotors();
     }
 
     private static class MyCustomApi extends EV3.Api {
