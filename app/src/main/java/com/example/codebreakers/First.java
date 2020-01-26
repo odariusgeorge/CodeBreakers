@@ -6,6 +6,7 @@ import android.view.SurfaceView;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.GridView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -22,6 +23,7 @@ import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,10 +39,6 @@ import it.unive.dais.legodroid.lib.plugs.UltrasonicSensor;
 import it.unive.dais.legodroid.lib.util.Prelude;
 import it.unive.dais.legodroid.lib.util.ThrowingConsumer;
 
-import static it.unive.dais.legodroid.lib.comm.Const.DIRECT_COMMAND_NOREPLY;
-import static it.unive.dais.legodroid.lib.comm.Const.LAYER_MASTER;
-import static it.unive.dais.legodroid.lib.comm.Const.OUTPUT_SPEED;
-import static it.unive.dais.legodroid.lib.comm.Const.OUTPUT_START;
 import static java.lang.Math.abs;
 
 public class First extends AppCompatActivity {
@@ -489,6 +487,27 @@ public class First extends AppCompatActivity {
 //        totalBalls = Integer.valueOf(numberOfBalls.getText().toString());
         totalBalls = 1;
         legoMain(api);
+
+
+        // codul asta este pt a modifica matrixu
+        // INITIALISE YOUR GRID
+        GridView list=(GridView)findViewById(R.id.grid_view);
+        list.setNumColumns(m);
+        ArrayList<String> data = new ArrayList<>();
+        for (int i = 0; i < n; i++) {
+            for(int j=0;j<m;j++)
+                //data.add(i+"*"+j);
+                if(i==j){
+                    data.add("O");
+                }else{
+                    data.add(" ");
+                }
+
+        }
+        GridViewCustomAdapter adapter = new GridViewCustomAdapter(this, data);
+
+        //list = (GridView) findViewById(R.id.grid_view);
+        list.setAdapter(adapter);
 
     }
 
