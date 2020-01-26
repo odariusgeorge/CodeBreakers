@@ -90,7 +90,6 @@ public class First extends AppCompatActivity {
         mOpenCvCameraView.setCvCameraViewListener(new CameraBridgeViewBase.CvCameraViewListener2() {
             @Override
             public void onCameraViewStarted(int width, int height) {
-                Log.d(TAG, "Camera Started");
                 mRgba = new Mat(height, width, CvType.CV_8UC4);
                 mRgbaF = new Mat(height, width, CvType.CV_8UC4);
                 mRgbaT = new Mat(width, width, CvType.CV_8UC4);
@@ -103,7 +102,7 @@ public class First extends AppCompatActivity {
             }
             @Override
             public void onCameraViewStopped() {
-                Log.d(TAG, "Camera Stopped");
+
             }
             @Override
             public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
@@ -188,14 +187,14 @@ public class First extends AppCompatActivity {
         while(i!=4) {
             turnFrontOneMotorDown(api);
             if(i%2==0) {
-                motorLeft.setStepSpeed(-50, 0, 300, 0, true);
-                motorRight.setStepSpeed(-50, 0, 300, 0, true );
+                motorLeft.setStepSpeed(-50, 0, 150, 0, true);
+                motorRight.setStepSpeed(-50, 0, 150, 0, true );
                 motorLeft.waitCompletion();
                 motorRight.waitCompletion();
             }
             else {
-                motorRight.setStepSpeed(-50, 0, 300, 0, true);
-                motorLeft.setStepSpeed(-50, 0, 300, 0, true);
+                motorRight.setStepSpeed(-50, 0, 150, 0, true);
+                motorLeft.setStepSpeed(-50, 0, 150, 0, true);
                 motorRight.waitCompletion();
                 motorLeft.waitCompletion();
             }
@@ -214,14 +213,14 @@ public class First extends AppCompatActivity {
             int i = 1;
             while(i!=4) {
                 if(i%2==0) {
-                    motorLeft.setStepSpeed(50, 0, 300, 0, true);
-                    motorRight.setStepSpeed(50, 0, 300, 0, true );
+                    motorLeft.setStepSpeed(50, 0, 150, 0, true);
+                    motorRight.setStepSpeed(50, 0, 150, 0, true );
                     motorLeft.waitCompletion();
                     motorRight.waitCompletion();
                 }
                 else {
-                    motorRight.setStepSpeed(50, 0, 300, 0, true);
-                    motorLeft.setStepSpeed(50, 0, 300, 0, true);
+                    motorRight.setStepSpeed(50, 0, 150, 0, true);
+                    motorLeft.setStepSpeed(50, 0, 150, 0, true);
                     motorRight.waitCompletion();
                     motorLeft.waitCompletion();
                 }
@@ -281,7 +280,6 @@ public class First extends AppCompatActivity {
                 motorLeft.start();
                 motorRight.start();
                 current_angle = gyroSensor.getAngle().get();
-                Log.i("gyrosensor", gyroSensor.getAngle().get().toString());
                 stopMotors();
             }
             motorRight.setStepSpeed(50,0,1000,0,false);
@@ -304,14 +302,12 @@ public class First extends AppCompatActivity {
                             motorRight.setSpeed(speed);
                             motorLeft.start();
                             motorRight.start();
-                            Log.i("gyrosensor", gyroSensor.getAngle().get().toString());
                             current_angle = gyroSensor.getAngle().get();
                         } else if (current_angle < 1 ) {
                             motorLeft.setSpeed(speed);
                             motorRight.setSpeed(-speed);
                             motorLeft.start();
                             motorRight.start();
-                            Log.i("gyrosensor", gyroSensor.getAngle().get().toString());
                             current_angle = gyroSensor.getAngle().get();
                         }
                 }
@@ -395,32 +391,22 @@ public class First extends AppCompatActivity {
     }
 
     int[][] constructMatrix(int n, int m) {
-        int [][] matrix = new int[n][m];
-        for(int i=0;i<n;i++)
-            for(int j=0;j<m;j++)
+        int [][] matrix = new int[n+1][m+1];
+        for(int i=0;i<=n;i++)
+            for(int j=0;j<=m;j++)
                 matrix[i][j] = 0;
         return matrix;
     }
 
     boolean checkLine(int x) {
         for(int y=0;y<m;y++)
-            if(matrix[x][y]==0)
+            if(matrix[y][x]==0)
                 return false;
             return true;
     }
 
     void markZone(int x,int y) {
-        matrix[x][y] = 1;
-    }
-
-    void afisare() {
-        for (int i=0;i<n;i++){
-            for(int j=0;j<m;j++)
-                System.out.print(matrix[j][i]);
-        System.out.println();
-        }
-
-
+        matrix[y][x] = 1;
     }
 
     int getDistance(EV3.Api api) throws IOException,ExecutionException, InterruptedException {
@@ -437,22 +423,25 @@ public class First extends AppCompatActivity {
         motoare = api.getMotors(EV3.OutputPort.A, EV3.OutputPort.D);
         computeSafeZone();
         setUpCamera();
-        markZone(xCurrentPosition, yCurrentPosition);
         ball_catched = 0;
             while (ball_catched!=1) {
-
                 for (int line = xCurrentPosition; line >= 0; line--) {
                     while (checkLine(xCurrentPosition) != true) {
+                        markZone(xCurrentPosition, yCurrentPosition);
                         goForward(api);
                         markZone(xCurrentPosition, yCurrentPosition);
                     }
-                    for (int j = 1; j < 2; j++) {
+                    while(yCurrentPosition!=0) {
                         goBack(api);
+                    }
+                    if(xCurrentPosition==0) {
+                        break;
                     }
                     goLeft(api, 1);
                 }
                 ball_catched++;
             }
+
     }
 
     private static class MyCustomApi extends EV3.Api {
@@ -477,7 +466,7 @@ public class First extends AppCompatActivity {
         EditText robotYCoordinate = findViewById(R.id.yRobot);
 //        xRobotValue = Integer.valueOf(robotXCoordinate.getText().toString());
 //        yRobotValue = Integer.valueOf(robotYCoordinate.getText().toString());
-        xRobotValue = 2;
+        xRobotValue = 0;
         yRobotValue = 0;
         xCurrentPosition = xRobotValue;
         yCurrentPosition = yRobotValue;
