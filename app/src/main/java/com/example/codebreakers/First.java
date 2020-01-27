@@ -3,14 +3,20 @@ package com.example.codebreakers;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.SurfaceView;
+import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.GridView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.content.Intent;
+import android.speech.RecognizerIntent;
+import android.speech.tts.TextToSpeech;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import org.opencv.android.CameraBridgeViewBase;
@@ -26,6 +32,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
@@ -42,6 +49,7 @@ import it.unive.dais.legodroid.lib.util.ThrowingConsumer;
 import static java.lang.Math.abs;
 
 public class First extends AppCompatActivity {
+    private static GridView list;
     private static final int CAMERA_PERMISSION_CODE=100;
     private static final String TAG = Prelude.ReTAG("MainActivity");
     private CameraBridgeViewBase mOpenCvCameraView;
@@ -70,7 +78,7 @@ public class First extends AppCompatActivity {
     private Integer yCurrentPosition;
     private boolean ballIsCatched = false;
     Point center;
-
+    GridViewCustomAdapter adapter;
     private void applyMotor(@NonNull ThrowingConsumer<TachoMotor, Throwable> f) {
         if (motorLeft != null)
             Prelude.trap(() -> f.call(motorLeft));
@@ -129,10 +137,16 @@ public class First extends AppCompatActivity {
         mOpenCvCameraView.setMaxFrameSize(640, 480);
         mOpenCvCameraView.disableFpsMeter();
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-        MatrixMap Map = new MatrixMap(this);
-        Map.setNumColumns(10);
-        Map.setNumRows(10);
-        matrixView.addView(Map);
+        list = findViewById(R.id.grid_view);
+        list.setNumColumns(4);
+        ArrayList<String> data = new ArrayList<>();
+        for (int i = 0; i < 4; i++) {
+            for(int j=0; j < 4;j++)
+                data.add("");
+
+        }
+        adapter = new GridViewCustomAdapter(this, data);
+        list.setAdapter(adapter);
         try {
             BluetoothConnection.BluetoothChannel conn = new BluetoothConnection("Willy").connect(); // replace with your own brick name
             GenEV3<MyCustomApi> ev3 = new GenEV3<>(conn);
@@ -144,8 +158,8 @@ public class First extends AppCompatActivity {
             e.printStackTrace();
         }
 
-    }
 
+    }
     void catchBall() throws IOException {
         motorClaws.setStepSpeed(50,0,1000,0,true);
         motorClaws.waitCompletion();
@@ -160,17 +174,17 @@ public class First extends AppCompatActivity {
     void goForward(EV3.Api api) throws  IOException {
             yCurrentPosition++;
             int i = 1;
-            while(i!=4) {
+            while(i!=5) {
                 turnFrontOneMotorDown(api);
                 if(i%2==0) {
-                    motorLeft.setStepSpeed(50, 0, 150, 0, true);
-                    motorRight.setStepSpeed(50, 0, 150, 0, true );
+                    motorLeft.setStepSpeed(50, 0, 175, 0, true);
+                    motorRight.setStepSpeed(50, 0, 175, 0, true );
                     motorLeft.waitCompletion();
                     motorRight.waitCompletion();
                 }
                 else {
-                    motorRight.setStepSpeed(50, 0, 150, 0, true);
-                    motorLeft.setStepSpeed(50, 0, 150, 0, true);
+                    motorRight.setStepSpeed(50, 0, 171, 0, true);
+                    motorLeft.setStepSpeed(50, 0, 171, 0, true);
                     motorRight.waitCompletion();
                     motorLeft.waitCompletion();
                 }
@@ -184,17 +198,17 @@ public class First extends AppCompatActivity {
     void goBack(EV3.Api api) throws  IOException {
         yCurrentPosition--;
         int i = 1;
-        while(i!=4) {
+        while(i!=5) {
             turnFrontOneMotorDown(api);
             if(i%2==0) {
-                motorLeft.setStepSpeed(-50, 0, 150, 0, true);
-                motorRight.setStepSpeed(-50, 0, 150, 0, true );
+                motorLeft.setStepSpeed(-50, 0, 175, 0, true);
+                motorRight.setStepSpeed(-50, 0, 175, 0, true );
                 motorLeft.waitCompletion();
                 motorRight.waitCompletion();
             }
             else {
-                motorRight.setStepSpeed(-50, 0, 150, 0, true);
-                motorLeft.setStepSpeed(-50, 0, 150, 0, true);
+                motorRight.setStepSpeed(-50, 0, 171, 0, true);
+                motorLeft.setStepSpeed(-50, 0, 171, 0, true);
                 motorRight.waitCompletion();
                 motorLeft.waitCompletion();
             }
@@ -206,12 +220,86 @@ public class First extends AppCompatActivity {
 
     }
 
+
     void goLeft(EV3.Api api, int times) throws  IOException {
         xCurrentPosition--;
         turnLeft(api);
         for(int time=1;time<=times;time++) {
             int i = 1;
-            while(i!=4) {
+            while(i!=5) {
+                turnLeft(api);
+                if(i%2==0) {
+                    motorLeft.setStepSpeed(50, 0, 175, 0, true);
+                    motorRight.setStepSpeed(50, 0, 175, 0, true );
+                    motorLeft.waitCompletion();
+                    motorRight.waitCompletion();
+                }
+                else {
+                    motorRight.setStepSpeed(50, 0, 171, 0, true);
+                    motorLeft.setStepSpeed(50, 0, 171, 0, true);
+                    motorRight.waitCompletion();
+                    motorLeft.waitCompletion();
+                }
+                turnLeft(api);
+                i++;
+            }
+            motorLeft.setSpeed(0);
+            motorRight.setSpeed(0);
+            turnFrontOneMotorDown(api);
+        }
+        markZone(xCurrentPosition,yCurrentPosition);
+    }
+
+    void turnLeft(EV3.Api api) {
+        int speed = 5;
+        final GyroSensor gyroSensor = api.getGyroSensor(EV3.InputPort._4);
+        try {
+            float current_angle = gyroSensor.getAngle().get();
+            while (current_angle > -89){
+                motorLeft.setSpeed(-speed);
+                motorRight.setSpeed(speed);
+                if(current_angle < -70) {
+                    speed = 1;
+                }
+                motorLeft.start();
+                motorRight.start();
+                current_angle = gyroSensor.getAngle().get();
+                Log.i("gyrosensor", gyroSensor.getAngle().get().toString());
+            }
+            stopMotors();
+        } catch (IOException | InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+        }
+    }
+
+    void turnRight(EV3.Api api) {
+        int speed = 5;
+        final GyroSensor gyroSensor = api.getGyroSensor(EV3.InputPort._4);
+        try {
+            float current_angle = gyroSensor.getAngle().get();
+            while (current_angle < 88){
+                motorLeft.setSpeed(speed);
+                motorRight.setSpeed(-speed);
+                if(current_angle > 70) {
+                    speed = 1;
+                }
+                motorLeft.start();
+                motorRight.start();
+                current_angle = gyroSensor.getAngle().get();
+                Log.i("gyrosensor", gyroSensor.getAngle().get().toString());
+            }
+            stopMotors();
+        } catch (IOException | InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+        }
+    }
+
+    void goRight(EV3.Api api, int times) throws  IOException {
+        xCurrentPosition++;
+        turnRight(api);
+        for(int time=1;time<=times;time++) {
+            int i = 1;
+            while(i!=5) {
                 if(i%2==0) {
                     motorLeft.setStepSpeed(50, 0, 150, 0, true);
                     motorRight.setStepSpeed(50, 0, 150, 0, true );
@@ -228,94 +316,38 @@ public class First extends AppCompatActivity {
             }
             motorLeft.setSpeed(0);
             motorRight.setSpeed(0);
-            turnFrontOneMotorDown(api);
         }
-    }
-
-    void turnLeft(EV3.Api api) {
-        final GyroSensor gyroSensor = api.getGyroSensor(EV3.InputPort._4);
-        try {
-            float current_angle = gyroSensor.getAngle().get();
-            while (current_angle > -90){
-                motorLeft.setSpeed(-15);
-                motorRight.setSpeed(15);
-                motorLeft.start();
-                motorRight.start();
-                current_angle = gyroSensor.getAngle().get();
-                Log.i("gyrosensor", gyroSensor.getAngle().get().toString());
-                stopMotors();
-            }
-        } catch (IOException | InterruptedException | ExecutionException e) {
-            e.printStackTrace();
-        }
-    }
-
-    void turnRight(EV3.Api api) {
-        final GyroSensor gyroSensor = api.getGyroSensor(EV3.InputPort._4);
-        try {
-            float current_angle = gyroSensor.getAngle().get();
-            while (current_angle < 85) {
-                motorLeft.setSpeed(15);
-                motorRight.setSpeed(-15);
-                motorLeft.start();
-                motorRight.start();
-                current_angle = gyroSensor.getAngle().get();
-                Log.i("gyrosensor", gyroSensor.getAngle().get().toString());
-                stopMotors();
-            }
-            motorRight.setStepSpeed(50,0,1000,0,false);
-            motorLeft.setStepSpeed(50,0,1000,0,false);
-        } catch (IOException | InterruptedException | ExecutionException e) {
-            e.printStackTrace();
-        }
-    }
-
-    void goRight(EV3.Api api) throws  IOException {
-        final GyroSensor gyroSensor = api.getGyroSensor(EV3.InputPort._4);
-        try {
-            float current_angle = gyroSensor.getAngle().get();
-            while (current_angle < 85) {
-                motorLeft.setSpeed(15);
-                motorRight.setSpeed(-15);
-                motorLeft.start();
-                motorRight.start();
-                current_angle = gyroSensor.getAngle().get();
-                stopMotors();
-            }
-            motorRight.setStepSpeed(50,0,1000,0,false);
-            motorLeft.setStepSpeed(50,0,1000,0,false);
-        } catch (IOException | InterruptedException | ExecutionException e) {
-            e.printStackTrace();
-        }
+        markZone(xCurrentPosition,yCurrentPosition);
 
     }
 
-    void turnFront(EV3.Api api) {
-        if(ballIsCatched == false) {
-            int speed = 1;
-            final GyroSensor gyroSensor = api.getGyroSensor(EV3.InputPort._4);
-            try {
-                float current_angle = gyroSensor.getAngle().get();
-                while ( abs(current_angle) > 1 )  {
-                        if (current_angle > 1) {
-                            motorLeft.setSpeed(-speed);
-                            motorRight.setSpeed(speed);
-                            motorLeft.start();
-                            motorRight.start();
-                            current_angle = gyroSensor.getAngle().get();
-                        } else if (current_angle < 1 ) {
-                            motorLeft.setSpeed(speed);
-                            motorRight.setSpeed(-speed);
-                            motorLeft.start();
-                            motorRight.start();
-                            current_angle = gyroSensor.getAngle().get();
-                        }
+    void updateMap(int x, int y) {
+        ArrayList<String> data = new ArrayList<>();
+        for (int i = 0; i <= n+1; i++) {
+            for(int j=0;j <= m+1;j++)
+                if(i==(n-y) && x==j){
+                    data.add("O");
+                } else if(i==n+1){
+                    data.add("S");
+                } else if(j>=m+1) {
+                    data.add("\\");
                 }
-                stopMotors();
-            } catch (IOException | InterruptedException | ExecutionException e) {
-                e.printStackTrace();
-            }
+            else{
+                data.add("");
+                }
+
         }
+        adapter = new GridViewCustomAdapter(this, data);
+        runOnUiThread(new Runnable() {
+
+            @Override
+            public void run() {
+                list.setNumColumns(n+2);
+                list.setAdapter(adapter);
+
+            }
+        });
+
     }
 
     void turnFrontOneMotorDown(EV3.Api api) {
@@ -376,7 +408,7 @@ public class First extends AppCompatActivity {
             }
         }
         if (xRobotValue<xSafeZone) {
-            goRight(api);
+            goRight(api,1);
             xRobotValue++;
             while(xRobotValue!=xSafeZone) {
                 goBack(api);
@@ -399,7 +431,7 @@ public class First extends AppCompatActivity {
     }
 
     boolean checkLine(int x) {
-        for(int y=0;y<m;y++)
+        for(int y=0;y<=m;y++)
             if(matrix[y][x]==0)
                 return false;
             return true;
@@ -428,17 +460,46 @@ public class First extends AppCompatActivity {
                 for (int line = xCurrentPosition; line >= 0; line--) {
                     while (checkLine(xCurrentPosition) != true) {
                         markZone(xCurrentPosition, yCurrentPosition);
+                        updateMap(xCurrentPosition,yCurrentPosition);
                         goForward(api);
                         markZone(xCurrentPosition, yCurrentPosition);
+                        updateMap(xCurrentPosition,yCurrentPosition);
                     }
                     while(yCurrentPosition!=0) {
                         goBack(api);
+                        updateMap(xCurrentPosition,yCurrentPosition);
                     }
                     if(xCurrentPosition==0) {
                         break;
                     }
                     goLeft(api, 1);
+                    updateMap(xCurrentPosition,yCurrentPosition);
                 }
+                turnFrontOneMotorDown(api);
+                goRight(api,xRobotValue);
+                turnFrontOneMotorDown(api);
+                updateMap(xCurrentPosition,yCurrentPosition);
+                for (int line = xCurrentPosition; line <= n; line++) {
+                    while (checkLine(xCurrentPosition) != true) {
+                        markZone(xCurrentPosition, yCurrentPosition);
+                        updateMap(xCurrentPosition,yCurrentPosition);
+                        goForward(api);
+                        markZone(xCurrentPosition, yCurrentPosition);
+                        updateMap(xCurrentPosition,yCurrentPosition);
+                    }
+                    while(yCurrentPosition!=0) {
+                        goBack(api);
+                        updateMap(xCurrentPosition,yCurrentPosition);
+                    }
+                    if(xCurrentPosition==n) {
+                        break;
+                    }
+                    goRight(api, 1);
+                    updateMap(xCurrentPosition,yCurrentPosition);
+                }
+                goLeft(api,n-xRobotValue);
+                turnFrontOneMotorDown(api);
+
                 ball_catched++;
             }
 
@@ -458,15 +519,15 @@ public class First extends AppCompatActivity {
         api.mySpecialCommand();
         EditText rows = findViewById(R.id.rows);
         EditText columns = findViewById(R.id.columns);
-        n = 3;
-        m = 3;
+        n = 2;
+        m = 2;
 //        n = Integer.valueOf(rows.getText().toString());
 //        m = Integer.valueOf(columns.getText().toString());
         EditText robotXCoordinate = findViewById(R.id.xRobot);
         EditText robotYCoordinate = findViewById(R.id.yRobot);
 //        xRobotValue = Integer.valueOf(robotXCoordinate.getText().toString());
 //        yRobotValue = Integer.valueOf(robotYCoordinate.getText().toString());
-        xRobotValue = 0;
+        xRobotValue = 1;
         yRobotValue = 0;
         xCurrentPosition = xRobotValue;
         yCurrentPosition = yRobotValue;
@@ -476,27 +537,6 @@ public class First extends AppCompatActivity {
 //        totalBalls = Integer.valueOf(numberOfBalls.getText().toString());
         totalBalls = 1;
         legoMain(api);
-
-
-        // codul asta este pt a modifica matrixu
-        // INITIALISE YOUR GRID
-        GridView list=(GridView)findViewById(R.id.grid_view);
-        list.setNumColumns(m);
-        ArrayList<String> data = new ArrayList<>();
-        for (int i = 0; i < n; i++) {
-            for(int j=0;j<m;j++)
-                //data.add(i+"*"+j);
-                if(i==j){
-                    data.add("O");
-                }else{
-                    data.add(" ");
-                }
-
-        }
-        GridViewCustomAdapter adapter = new GridViewCustomAdapter(this, data);
-
-        //list = (GridView) findViewById(R.id.grid_view);
-        list.setAdapter(adapter);
 
     }
 
