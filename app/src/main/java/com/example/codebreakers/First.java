@@ -72,8 +72,6 @@ public class First extends AppCompatActivity {
     private Integer ball_catched = 0;
     private Integer xRobotValue;
     private Integer yRobotValue;
-    private Integer xSafeZone;
-    private Integer ySafeZone;
     private Integer xCurrentPosition;
     private Integer yCurrentPosition;
     private boolean ballIsCatched = false;
@@ -219,7 +217,6 @@ public class First extends AppCompatActivity {
         motorRight.setSpeed(0);
 
     }
-
 
     void goLeft(EV3.Api api, int times) throws  IOException {
         xCurrentPosition--;
@@ -380,6 +377,29 @@ public class First extends AppCompatActivity {
         }
     }
 
+
+    void turn180OneMotorDown(EV3.Api api) {
+        int speed = 5;
+        final GyroSensor gyroSensor = api.getGyroSensor(EV3.InputPort._4);
+        try {
+            float current_angle = gyroSensor.getAngle().get();
+            while (current_angle > -180){
+                motorLeft.setSpeed(-speed);
+                motorRight.setSpeed(speed);
+                if(current_angle < -150) {
+                    speed = 1;
+                }
+                motorLeft.start();
+                motorRight.start();
+                current_angle = gyroSensor.getAngle().get();
+                Log.i("gyrosensor", gyroSensor.getAngle().get().toString());
+            }
+            stopMotors();
+        } catch (IOException | InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+        }
+    }
+
     void stopMotors() throws IOException {
         motorRight.stop();
         motorLeft.stop();
@@ -387,39 +407,53 @@ public class First extends AppCompatActivity {
     }
 
     void goToSafeZone(EV3.Api api) throws  IOException {
-        if(yRobotValue>ySafeZone) {
-            while(yRobotValue!=ySafeZone) {
-                goBack(api);
-                yRobotValue--;
-            }
+        catchBall();
+        while (yCurrentPosition > 0) {
+            goBack(api);
+            markZone(xCurrentPosition,yCurrentPosition);
         }
-        if (yRobotValue<ySafeZone) {
-            while(yRobotValue!=ySafeZone) {
-                goForward(api);
-                yRobotValue++;
-            }
+        while (xCurrentPosition>xRobotValue) {
+            goLeft(api, xCurrentPosition-xRobotValue);
+            markZone(xCurrentPosition,yCurrentPosition);
         }
-        if (xRobotValue>xSafeZone) {
-            goLeft(api,1);
-            xRobotValue--;
-            while (xRobotValue!=xSafeZone) {
-                goForward(api);
-                xRobotValue--;
-            }
+        while (xCurrentPosition<xRobotValue) {
+            goRight(api,xRobotValue-xCurrentPosition);
         }
-        if (xRobotValue<xSafeZone) {
-            goRight(api,1);
-            xRobotValue++;
-            while(xRobotValue!=xSafeZone) {
-                goBack(api);
-                xRobotValue++;
+        turn180OneMotorDown(api);
+        releaseBall();
+        int i = 1;
+        while(i!=2) {
+            if(i%2==0) {
+                motorLeft.setStepSpeed(-50, 0, 175, 0, true);
+                motorRight.setStepSpeed(-50, 0, 175, 0, true );
+                motorLeft.waitCompletion();
+                motorRight.waitCompletion();
             }
+            else {
+                motorRight.setStepSpeed(-50, 0, 171, 0, true);
+                motorLeft.setStepSpeed(-50, 0, 171, 0, true);
+                motorRight.waitCompletion();
+                motorLeft.waitCompletion();
+            }
+            i++;
         }
-    }
-
-    void computeSafeZone() {
-        xSafeZone = xRobotValue;
-        ySafeZone = yRobotValue-1;
+        turnFrontOneMotorDown(api);
+        i = 1;
+        while(i!=2) {
+            if(i%2==0) {
+                motorLeft.setStepSpeed(-50, 0, 175, 0, true);
+                motorRight.setStepSpeed(-50, 0, 175, 0, true );
+                motorLeft.waitCompletion();
+                motorRight.waitCompletion();
+            }
+            else {
+                motorRight.setStepSpeed(-50, 0, 171, 0, true);
+                motorLeft.setStepSpeed(-50, 0, 171, 0, true);
+                motorRight.waitCompletion();
+                motorLeft.waitCompletion();
+            }
+            i++;
+        }
     }
 
     int[][] constructMatrix(int n, int m) {
@@ -439,6 +473,7 @@ public class First extends AppCompatActivity {
 
     void markZone(int x,int y) {
         matrix[y][x] = 1;
+        updateMap(xCurrentPosition,yCurrentPosition);
     }
 
     int getDistance(EV3.Api api) throws IOException,ExecutionException, InterruptedException {
@@ -452,18 +487,18 @@ public class First extends AppCompatActivity {
         motorLeft = api.getTachoMotor(EV3.OutputPort.A);
         motorRight = api.getTachoMotor(EV3.OutputPort.D);
         motorClaws = api.getTachoMotor(EV3.OutputPort.B);
-        motoare = api.getMotors(EV3.OutputPort.A, EV3.OutputPort.D);
-        computeSafeZone();
         setUpCamera();
         ball_catched = 0;
             while (ball_catched!=1) {
                 for (int line = xCurrentPosition; line >= 0; line--) {
                     while (checkLine(xCurrentPosition) != true) {
                         markZone(xCurrentPosition, yCurrentPosition);
-                        updateMap(xCurrentPosition,yCurrentPosition);
                         goForward(api);
+                        if(getDistance(api)<5) {
+                            catchBall();
+                            goToSafeZone(api);
+                        }
                         markZone(xCurrentPosition, yCurrentPosition);
-                        updateMap(xCurrentPosition,yCurrentPosition);
                     }
                     while(yCurrentPosition!=0) {
                         goBack(api);
@@ -482,24 +517,23 @@ public class First extends AppCompatActivity {
                 for (int line = xCurrentPosition; line <= n; line++) {
                     while (checkLine(xCurrentPosition) != true) {
                         markZone(xCurrentPosition, yCurrentPosition);
-                        updateMap(xCurrentPosition,yCurrentPosition);
                         goForward(api);
+                        if(getDistance(api)<5) {
+                            catchBall();
+                            goToSafeZone(api);
+                        }
                         markZone(xCurrentPosition, yCurrentPosition);
-                        updateMap(xCurrentPosition,yCurrentPosition);
                     }
                     while(yCurrentPosition!=0) {
                         goBack(api);
-                        updateMap(xCurrentPosition,yCurrentPosition);
+                        markZone(xCurrentPosition,yCurrentPosition);
                     }
                     if(xCurrentPosition==n) {
                         break;
                     }
                     goRight(api, 1);
-                    updateMap(xCurrentPosition,yCurrentPosition);
+                    markZone(xCurrentPosition,yCurrentPosition);
                 }
-                goLeft(api,n-xRobotValue);
-                turnFrontOneMotorDown(api);
-
                 ball_catched++;
             }
 
