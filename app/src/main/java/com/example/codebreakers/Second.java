@@ -29,8 +29,6 @@ import android.widget.PopupWindow;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.UiThread;
-
 import com.google.android.gms.nearby.connection.ConnectionInfo;
 import com.google.android.gms.nearby.connection.Payload;
 import com.google.android.gms.nearby.connection.Strategy;
@@ -456,16 +454,16 @@ public class Second extends ConnectionsActivity {//implements SensorEventListene
             case UNKNOWN:
                 // Unknown is our initial state. Whatever state we move to,
                 // we're transitioning forwards.
-                transitionForward(oldState, newState);
+
                 break;
             case DISCOVERING:
                 switch (newState) {
                     case UNKNOWN:
-                        transitionBackward(oldState, newState);
+
                         break;
                     case ADVERTISING:
                     case CONNECTED:
-                        transitionForward(oldState, newState);
+
                         break;
                     default:
                         // no-op
@@ -476,10 +474,10 @@ public class Second extends ConnectionsActivity {//implements SensorEventListene
                 switch (newState) {
                     case UNKNOWN:
                     case DISCOVERING:
-                        transitionBackward(oldState, newState);
+
                         break;
                     case CONNECTED:
-                        transitionForward(oldState, newState);
+
                         break;
                     default:
                         // no-op
@@ -489,30 +487,12 @@ public class Second extends ConnectionsActivity {//implements SensorEventListene
             case CONNECTED:
                 // Connected is our final state. Whatever new state we move to,
                 // we're transitioning backwards.
-                transitionBackward(oldState, newState);
+
                 break;
             default:
                 // no-op
                 break;
         }
-    }
-
-    /**
-     * Transitions from the old state to the new state with an animation implying moving forward.
-     */
-    @UiThread
-    private void transitionForward(State oldState, final State newState) {
-        mPreviousStateView.setVisibility(View.VISIBLE);
-        mCurrentStateView.setVisibility(View.VISIBLE);
-    }
-
-    /**
-     * Transitions from the old state to the new state with an animation implying moving backward.
-     */
-    @UiThread
-    private void transitionBackward(State oldState, final State newState) {
-        mPreviousStateView.setVisibility(View.VISIBLE);
-        mCurrentStateView.setVisibility(View.VISIBLE);
     }
 
     @NonNull
@@ -1324,6 +1304,25 @@ public class Second extends ConnectionsActivity {//implements SensorEventListene
         return Math.round(ultraSensor.getDistance().get());
     }
 
+    void goToBall(EV3.Api api, int x, int y) throws IOException {
+        while(yCurrentPosition!=y) {
+            markZone(xCurrentPosition,yCurrentPosition);
+            goForward(api);
+            markZone(xCurrentPosition,yCurrentPosition);
+        }
+        if(xCurrentPosition>x) {
+            markZone(xCurrentPosition,yCurrentPosition);
+            goLeft(api,xCurrentPosition-x);
+            markZone(xCurrentPosition,yCurrentPosition);
+        }
+        if(xCurrentPosition<x) {
+            markZone(xCurrentPosition,yCurrentPosition);
+            goRight(api,x-xCurrentPosition);
+            markZone(xCurrentPosition,yCurrentPosition);
+        }
+
+
+    }
     private void legoMain(EV3.Api api) throws  IOException, InterruptedException, ExecutionException {
         final String TAG = Prelude.ReTAG("legoMain");
 
@@ -1332,57 +1331,14 @@ public class Second extends ConnectionsActivity {//implements SensorEventListene
         motorClaws = api.getTachoMotor(EV3.OutputPort.B);
         setUpCamera();
         ball_catched = 0;
-        while (ball_catched!=1) {
-            for (int line = xCurrentPosition; line >= 0; line--) {
-                while (checkLine(xCurrentPosition) != true) {
-                    markZone(xCurrentPosition, yCurrentPosition);
-                    goForward(api);
-                    if(getDistance(api)<5) {
-                        catchBall();
-                        goToSafeZone(api);
-                        line = xCurrentPosition;
-                    }
-                    markZone(xCurrentPosition, yCurrentPosition);
-                }
-                while(yCurrentPosition!=0) {
-                    goBack(api);
-                    updateMap(xCurrentPosition,yCurrentPosition);
-                }
-                if(xCurrentPosition==0) {
-                    break;
-                }
-                goLeft(api, 1);
-                updateMap(xCurrentPosition,yCurrentPosition);
-            }
-            turnFrontOneMotorDown(api);
-            goRight(api,xRobotValue);
-            turnFrontOneMotorDown(api);
-            updateMap(xCurrentPosition,yCurrentPosition);
-            for (int line = xCurrentPosition; line <= n; line++) {
-                while (checkLine(xCurrentPosition) != true) {
-                    markZone(xCurrentPosition, yCurrentPosition);
-                    goForward(api);
-                    if(getDistance(api)<5) {
-                        catchBall();
-                        goToSafeZone(api);
-                    }
-                    markZone(xCurrentPosition, yCurrentPosition);
-                }
-                while(yCurrentPosition!=0) {
-                    goBack(api);
-                    markZone(xCurrentPosition,yCurrentPosition);
-                }
-                if(xCurrentPosition==n) {
-                    break;
-                }
-                goRight(api, 1);
-                markZone(xCurrentPosition,yCurrentPosition);
-            }
-
-            ball_catched++;
+        markZone(xCurrentPosition,yCurrentPosition);
+        for(int i=0;i<coordinates.size();i++) {
+            goToBall(api,coordinates.get(i).first,coordinates.get(i).second);
+            goToSafeZone(api);
         }
 
-    }
+        }
+
 
     private static class MyCustomApi extends EV3.Api {
 

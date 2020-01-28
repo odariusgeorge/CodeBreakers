@@ -3,20 +3,14 @@ package com.example.codebreakers;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.SurfaceView;
-import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.GridView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.content.Intent;
-import android.speech.RecognizerIntent;
-import android.speech.tts.TextToSpeech;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import org.opencv.android.CameraBridgeViewBase;
@@ -32,7 +26,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
@@ -520,7 +513,6 @@ public class First extends AppCompatActivity {
                         markZone(xCurrentPosition, yCurrentPosition);
                         goForward(api);
                         if(getDistance(api)<5) {
-                            catchBall();
                             goToSafeZone(api);
                         }
                         markZone(xCurrentPosition, yCurrentPosition);
