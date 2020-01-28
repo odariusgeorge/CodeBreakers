@@ -348,15 +348,27 @@ public class First extends AppCompatActivity {
                 float current_angle = gyroSensor.getAngle().get();
                 while ( abs(current_angle) > 1 )  {
                     if (current_angle > 1) {
-                        motorLeft.setSpeed(0);
-                        motorRight.setSpeed(speed);
+                        if(current_angle > 30) {
+                            motorLeft.setSpeed(-5);
+                            motorRight.setSpeed(5);
+                        }
+                        else {
+                            motorLeft.setSpeed(0);
+                            motorRight.setSpeed(speed);
+                        }
                         motorLeft.start();
                         motorRight.start();
                         Log.i("gyrosensor", gyroSensor.getAngle().get().toString());
                         current_angle = gyroSensor.getAngle().get();
                     } else if (current_angle < 1 ) {
-                        motorLeft.setSpeed(speed);
-                        motorRight.setSpeed(0);
+                        if(current_angle > -30) {
+                            motorLeft.setSpeed(speed);
+                            motorRight.setSpeed(0);
+                        }
+                        else {
+                            motorLeft.setSpeed(5);
+                            motorRight.setSpeed(-5);
+                        }
                         motorLeft.start();
                         motorRight.start();
                         Log.i("gyrosensor", gyroSensor.getAngle().get().toString());
@@ -487,10 +499,11 @@ public class First extends AppCompatActivity {
                     while (checkLine(xCurrentPosition) != true) {
                         markZone(xCurrentPosition, yCurrentPosition);
                         goForward(api);
-                        if(getDistance(api)<5) {
+                        if(getDistance(api)<10) {
                             catchBall();
                             goToSafeZone(api);
                             line = xCurrentPosition;
+                            ball_catched++;
                         }
                         markZone(xCurrentPosition, yCurrentPosition);
                     }
@@ -527,7 +540,6 @@ public class First extends AppCompatActivity {
                     goRight(api, 1);
                     markZone(xCurrentPosition,yCurrentPosition);
                 }
-
                 ball_catched++;
             }
 
