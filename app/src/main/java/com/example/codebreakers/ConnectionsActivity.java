@@ -140,7 +140,7 @@ public abstract class ConnectionsActivity extends AppCompatActivity {
                 public void onPayloadReceived(String endpointId, Payload payload) {
                     logD(String.format("onPayloadReceived(endpointId=%s, payload=%s)", endpointId, payload));
                     onReceive(mEstablishedConnections.get(endpointId), payload);
-                    receiveCoordinates(payload);
+
                 }
 
                 @Override
