@@ -1,14 +1,18 @@
 package com.example.codebreakers;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.speech.RecognizerIntent;
 import android.util.Log;
 import android.view.SurfaceView;
+import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.GridView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -26,6 +30,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
@@ -68,6 +73,7 @@ public class First extends AppCompatActivity {
     private Integer xCurrentPosition;
     private Integer yCurrentPosition;
     private boolean ballIsCatched = false;
+    private TextView txvResult;
     Point center;
     GridViewCustomAdapter adapter;
     private void applyMotor(@NonNull ThrowingConsumer<TachoMotor, Throwable> f) {
@@ -124,6 +130,7 @@ public class First extends AppCompatActivity {
         Button start = findViewById(R.id.Start);
         LinearLayout matrixView = findViewById(R.id.matrix);
         mOpenCvCameraView = findViewById(R.id.HelloOpenCvView);
+        txvResult = findViewById(R.id.txvResult);
         mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
         mOpenCvCameraView.setMaxFrameSize(640, 480);
         mOpenCvCameraView.disableFpsMeter();
@@ -544,6 +551,33 @@ public class First extends AppCompatActivity {
             }
 
     }
+
+    public void getSpeechInput(View view) {
+        Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
+
+        if (intent.resolveActivity(getPackageManager()) != null) {
+            startActivityForResult(intent, 10);
+        } else {
+            Toast.makeText(this, "Your Device Don't Support Speech Input", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        switch (requestCode) {
+            case 10:
+                if (resultCode == RESULT_OK && data != null) {
+                    ArrayList<String> result = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
+                    txvResult.setText(result.get(0));
+                }
+                break;
+        }
+    }
+
 
     private static class MyCustomApi extends EV3.Api {
 
