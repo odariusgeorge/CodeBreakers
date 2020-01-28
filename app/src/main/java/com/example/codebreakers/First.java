@@ -159,13 +159,13 @@ public class First extends AppCompatActivity {
 
     }
     void catchBall() throws IOException {
-        motorClaws.setStepSpeed(50,0,1000,0,true);
+        motorClaws.setStepSpeed(50,0,850,0,true);
         motorClaws.waitCompletion();
         motorClaws.stop();
     }
 
     void releaseBall() throws IOException {
-        motorClaws.setStepSpeed(-50,0,1000,0,true);
+        motorClaws.setStepSpeed(-50,0,850,0,true);
         motorClaws.waitCompletion();
     }
 
@@ -252,10 +252,10 @@ public class First extends AppCompatActivity {
         final GyroSensor gyroSensor = api.getGyroSensor(EV3.InputPort._4);
         try {
             float current_angle = gyroSensor.getAngle().get();
-            while (current_angle > -89){
+            while (current_angle >= -88){
                 motorLeft.setSpeed(-speed);
                 motorRight.setSpeed(speed);
-                if(current_angle < -70) {
+                if(current_angle < -65) {
                     speed = 1;
                 }
                 motorLeft.start();
@@ -274,10 +274,10 @@ public class First extends AppCompatActivity {
         final GyroSensor gyroSensor = api.getGyroSensor(EV3.InputPort._4);
         try {
             float current_angle = gyroSensor.getAngle().get();
-            while (current_angle < 88){
+            while (current_angle <= 87){
                 motorLeft.setSpeed(speed);
                 motorRight.setSpeed(-speed);
-                if(current_angle > 70) {
+                if(current_angle > 65) {
                     speed = 1;
                 }
                 motorLeft.start();
@@ -497,6 +497,7 @@ public class First extends AppCompatActivity {
                         if(getDistance(api)<5) {
                             catchBall();
                             goToSafeZone(api);
+                            line = xCurrentPosition;
                         }
                         markZone(xCurrentPosition, yCurrentPosition);
                     }
@@ -534,6 +535,7 @@ public class First extends AppCompatActivity {
                     goRight(api, 1);
                     markZone(xCurrentPosition,yCurrentPosition);
                 }
+
                 ball_catched++;
             }
 
