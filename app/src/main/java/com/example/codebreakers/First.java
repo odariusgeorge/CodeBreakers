@@ -25,7 +25,7 @@ import org.opencv.core.MatOfPoint;
 import org.opencv.core.Point;
 import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
-
+import java.lang.String;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -164,6 +164,77 @@ public class First extends AppCompatActivity {
         motorClaws.stop();
     }
 
+    void forward() {
+        try {
+            motorLeft.setStepSpeed(50, 0, 175, 0, true);
+            motorRight.setStepSpeed(50, 0, 175, 0, true );
+            motorLeft.waitCompletion();
+            motorRight.waitCompletion();
+        } catch (IOException ex) {
+
+        }
+
+    }
+
+    void back() {
+        try {
+            motorLeft.setStepSpeed(-50, 0, 175, 0, true);
+            motorRight.setStepSpeed(-50, 0, 175, 0, true );
+            motorLeft.waitCompletion();
+            motorRight.waitCompletion();
+        } catch (IOException ex) {
+
+        }
+
+    }
+
+    void right() {
+        int speed = 30;
+        try {
+            motorLeft.setStepPower(-speed,0,333,0,false);
+            motorLeft.setStepPower(speed,0,333,0,false);
+            motorLeft.waitCompletion();
+            motorRight.waitCompletion();
+            }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    void left() {
+        int speed = 30;
+        try {
+            motorLeft.setStepPower(speed,0,333,0,false);
+            motorLeft.setStepPower(-speed,0,333,0,false);
+            motorLeft.waitCompletion();
+            motorRight.waitCompletion();
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    void catchB() {
+        try {
+            motorClaws.setStepSpeed(50,0,850,0,true);
+            motorClaws.waitCompletion();
+            motorClaws.stop();
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    void releaseB() {
+        try {
+            motorClaws.setStepSpeed(-50,0,850,0,true);
+            motorClaws.waitCompletion();
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     void releaseBall() throws IOException {
         motorClaws.setStepSpeed(-50,0,850,0,true);
         motorClaws.waitCompletion();
@@ -175,14 +246,14 @@ public class First extends AppCompatActivity {
             while(i!=5) {
                 turnFrontOneMotorDown(api);
                 if(i%2==0) {
-                    motorLeft.setStepSpeed(50, 0, 175, 0, true);
-                    motorRight.setStepSpeed(50, 0, 175, 0, true );
+                    motorLeft.setStepSpeed(30, 0, 165, 0, true);
+                    motorRight.setStepSpeed(30, 0, 165, 0, true );
                     motorLeft.waitCompletion();
                     motorRight.waitCompletion();
                 }
                 else {
-                    motorRight.setStepSpeed(50, 0, 171, 0, true);
-                    motorLeft.setStepSpeed(50, 0, 171, 0, true);
+                    motorRight.setStepSpeed(30, 0, 164, 0, true);
+                    motorLeft.setStepSpeed(30, 0, 164, 0, true);
                     motorRight.waitCompletion();
                     motorLeft.waitCompletion();
                 }
@@ -199,14 +270,14 @@ public class First extends AppCompatActivity {
         while(i!=5) {
             turnFrontOneMotorDown(api);
             if(i%2==0) {
-                motorLeft.setStepSpeed(-50, 0, 175, 0, true);
-                motorRight.setStepSpeed(-50, 0, 175, 0, true );
+                motorLeft.setStepSpeed(-40, 0, 155, 0, true);
+                motorRight.setStepSpeed(-40, 0, 155, 0, true );
                 motorLeft.waitCompletion();
                 motorRight.waitCompletion();
             }
             else {
-                motorRight.setStepSpeed(-50, 0, 171, 0, true);
-                motorLeft.setStepSpeed(-50, 0, 171, 0, true);
+                motorRight.setStepSpeed(-40, 0, 154, 0, true);
+                motorLeft.setStepSpeed(-40, 0, 154, 0, true);
                 motorRight.waitCompletion();
                 motorLeft.waitCompletion();
             }
@@ -226,14 +297,14 @@ public class First extends AppCompatActivity {
             while(i!=5) {
                 turnLeft(api);
                 if(i%2==0) {
-                    motorLeft.setStepSpeed(50, 0, 175, 0, true);
-                    motorRight.setStepSpeed(50, 0, 175, 0, true );
+                    motorLeft.setStepSpeed(30, 0, 165, 0, true);
+                    motorRight.setStepSpeed(30, 0, 165, 0, true );
                     motorLeft.waitCompletion();
                     motorRight.waitCompletion();
                 }
                 else {
-                    motorRight.setStepSpeed(50, 0, 171, 0, true);
-                    motorLeft.setStepSpeed(50, 0, 171, 0, true);
+                    motorRight.setStepSpeed(30, 0, 164, 0, true);
+                    motorLeft.setStepSpeed(30, 0, 164, 0, true);
                     motorRight.waitCompletion();
                     motorLeft.waitCompletion();
                 }
@@ -297,18 +368,20 @@ public class First extends AppCompatActivity {
         for(int time=1;time<=times;time++) {
             int i = 1;
             while(i!=5) {
+                turnRight(api);
                 if(i%2==0) {
-                    motorLeft.setStepSpeed(50, 0, 150, 0, true);
-                    motorRight.setStepSpeed(50, 0, 150, 0, true );
+                    motorLeft.setStepSpeed(30, 0, 165, 0, true);
+                    motorRight.setStepSpeed(30, 0, 165, 0, true );
                     motorLeft.waitCompletion();
                     motorRight.waitCompletion();
                 }
                 else {
-                    motorRight.setStepSpeed(50, 0, 150, 0, true);
-                    motorLeft.setStepSpeed(50, 0, 150, 0, true);
+                    motorRight.setStepSpeed(30, 0, 164, 0, true);
+                    motorLeft.setStepSpeed(30, 0, 164, 0, true);
                     motorRight.waitCompletion();
                     motorLeft.waitCompletion();
                 }
+                turnRight(api);
                 i++;
             }
             motorLeft.setSpeed(0);
@@ -388,7 +461,6 @@ public class First extends AppCompatActivity {
             }
         }
     }
-
 
     void turn180OneMotorDown(EV3.Api api) {
         int speed = 5;
@@ -507,7 +579,6 @@ public class First extends AppCompatActivity {
                         markZone(xCurrentPosition, yCurrentPosition);
                         goForward(api);
                         if(getDistance(api)<10) {
-                            catchBall();
                             goToSafeZone(api);
                             line = xCurrentPosition;
                             ball_catched++;
@@ -534,6 +605,8 @@ public class First extends AppCompatActivity {
                         goForward(api);
                         if(getDistance(api)<5) {
                             goToSafeZone(api);
+                            line = xCurrentPosition;
+                            ball_catched++;
                         }
                         markZone(xCurrentPosition, yCurrentPosition);
                     }
@@ -547,6 +620,10 @@ public class First extends AppCompatActivity {
                     goRight(api, 1);
                     markZone(xCurrentPosition,yCurrentPosition);
                 }
+
+                goLeft(api,xCurrentPosition-xRobotValue);
+                turnFrontOneMotorDown(api);
+
                 ball_catched++;
             }
 
@@ -573,10 +650,24 @@ public class First extends AppCompatActivity {
                 if (resultCode == RESULT_OK && data != null) {
                     ArrayList<String> result = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
                     txvResult.setText(result.get(0));
+                        if(result.get(0).equals("forward"))
+                            forward();
+                        if(result.get(0).equals("back"))
+                            back();
+                        if(result.get(0).equals("right"))
+                            right();
+                        if(result.get(0).equals("left"))
+                            left();
+                        if(result.get(0).equals("catch"))
+                            catchB();
+                        if(result.get(0).equals("release"))
+                            releaseB();
                 }
                 break;
         }
     }
+
+
 
 
     private static class MyCustomApi extends EV3.Api {
