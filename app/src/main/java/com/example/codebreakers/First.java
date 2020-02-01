@@ -76,6 +76,7 @@ public class First extends AppCompatActivity {
     private TextView txvResult;
     Point center;
     GridViewCustomAdapter adapter;
+    float distance;
     private void applyMotor(@NonNull ThrowingConsumer<TachoMotor, Throwable> f) {
         if (motorLeft != null)
             Prelude.trap(() -> f.call(motorLeft));
@@ -159,7 +160,7 @@ public class First extends AppCompatActivity {
 
     }
     void catchBall() throws IOException {
-        motorClaws.setStepSpeed(50,0,850,0,true);
+        motorClaws.setStepSpeed(50,0,2400,0,true);
         motorClaws.waitCompletion();
         motorClaws.stop();
     }
@@ -236,24 +237,76 @@ public class First extends AppCompatActivity {
     }
 
     void releaseBall() throws IOException {
-        motorClaws.setStepSpeed(-50,0,850,0,true);
+        motorClaws.setStepSpeed(-50,0,2400,0,true);
         motorClaws.waitCompletion();
     }
 
-    void goForward(EV3.Api api) throws  IOException {
-            yCurrentPosition++;
+    void goForward(EV3.Api api) throws IOException, InterruptedException, ExecutionException {
+            if(ballIsCatched == false) {
+                yCurrentPosition++;
+                int i = 1;
+                while(i!=5) {
+                    turnFrontOneMotorDown(api);
+                    if(i%2==0) {
+                        motorLeft.setStepSpeed(30, 0, 161, 0, true);
+                        motorRight.setStepSpeed(30, 0, 161, 0, true );
+                        motorLeft.waitCompletion();
+                        motorRight.waitCompletion();
+                    }
+                    else {
+                        motorRight.setStepSpeed(30, 0, 161, 0, true);
+                        motorLeft.setStepSpeed(30, 0, 161, 0, true);
+                        motorRight.waitCompletion();
+                        motorLeft.waitCompletion();
+                    }
+                    turnFrontOneMotorDown(api);
+                    i++;
+                }
+                motorLeft.setSpeed(0);
+                motorRight.setSpeed(0);
+            }
+            else {
+                yCurrentPosition++;
+                int i = 1;
+                while(i!=5) {
+                    turnFrontOneMotorDown(api);
+                    if(i%2==0) {
+                        motorLeft.setStepSpeed(30, 0, 162, 0, true);
+                        motorRight.setStepSpeed(30, 0, 162, 0, true );
+                        motorLeft.waitCompletion();
+                        motorRight.waitCompletion();
+                    }
+                    else {
+                        motorRight.setStepSpeed(30, 0, 158, 0, true);
+                        motorLeft.setStepSpeed(30, 0, 158, 0, true);
+                        motorRight.waitCompletion();
+                        motorLeft.waitCompletion();
+                    }
+                    turnFrontOneMotorDown(api);
+                    i++;
+                }
+                motorLeft.setSpeed(0);
+                motorRight.setSpeed(0);
+            }
+            distance = getDistance(api);
+
+    }
+
+    void goBack(EV3.Api api) throws  IOException {
+        if(ballIsCatched == false) {
+            yCurrentPosition--;
             int i = 1;
             while(i!=5) {
                 turnFrontOneMotorDown(api);
                 if(i%2==0) {
-                    motorLeft.setStepSpeed(30, 0, 165, 0, true);
-                    motorRight.setStepSpeed(30, 0, 165, 0, true );
+                    motorLeft.setStepSpeed(-30, 0, 162, 0, true);
+                    motorRight.setStepSpeed(-30, 0, 162, 0, true );
                     motorLeft.waitCompletion();
                     motorRight.waitCompletion();
                 }
                 else {
-                    motorRight.setStepSpeed(30, 0, 164, 0, true);
-                    motorLeft.setStepSpeed(30, 0, 164, 0, true);
+                    motorRight.setStepSpeed(-30, 0, 158, 0, true);
+                    motorLeft.setStepSpeed(-30, 0, 158, 0, true);
                     motorRight.waitCompletion();
                     motorLeft.waitCompletion();
                 }
@@ -262,131 +315,129 @@ public class First extends AppCompatActivity {
             }
             motorLeft.setSpeed(0);
             motorRight.setSpeed(0);
-    }
-
-    void goBack(EV3.Api api) throws  IOException {
-        yCurrentPosition--;
-        int i = 1;
-        while(i!=5) {
-            turnFrontOneMotorDown(api);
-            if(i%2==0) {
-                motorLeft.setStepSpeed(-40, 0, 155, 0, true);
-                motorRight.setStepSpeed(-40, 0, 155, 0, true );
-                motorLeft.waitCompletion();
-                motorRight.waitCompletion();
-            }
-            else {
-                motorRight.setStepSpeed(-40, 0, 154, 0, true);
-                motorLeft.setStepSpeed(-40, 0, 154, 0, true);
-                motorRight.waitCompletion();
-                motorLeft.waitCompletion();
-            }
-            turnFrontOneMotorDown(api);
-            i++;
         }
-        motorLeft.setSpeed(0);
-        motorRight.setSpeed(0);
+        else {
+            yCurrentPosition--;
+            int i = 1;
+            while(i!=5) {
+                turnFrontOneMotorDown(api);
+                if(i%2==0) {
+                    motorLeft.setStepSpeed(-30, 0, 158, 0, true);
+                    motorRight.setStepSpeed(-30, 0, 158, 0, true );
+                    motorLeft.waitCompletion();
+                    motorRight.waitCompletion();
+                }
+                else {
+                    motorRight.setStepSpeed(-30, 0, 158, 0, true);
+                    motorLeft.setStepSpeed(-30, 0, 158, 0, true);
+                    motorRight.waitCompletion();
+                    motorLeft.waitCompletion();
+                }
+                turnFrontOneMotorDown(api);
+                i++;
+            }
+            motorLeft.setSpeed(0);
+            motorRight.setSpeed(0);
+        }
+
 
     }
 
     void goLeft(EV3.Api api, int times) throws  IOException {
         xCurrentPosition--;
-        turnLeft(api);
-        for(int time=1;time<=times;time++) {
+        turnLeftPerfect(api);
+        int j = 1;
+        while(j!=5) {
+            turnLeftPerfect(api);
+            if(j%2==0) {
+                motorLeft.setStepSpeed(30, 0, 160, 0, true);
+                motorRight.setStepSpeed(30, 0, 160, 0, true );
+                motorLeft.waitCompletion();
+                motorRight.waitCompletion();
+            }
+            else {
+                motorRight.setStepSpeed(30, 0, 155, 0, true);
+                motorLeft.setStepSpeed(30, 0, 155, 0, true);
+                motorRight.waitCompletion();
+                motorLeft.waitCompletion();
+            }
+            turnLeftPerfect(api);
+            j++;
+        }
+        motorLeft.setSpeed(0);
+        motorRight.setSpeed(0);
+        markZone(xCurrentPosition,yCurrentPosition);
+        for(int time=1;time<times;time++) {
             int i = 1;
             while(i!=5) {
-                turnLeft(api);
+                turnLeftPerfect(api);
                 if(i%2==0) {
-                    motorLeft.setStepSpeed(30, 0, 165, 0, true);
-                    motorRight.setStepSpeed(30, 0, 165, 0, true );
+                    motorLeft.setStepSpeed(30, 0, 161, 0, true);
+                    motorRight.setStepSpeed(30, 0, 161, 0, true );
                     motorLeft.waitCompletion();
                     motorRight.waitCompletion();
                 }
                 else {
-                    motorRight.setStepSpeed(30, 0, 164, 0, true);
-                    motorLeft.setStepSpeed(30, 0, 164, 0, true);
+                    motorRight.setStepSpeed(30, 0, 161, 0, true);
+                    motorLeft.setStepSpeed(30, 0, 161, 0, true);
                     motorRight.waitCompletion();
                     motorLeft.waitCompletion();
                 }
-                turnLeft(api);
+                turnLeftPerfect(api);
                 i++;
             }
             motorLeft.setSpeed(0);
             motorRight.setSpeed(0);
-            turnFrontOneMotorDown(api);
-        }
-        markZone(xCurrentPosition,yCurrentPosition);
-    }
+            markZone(xCurrentPosition,yCurrentPosition);
 
-    void turnLeft(EV3.Api api) {
-        int speed = 5;
-        final GyroSensor gyroSensor = api.getGyroSensor(EV3.InputPort._4);
-        try {
-            float current_angle = gyroSensor.getAngle().get();
-            while (current_angle >= -88){
-                motorLeft.setSpeed(-speed);
-                motorRight.setSpeed(speed);
-                if(current_angle < -65) {
-                    speed = 1;
-                }
-                motorLeft.start();
-                motorRight.start();
-                current_angle = gyroSensor.getAngle().get();
-                Log.i("gyrosensor", gyroSensor.getAngle().get().toString());
-            }
-            stopMotors();
-        } catch (IOException | InterruptedException | ExecutionException e) {
-            e.printStackTrace();
         }
-    }
-
-    void turnRight(EV3.Api api) {
-        int speed = 5;
-        final GyroSensor gyroSensor = api.getGyroSensor(EV3.InputPort._4);
-        try {
-            float current_angle = gyroSensor.getAngle().get();
-            while (current_angle <= 87){
-                motorLeft.setSpeed(speed);
-                motorRight.setSpeed(-speed);
-                if(current_angle > 65) {
-                    speed = 1;
-                }
-                motorLeft.start();
-                motorRight.start();
-                current_angle = gyroSensor.getAngle().get();
-                Log.i("gyrosensor", gyroSensor.getAngle().get().toString());
-            }
-            stopMotors();
-        } catch (IOException | InterruptedException | ExecutionException e) {
-            e.printStackTrace();
-        }
+        turnFrontOneMotorDown(api);
     }
 
     void goRight(EV3.Api api, int times) throws  IOException {
         xCurrentPosition++;
-        turnRight(api);
-        for(int time=1;time<=times;time++) {
+        turnRightPefect(api);
+        int j = 1;
+        while(j!=5) {
+            turnRightPefect(api);
+            if(j%2==0) {
+                motorLeft.setStepSpeed(30, 0, 160, 0, true);
+                motorRight.setStepSpeed(30, 0, 160, 0, true );
+                motorLeft.waitCompletion();
+                motorRight.waitCompletion();
+            }
+            else {
+                motorRight.setStepSpeed(30, 0, 160, 0, true);
+                motorLeft.setStepSpeed(30, 0, 160, 0, true);
+                motorRight.waitCompletion();
+                motorLeft.waitCompletion();
+            }
+            turnRightPefect(api);
+            j++;
+        }
+        for(int time=1;time<times;time++) {
             int i = 1;
             while(i!=5) {
-                turnRight(api);
+                turnRightPefect(api);
                 if(i%2==0) {
-                    motorLeft.setStepSpeed(30, 0, 165, 0, true);
-                    motorRight.setStepSpeed(30, 0, 165, 0, true );
+                    motorLeft.setStepSpeed(30, 0, 161, 0, true);
+                    motorRight.setStepSpeed(30, 0, 161, 0, true );
                     motorLeft.waitCompletion();
                     motorRight.waitCompletion();
                 }
                 else {
-                    motorRight.setStepSpeed(30, 0, 164, 0, true);
-                    motorLeft.setStepSpeed(30, 0, 164, 0, true);
+                    motorRight.setStepSpeed(30, 0, 161, 0, true);
+                    motorLeft.setStepSpeed(30, 0, 161, 0, true);
                     motorRight.waitCompletion();
                     motorLeft.waitCompletion();
                 }
-                turnRight(api);
+                turnRightPefect(api);
                 i++;
             }
             motorLeft.setSpeed(0);
             motorRight.setSpeed(0);
         }
+        turnFrontOneMotorDown(api);
         markZone(xCurrentPosition,yCurrentPosition);
 
     }
@@ -420,8 +471,87 @@ public class First extends AppCompatActivity {
 
     }
 
+    void turnLeftPerfect(EV3.Api api) {
+        int speed = 1;
+        final GyroSensor gyroSensor = api.getGyroSensor(EV3.InputPort._4);
+        try {
+            float current_angle = gyroSensor.getAngle().get()+90;
+            while ( abs(current_angle) > 1 )  {
+                if (current_angle > 1) {
+                    if(current_angle > 30) {
+                        motorLeft.setSpeed(-5);
+                        motorRight.setSpeed(5);
+                    }
+                    else {
+                        motorLeft.setSpeed(-speed);
+                        motorRight.setSpeed(speed);
+                    }
+                    motorLeft.start();
+                    motorRight.start();
+                    Log.i("gyrosensor", gyroSensor.getAngle().get().toString());
+                    current_angle = gyroSensor.getAngle().get()+90;
+                } else if (current_angle < 1 ) {
+                    if(current_angle > -30) {
+                        motorLeft.setSpeed(speed);
+                        motorRight.setSpeed(-speed);
+                    }
+                    else {
+                        motorLeft.setSpeed(5);
+                        motorRight.setSpeed(-5);
+                    }
+                    motorLeft.start();
+                    motorRight.start();
+                    Log.i("gyrosensor", gyroSensor.getAngle().get().toString());
+                    current_angle = gyroSensor.getAngle().get()+90;
+                }
+            }
+            stopMotors();
+        } catch (IOException | InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+        }
+    }
+
+    void turnRightPefect(EV3.Api api) {
+        int speed = 1;
+        final GyroSensor gyroSensor = api.getGyroSensor(EV3.InputPort._4);
+        try {
+            float current_angle = gyroSensor.getAngle().get()-90;
+            while ( abs(current_angle) > 1 )  {
+                if (current_angle > 1) {
+                    if(current_angle > 30) {
+                        motorLeft.setSpeed(-5);
+                        motorRight.setSpeed(5);
+                    }
+                    else {
+                        motorLeft.setSpeed(-speed);
+                        motorRight.setSpeed(speed);
+                    }
+                    motorLeft.start();
+                    motorRight.start();
+                    Log.i("gyrosensor", gyroSensor.getAngle().get().toString());
+                    current_angle = gyroSensor.getAngle().get()-90;
+                } else if (current_angle < 1 ) {
+                    if(current_angle > -30) {
+                        motorLeft.setSpeed(speed);
+                        motorRight.setSpeed(-speed);
+                    }
+                    else {
+                        motorLeft.setSpeed(5);
+                        motorRight.setSpeed(-5);
+                    }
+                    motorLeft.start();
+                    motorRight.start();
+                    Log.i("gyrosensor", gyroSensor.getAngle().get().toString());
+                    current_angle = gyroSensor.getAngle().get()-90;
+                }
+            }
+            stopMotors();
+        } catch (IOException | InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+        }
+    }
+
     void turnFrontOneMotorDown(EV3.Api api) {
-        if(ballIsCatched == false) {
             int speed = 1;
             final GyroSensor gyroSensor = api.getGyroSensor(EV3.InputPort._4);
             try {
@@ -433,7 +563,7 @@ public class First extends AppCompatActivity {
                             motorRight.setSpeed(5);
                         }
                         else {
-                            motorLeft.setSpeed(0);
+                            motorLeft.setSpeed(-speed);
                             motorRight.setSpeed(speed);
                         }
                         motorLeft.start();
@@ -443,7 +573,7 @@ public class First extends AppCompatActivity {
                     } else if (current_angle < 1 ) {
                         if(current_angle > -30) {
                             motorLeft.setSpeed(speed);
-                            motorRight.setSpeed(0);
+                            motorRight.setSpeed(-speed);
                         }
                         else {
                             motorLeft.setSpeed(5);
@@ -459,7 +589,6 @@ public class First extends AppCompatActivity {
             } catch (IOException | InterruptedException | ExecutionException e) {
                 e.printStackTrace();
             }
-        }
     }
 
     void turn180OneMotorDown(EV3.Api api) {
@@ -467,7 +596,7 @@ public class First extends AppCompatActivity {
         final GyroSensor gyroSensor = api.getGyroSensor(EV3.InputPort._4);
         try {
             float current_angle = gyroSensor.getAngle().get();
-            while (current_angle > -180){
+            while (current_angle > -178){
                 motorLeft.setSpeed(-speed);
                 motorRight.setSpeed(speed);
                 if(current_angle < -150) {
@@ -538,6 +667,7 @@ public class First extends AppCompatActivity {
             }
             i++;
         }
+        ballIsCatched = false;
     }
 
     int[][] constructMatrix(int n, int m) {
@@ -561,13 +691,17 @@ public class First extends AppCompatActivity {
     }
 
     int getDistance(EV3.Api api) throws IOException,ExecutionException, InterruptedException {
-        final UltrasonicSensor ultraSensor = api.getUltrasonicSensor(EV3.InputPort._2);
+        final UltrasonicSensor ultraSensor = api.getUltrasonicSensor(EV3.InputPort._1);
+        Log.i("",ultraSensor.getDistance().get().toString());
+        distance = Math.round(ultraSensor.getDistance().get());
         return Math.round(ultraSensor.getDistance().get());
     }
 
     private void legoMain(EV3.Api api) throws  IOException, InterruptedException, ExecutionException {
         final String TAG = Prelude.ReTAG("legoMain");
-
+        final UltrasonicSensor ultraSensor = api.getUltrasonicSensor(EV3.InputPort._1);
+        Log.i("",ultraSensor.getDistance().get().toString());
+        distance = ultraSensor.getDistance().get();
         motorLeft = api.getTachoMotor(EV3.OutputPort.A);
         motorRight = api.getTachoMotor(EV3.OutputPort.D);
         motorClaws = api.getTachoMotor(EV3.OutputPort.B);
@@ -576,12 +710,17 @@ public class First extends AppCompatActivity {
             while (ball_catched!=1) {
                 for (int line = xCurrentPosition; line >= 0; line--) {
                     while (checkLine(xCurrentPosition) != true) {
+                        distance = ultraSensor.getDistance().get();
+                        if(distance >= 15 && distance <=40)
+                        {
+                            ballIsCatched = true;
+                        }
                         markZone(xCurrentPosition, yCurrentPosition);
                         goForward(api);
-                        if(getDistance(api)<10) {
+                        if(ballIsCatched) {
                             goToSafeZone(api);
                             line = xCurrentPosition;
-                            ball_catched++;
+                            markZone(xCurrentPosition,yCurrentPosition);
                         }
                         markZone(xCurrentPosition, yCurrentPosition);
                     }
@@ -601,12 +740,18 @@ public class First extends AppCompatActivity {
                 updateMap(xCurrentPosition,yCurrentPosition);
                 for (int line = xCurrentPosition; line <= n; line++) {
                     while (checkLine(xCurrentPosition) != true) {
+                        distance = ultraSensor.getDistance().get();
+                        if(distance >= 15 && distance <=40)
+                        {
+                            ballIsCatched = true;
+                        }
                         markZone(xCurrentPosition, yCurrentPosition);
                         goForward(api);
-                        if(getDistance(api)<5) {
+                        if(ballIsCatched) {
                             goToSafeZone(api);
                             line = xCurrentPosition;
-                            ball_catched++;
+                            markZone(xCurrentPosition,yCurrentPosition);
+
                         }
                         markZone(xCurrentPosition, yCurrentPosition);
                     }
@@ -619,13 +764,15 @@ public class First extends AppCompatActivity {
                     }
                     goRight(api, 1);
                     markZone(xCurrentPosition,yCurrentPosition);
+                      ball_catched++;
                 }
-
                 goLeft(api,xCurrentPosition-xRobotValue);
                 turnFrontOneMotorDown(api);
 
-                ball_catched++;
+
             }
+
+
 
     }
 
@@ -667,9 +814,6 @@ public class First extends AppCompatActivity {
         }
     }
 
-
-
-
     private static class MyCustomApi extends EV3.Api {
 
         private MyCustomApi(@NonNull GenEV3<? extends EV3.Api> ev3) {
@@ -684,8 +828,8 @@ public class First extends AppCompatActivity {
         api.mySpecialCommand();
         EditText rows = findViewById(R.id.rows);
         EditText columns = findViewById(R.id.columns);
-        n = 2;
-        m = 2;
+        n = 3;
+        m = 3;
 //        n = Integer.valueOf(rows.getText().toString());
 //        m = Integer.valueOf(columns.getText().toString());
         EditText robotXCoordinate = findViewById(R.id.xRobot);
