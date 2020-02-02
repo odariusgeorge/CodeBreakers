@@ -747,7 +747,7 @@ public class Second extends ConnectionsActivity {//implements SensorEventListene
     }
 
 
-    /** {@see ConnectionsActivity#onReceive(Endpoint, Payload)} */
+    /** {@see ConnectionsActivity#onReceive(Endpoint, Payload)}
     @Override
     protected void onReceive(Endpoint endpoint, Payload payload) {
         if (payload.getType() == Payload.Type.BYTES) {
@@ -854,7 +854,7 @@ public class Second extends ConnectionsActivity {//implements SensorEventListene
             }
         }
 
-    }
+    }*/
 
 
 
@@ -1354,15 +1354,15 @@ public class Second extends ConnectionsActivity {//implements SensorEventListene
         api.mySpecialCommand();
         EditText rows = findViewById(R.id.rows);
         EditText columns = findViewById(R.id.columns);
-        n = 2;
-        m = 2;
+        n = 3;
+        m = 3;
 //        n = Integer.valueOf(rows.getText().toString());
 //        m = Integer.valueOf(columns.getText().toString());
         EditText robotXCoordinate = findViewById(R.id.xRobot);
         EditText robotYCoordinate = findViewById(R.id.yRobot);
 //        xRobotValue = Integer.valueOf(robotXCoordinate.getText().toString());
 //        yRobotValue = Integer.valueOf(robotYCoordinate.getText().toString());
-        xRobotValue = 1;
+        xRobotValue = 0;
         yRobotValue = 0;
         xCurrentPosition = xRobotValue;
         yCurrentPosition = yRobotValue;
