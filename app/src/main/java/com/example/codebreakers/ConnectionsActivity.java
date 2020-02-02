@@ -140,7 +140,6 @@ public abstract class ConnectionsActivity extends AppCompatActivity {
                 public void onPayloadReceived(String endpointId, Payload payload) {
                     logD(String.format("onPayloadReceived(endpointId=%s, payload=%s)", endpointId, payload));
                     onReceive(mEstablishedConnections.get(endpointId), payload);
-                    receiveCoordinates(payload);
 
                 }
 
@@ -472,7 +471,6 @@ public abstract class ConnectionsActivity extends AppCompatActivity {
      * @param payload The data.
      */
     protected void onReceive(Endpoint endpoint, Payload payload) {}
-    protected void receiveCoordinates (Payload payload){}
 
     /**
      * An optional hook to pool any permissions the app needs with the permissions ConnectionsActivity

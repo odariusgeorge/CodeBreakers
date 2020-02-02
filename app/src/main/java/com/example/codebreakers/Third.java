@@ -464,6 +464,7 @@ public class Third extends ConnectionsActivity {//implements SensorEventListener
     /**
      * Test function for all the possible strings of the protocol
      */
+    //TODO:from this method we will take for the sending of all the things we will need to send during the third round
     public void send_Byte(View view) {
 
         // passive protocol
@@ -817,6 +818,7 @@ public class Third extends ConnectionsActivity {//implements SensorEventListener
 
 
     /** {@see ConnectionsActivity#onReceive(Endpoint, Payload)} */
+    //TODO:we will need to understand what he wants...
     @Override
     protected void onReceive(Endpoint endpoint, Payload payload) {
         if (payload.getType() == Payload.Type.BYTES) {

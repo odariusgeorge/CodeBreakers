@@ -725,9 +725,9 @@ public class Second extends ConnectionsActivity {//implements SensorEventListene
         }
     }
 
-
-
-    protected void receiveCoordinates (Payload payload){
+    //The onRecive of the second round
+    @Override
+    protected void onReceive(Endpoint endpoint, Payload payload){
         Pattern p = Pattern.compile("-?\\d+");
 
         if(payload.getType() == Payload.Type.BYTES){
@@ -745,119 +745,6 @@ public class Second extends ConnectionsActivity {//implements SensorEventListene
             }
         }
     }
-
-
-    /** {@see ConnectionsActivity#onReceive(Endpoint, Payload)}
-    @Override
-    protected void onReceive(Endpoint endpoint, Payload payload) {
-        if (payload.getType() == Payload.Type.BYTES) {
-            byte[] bytes = payload.asBytes();
-            // comment this send if we are not the Groundstation anymore
-            //send(payload);
-            String str_bytes = new String(bytes);
-
-            // those are needed if you are a robot!
-
-            Integer aux = Character.getNumericValue(str_bytes.charAt(0));
-            if((aux >= 0 && aux <=6) && ((str_bytes.charAt(1)=='S'))){
-                if(aux == 0 || aux == robotID) {
-                    if(str_bytes.charAt(3) == 'O'){
-                        logD(
-                                String.format(
-                                        "STOP message intercepted %s",
-                                        str_bytes));
-                        //motor stop
-                        //operazione annullata coordinate Timestamp
-                        return;
-                    }
-                    else if(str_bytes.charAt(3) == 'A'){
-                        logD(
-                                String.format(
-                                        "START message intercepted %s",
-                                        str_bytes));
-                        //motor resume
-                        //
-                        return;
-                    }
-                }
-                else {
-                    logD(
-                            String.format(
-                                    "STOP/START message ignored %s",
-                                    str_bytes));
-                    // altrimenti lo ignoriamo
-                    return;
-                }
-            }
-
-
-            if (str_bytes.toLowerCase().contains("recupero")) {
-                logD(
-                        String.format(
-                                "Recovery message: %s",
-                                str_bytes));
-                receiveCoordinates(payload);
-                return;
-            }
-
-
-
-            if (str_bytes.toLowerCase().contains("benvenuto")) {
-                logD(
-                        String.format(
-                                "Welcome message: %s",
-                                str_bytes));
-                // messaggio di benvenuto
-                return;
-            }
-
-            try {
-                SecretKeySpec key = new SecretKeySpec(KEY.getBytes(), "DES");
-                Cipher c = Cipher.getInstance("DES/ECB/ISO10126Padding");
-                c.init(c.DECRYPT_MODE, key);
-
-                byte[] plaintext = c.doFinal(bytes);
-                String s = new String(plaintext);
-
-                logD(
-                        String.format(
-                                "BYTE received %s from endpoint %s",
-                                s, endpoint.getName()));
-                System.out.println("BYTE received %s from endpoint %s");
-
-            } catch (NoSuchAlgorithmException e) {
-                e.printStackTrace();
-            } catch (InvalidKeyException e) {
-                logD(
-                        String.format(
-                                "BYTE (crypted) received from %s unreadable (InvalidKeyException)",
-                                endpoint.getName()));
-                e.printStackTrace();
-            } catch (NoSuchPaddingException e) {
-                logD(
-                        String.format(
-                                "BYTE (crypted) received from %s unreadable (NoSuchPaddingException)",
-                                endpoint.getName()));
-                e.printStackTrace();
-            } catch (BadPaddingException e) {
-                logD(
-                        String.format(
-                                "BYTE (crypted) received from %s unreadable (BadPaddingException)",
-                                endpoint.getName()));
-                e.printStackTrace();
-            } catch (IllegalBlockSizeException e) {
-                logD(
-                        String.format(
-                                "BYTE (crypted) received from %s unreadable (IllegalBlockSizeException)",
-                                endpoint.getName()));
-                e.printStackTrace();
-            }
-        }
-
-    }*/
-
-
-
 
     private void motion_stop (Integer n){
         String str;
