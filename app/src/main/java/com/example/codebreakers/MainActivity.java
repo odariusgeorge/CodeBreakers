@@ -29,7 +29,6 @@ public class MainActivity extends AppCompatActivity {
         Button firstRound = findViewById(R.id.FirstRound);
         Button secondRound = findViewById(R.id.SecondRound);
         Button thirdRound = findViewById(R.id.ThirdRound);
-        //LinearLayout matrixView = findViewById(R.id.matrix);
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
                 == PackageManager.PERMISSION_DENIED) {
             ActivityCompat.requestPermissions(this, new String[] {Manifest.permission.CAMERA}, CAMERA_PERMISSION_CODE);
@@ -55,12 +54,6 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(i);
             }
         });
-        //MatrixMap Map = new MatrixMap(this);
-        //Map.setNumColumns(5);
-        //Map.setNumRows(5);
-        //Map.setBallPos(4,4);
-        //matrixView.addView(Map);
-
         // GET THE MATRIX DIMENSIONS
         int rows=5;
         int columns=5;
@@ -80,16 +73,6 @@ public class MainActivity extends AppCompatActivity {
 
         }
         data.clear();
-        for (int i = 0; i < rows; i++) {
-            for(int j=0;j<columns;j++)
-                //data.add(i+"*"+j);
-                if(i!=j){
-                    data.add("O");
-                }else{
-                    data.add(" ");
-                }
-
-        }
         GridViewCustomAdapter adapter = new GridViewCustomAdapter(this, data);
 
         //list = (GridView) findViewById(R.id.grid_view);

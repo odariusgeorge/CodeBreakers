@@ -25,24 +25,20 @@ import org.opencv.core.MatOfPoint;
 import org.opencv.core.Point;
 import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
-import java.lang.String;
+
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 import it.unive.dais.legodroid.lib.EV3;
 import it.unive.dais.legodroid.lib.GenEV3;
 import it.unive.dais.legodroid.lib.comm.BluetoothConnection;
 import it.unive.dais.legodroid.lib.plugs.GyroSensor;
-import it.unive.dais.legodroid.lib.plugs.Motors;
 import it.unive.dais.legodroid.lib.plugs.TachoMotor;
 import it.unive.dais.legodroid.lib.plugs.UltrasonicSensor;
 import it.unive.dais.legodroid.lib.util.Prelude;
-import it.unive.dais.legodroid.lib.util.ThrowingConsumer;
 
 import static java.lang.Math.abs;
 import static java.lang.Math.max;
@@ -754,23 +750,22 @@ public class First extends AppCompatActivity {
                 if (resultCode == RESULT_OK && data != null) {
                     ArrayList<String> result = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
                     txvResult.setText(result.get(0));
-                    if(result.get(0).equals("forward") || result.get(0).equals("Forward") || result.get(0).equals("avanti") || result.get(0).equals("Avanti") )
+                    if(result.get(0).equals("forward") || result.get(0).equals("Forward") || result.get(0).equals("avanti") || result.get(0).equals("Avanti")|| result.get(0).equals("Vai avanti")|| result.get(0).equals("vai avanti"))
                         forwardVoiceRecogniton();
-                    if(result.get(0).equals("back"))
+                    if(result.get(0).equals("back")|| result.get(0).equals("Back") || result.get(0).equals("indietro") || result.get(0).equals("Indietro")|| result.get(0).equals("Vai indietro")|| result.get(0).equals("vai indietro"))
                         backVoiceRecogniton();
-                    if(result.get(0).equals("right") || result.get(0).equals("Right") || result.get(0).equals("destra") || result.get(0).equals("Destra"))
+                    if(result.get(0).equals("right") || result.get(0).equals("Right") || result.get(0).equals("destra") || result.get(0).equals("Destra")|| result.get(0).equals("vai a destra") || result.get(0).equals("Vai a destra"))
                         rightVoiceRecogniton();
-                    if(result.get(0).equals("left") || result.get(0).equals("Left") || result.get(0).equals("sinistra") | result.get(0).equals("Sinistra"))
+                    if(result.get(0).equals("left") || result.get(0).equals("Left") || result.get(0).equals("sinistra") | result.get(0).equals("Sinistra")|| result.get(0).equals("vai a sinistra") | result.get(0).equals("Vai a sinistra"))
                         leftVoiceRecogniton();
-                    if(result.get(0).equals("catch"))
+                    if(result.get(0).equals("catch")|| result.get(0).equals("Catch") || result.get(0).equals("raccogli") | result.get(0).equals("Raccogli"))
                         catchBallVoiceRecogniton();
-                    if(result.get(0).equals("release"))
+                    if(result.get(0).equals("release")|| result.get(0).equals("Release") || result.get(0).equals("deposita") | result.get(0).equals("Deposita"))
                         releaseBallVoiceRecogniton();
                 }
                 break;
         }
     }
-
 
     //Robot Main 
 
@@ -847,9 +842,6 @@ public class First extends AppCompatActivity {
                 ball_catched++;
 
             }
-
-
-
     }
 
     private static class MyCustomApi extends EV3.Api {
@@ -884,7 +876,5 @@ public class First extends AppCompatActivity {
 //        totalBalls = Integer.valueOf(numberOfBalls.getText().toString());
         totalBalls = 1;
         legoMain(api);
-
     }
-
 }
