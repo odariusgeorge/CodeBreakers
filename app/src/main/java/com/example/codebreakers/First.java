@@ -269,104 +269,107 @@ public class First extends AppCompatActivity {
     }
 
     void goLeft(EV3.Api api, int times) throws  IOException {
-        xCurrentPosition--;
-        turnLeft(api);
-        int j = 1;
-        while(j!=5) {
-            turnLeft(api);
-            if(j%2==0) {
-                motorLeft.setStepSpeed(30, 0, 160, 0, true);
-                motorRight.setStepSpeed(30, 0, 160, 0, true );
-                motorLeft.waitCompletion();
-                motorRight.waitCompletion();
-            }
-            else {
-                motorRight.setStepSpeed(30, 0, 155, 0, true);
-                motorLeft.setStepSpeed(30, 0, 155, 0, true);
-                motorRight.waitCompletion();
-                motorLeft.waitCompletion();
-            }
-            turnLeft(api);
-            j++;
-        }
-        motorLeft.setSpeed(0);
-        motorRight.setSpeed(0);
-        markZone(xCurrentPosition,yCurrentPosition);
-        for(int time=1;time<times;time++) {
+        if(times != 0) {
             xCurrentPosition--;
-            int i = 1;
-            while(i!=5) {
+            turnLeft(api);
+            int j = 1;
+            while(j!=5) {
                 turnLeft(api);
-                if(i%2==0) {
-                    motorLeft.setStepSpeed(30, 0, 161, 0, true);
-                    motorRight.setStepSpeed(30, 0, 161, 0, true );
+                if(j%2==0) {
+                    motorLeft.setStepSpeed(30, 0, 160, 0, true);
+                    motorRight.setStepSpeed(30, 0, 160, 0, true );
                     motorLeft.waitCompletion();
                     motorRight.waitCompletion();
                 }
                 else {
-                    motorRight.setStepSpeed(30, 0, 161, 0, true);
-                    motorLeft.setStepSpeed(30, 0, 161, 0, true);
+                    motorRight.setStepSpeed(30, 0, 155, 0, true);
+                    motorLeft.setStepSpeed(30, 0, 155, 0, true);
                     motorRight.waitCompletion();
                     motorLeft.waitCompletion();
                 }
                 turnLeft(api);
-                i++;
+                j++;
             }
             motorLeft.setSpeed(0);
             motorRight.setSpeed(0);
             markZone(xCurrentPosition,yCurrentPosition);
+            for(int time=1;time<times;time++) {
+                xCurrentPosition--;
+                int i = 1;
+                while(i!=5) {
+                    turnLeft(api);
+                    if(i%2==0) {
+                        motorLeft.setStepSpeed(30, 0, 161, 0, true);
+                        motorRight.setStepSpeed(30, 0, 161, 0, true );
+                        motorLeft.waitCompletion();
+                        motorRight.waitCompletion();
+                    }
+                    else {
+                        motorRight.setStepSpeed(30, 0, 161, 0, true);
+                        motorLeft.setStepSpeed(30, 0, 161, 0, true);
+                        motorRight.waitCompletion();
+                        motorLeft.waitCompletion();
+                    }
+                    turnLeft(api);
+                    i++;
+                }
+                motorLeft.setSpeed(0);
+                motorRight.setSpeed(0);
+                markZone(xCurrentPosition,yCurrentPosition);
 
+            }
+            turnFront(api);
         }
-        turnFront(api);
     }
 
     void goRight(EV3.Api api, int times) throws  IOException {
-        xCurrentPosition++;
-        turnRight(api);
-        int j = 1;
-        while(j!=5) {
-            turnRight(api);
-            if(j%2==0) {
-                motorLeft.setStepSpeed(30, 0, 160, 0, true);
-                motorRight.setStepSpeed(30, 0, 160, 0, true );
-                motorLeft.waitCompletion();
-                motorRight.waitCompletion();
-            }
-            else {
-                motorRight.setStepSpeed(30, 0, 155, 0, true);
-                motorLeft.setStepSpeed(30, 0, 155, 0, true);
-                motorRight.waitCompletion();
-                motorLeft.waitCompletion();
-            }
-            turnRight(api);
-            j++;
-        }
-        for(int time=1;time<times;time++) {
+        if(times!=0) {
             xCurrentPosition++;
-            int i = 1;
-            while(i!=5) {
+            turnRight(api);
+            int j = 1;
+            while(j!=5) {
                 turnRight(api);
-                if(i%2==0) {
-                    motorLeft.setStepSpeed(30, 0, 161, 0, true);
-                    motorRight.setStepSpeed(30, 0, 161, 0, true );
+                if(j%2==0) {
+                    motorLeft.setStepSpeed(30, 0, 160, 0, true);
+                    motorRight.setStepSpeed(30, 0, 160, 0, true );
                     motorLeft.waitCompletion();
                     motorRight.waitCompletion();
                 }
                 else {
-                    motorRight.setStepSpeed(30, 0, 161, 0, true);
-                    motorLeft.setStepSpeed(30, 0, 161, 0, true);
+                    motorRight.setStepSpeed(30, 0, 155, 0, true);
+                    motorLeft.setStepSpeed(30, 0, 155, 0, true);
                     motorRight.waitCompletion();
                     motorLeft.waitCompletion();
                 }
                 turnRight(api);
-                i++;
+                j++;
             }
-            motorLeft.setSpeed(0);
-            motorRight.setSpeed(0);
+            for(int time=1;time<times;time++) {
+                xCurrentPosition++;
+                int i = 1;
+                while(i!=5) {
+                    turnRight(api);
+                    if(i%2==0) {
+                        motorLeft.setStepSpeed(30, 0, 161, 0, true);
+                        motorRight.setStepSpeed(30, 0, 161, 0, true );
+                        motorLeft.waitCompletion();
+                        motorRight.waitCompletion();
+                    }
+                    else {
+                        motorRight.setStepSpeed(30, 0, 161, 0, true);
+                        motorLeft.setStepSpeed(30, 0, 161, 0, true);
+                        motorRight.waitCompletion();
+                        motorLeft.waitCompletion();
+                    }
+                    turnRight(api);
+                    i++;
+                }
+                motorLeft.setSpeed(0);
+                motorRight.setSpeed(0);
+            }
+            turnFront(api);
+            markZone(xCurrentPosition,yCurrentPosition);
         }
-        turnFront(api);
-        markZone(xCurrentPosition,yCurrentPosition);
-
     }
 
     void goToSafeZone(EV3.Api api) throws  IOException {
@@ -680,14 +683,15 @@ public class First extends AppCompatActivity {
     }
 
     void updateMap(int x, int y) {
+        int maxim = max(n,m);
         ArrayList<String> data = new ArrayList<>();
-        for (int i = 0; i <= n+1; i++) {
-            for(int j=0; j <= m+1;j++)
-                if (i==(n-y) && x==j) { data.add("O"); }
-                else if (i >= n+1) { data.add("S"); }
+        for (int i = 0; i <= maxim+1; i++)
+            for(int j=0; j <= maxim+1;j++) {
+                if( i == (m-y) && x == j)  { data.add("O");}
+                else if (j > n) { data.add("\\");}
+                else if (i > m && j<=n) { data.add("S"); }
                 else { data.add(""); }
-
-        }
+            }
         adapter = new GridViewCustomAdapter(this, data);
         runOnUiThread(new Runnable() {
 
@@ -772,65 +776,66 @@ public class First extends AppCompatActivity {
         setUpCamera();
         ball_catched = 0;
             while (ball_catched!=1) {
-                for (int line = xCurrentPosition; line >= 0; line--) {
-                    while (checkLine(xCurrentPosition) != true) {
-                        distance = ultraSensor.getDistance().get();
-                        if(distance >= 15 && distance <=40)
-                        {
-                            ballIsCatched = true;
-                        }
-                        markZone(xCurrentPosition, yCurrentPosition);
-                        goForward(api);
-                        if(ballIsCatched) {
-                            goToSafeZone(api);
-                            line = xCurrentPosition;
-                            markZone(xCurrentPosition,yCurrentPosition);
-                        }
-                        markZone(xCurrentPosition, yCurrentPosition);
-                    }
-                    while(yCurrentPosition!=0) {
-                        goBack(api);
-                        updateMap(xCurrentPosition,yCurrentPosition);
-                    }
-                    if(xCurrentPosition==0) {
-                        break;
-                    }
-                    goLeft(api, 1);
-                    updateMap(xCurrentPosition,yCurrentPosition);
-                }
-                turnFront(api);
-                goRight(api,xRobotValue);
-                turnFront(api);
-                updateMap(xCurrentPosition,yCurrentPosition);
-                for (int line = xCurrentPosition; line <= n; line++) {
-                    while (checkLine(xCurrentPosition) != true) {
-                        distance = ultraSensor.getDistance().get();
-                        if(distance >= 15 && distance <=40)
-                        {
-                            ballIsCatched = true;
-                        }
-                        markZone(xCurrentPosition, yCurrentPosition);
-                        goForward(api);
-                        if(ballIsCatched) {
-                            goToSafeZone(api);
-                            line = xCurrentPosition;
-                            markZone(xCurrentPosition,yCurrentPosition);
-
-                        }
-                        markZone(xCurrentPosition, yCurrentPosition);
-                    }
-                    while(yCurrentPosition!=0) {
-                        goBack(api);
-                        markZone(xCurrentPosition,yCurrentPosition);
-                    }
-                    if(xCurrentPosition==n) {
-                        break;
-                    }
-                    goRight(api, 1);
-                    markZone(xCurrentPosition,yCurrentPosition);
-                }
-                goLeft(api,xCurrentPosition-xRobotValue);
-                turnFront(api);
+//                for (int line = xCurrentPosition; line >= 0; line--) {
+//                    while (checkLine(xCurrentPosition) != true) {
+//                        distance = ultraSensor.getDistance().get();
+//                        if(distance >= 15 && distance <=40)
+//                        {
+//                            ballIsCatched = true;
+//                        }
+//                        markZone(xCurrentPosition, yCurrentPosition);
+//                        goForward(api);
+//                        if(ballIsCatched) {
+//                            goToSafeZone(api);
+//                            line = xCurrentPosition;
+//                            markZone(xCurrentPosition,yCurrentPosition);
+//                        }
+//                        markZone(xCurrentPosition, yCurrentPosition);
+//                    }
+//                    while(yCurrentPosition!=0) {
+//                        goBack(api);
+//                        updateMap(xCurrentPosition,yCurrentPosition);
+//                    }
+//                    if(xCurrentPosition==0) {
+//                        break;
+//                    }
+//                    goLeft(api, 1);
+//                    updateMap(xCurrentPosition,yCurrentPosition);
+//                }
+//                turnFront(api);
+//                goRight(api,xRobotValue);
+//                turnFront(api);
+//                updateMap(xCurrentPosition,yCurrentPosition);
+//                for (int line = xCurrentPosition; line <= n; line++) {
+//                    while (checkLine(xCurrentPosition) != true) {
+//                        distance = ultraSensor.getDistance().get();
+//                        if(distance >= 15 && distance <=40)
+//                        {
+//                            ballIsCatched = true;
+//                        }
+//                        markZone(xCurrentPosition, yCurrentPosition);
+//                        goForward(api);
+//                        if(ballIsCatched) {
+//                            goToSafeZone(api);
+//                            line = xCurrentPosition;
+//                            markZone(xCurrentPosition,yCurrentPosition);
+//
+//                        }
+//                        markZone(xCurrentPosition, yCurrentPosition);
+//                    }
+//                    while(yCurrentPosition!=0) {
+//                        goBack(api);
+//                        markZone(xCurrentPosition,yCurrentPosition);
+//                    }
+//                    if(xCurrentPosition==n) {
+//                        break;
+//                    }
+//                    goRight(api, 1);
+//                    markZone(xCurrentPosition,yCurrentPosition);
+//                }
+//                goLeft(api,xCurrentPosition-xRobotValue);
+//                turnFront(api);
+                markZone(xRobotValue,yRobotValue);
                 ball_catched++;
 
             }
@@ -850,16 +855,12 @@ public class First extends AppCompatActivity {
         api.mySpecialCommand();
         EditText rows = findViewById(R.id.rows);
         EditText columns = findViewById(R.id.columns);
-        n = 2; //no of columns
-        m = 1; //no of rows
-//        n = Integer.valueOf(rows.getText().toString());
-//        m = Integer.valueOf(columns.getText().toString());
+        n = Integer.valueOf(rows.getText().toString());
+        m = Integer.valueOf(columns.getText().toString());
         EditText robotXCoordinate = findViewById(R.id.xRobot);
         EditText robotYCoordinate = findViewById(R.id.yRobot);
-//        xRobotValue = Integer.valueOf(robotXCoordinate.getText().toString());
-//        yRobotValue = Integer.valueOf(robotYCoordinate.getText().toString());
-        xRobotValue = 0;
-        yRobotValue = 0;
+        xRobotValue = Integer.valueOf(robotXCoordinate.getText().toString());
+        yRobotValue = Integer.valueOf(robotYCoordinate.getText().toString());
         xCurrentPosition = xRobotValue;
         yCurrentPosition = yRobotValue;
         matrix = constructMatrix(m,n);
