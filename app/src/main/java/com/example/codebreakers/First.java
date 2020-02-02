@@ -683,19 +683,11 @@ public class First extends AppCompatActivity {
         ArrayList<String> data = new ArrayList<>();
         for (int i = 0; i <= n+1; i++) {
             for(int j=0; j <= m+1;j++)
-                if(i==(n-y) && x==j){
-                    data.add("O");
-                } else if(i >= n+1){
-                    data.add("S");
-                } else if(j >= m+1 && i >=n) {
-                    data.add("\\");
-                }
-            else{
-                data.add("");
-                }
+                if (i==(n-y) && x==j) { data.add("O"); }
+                else if (i >= n+1) { data.add("S"); }
+                else { data.add(""); }
 
         }
-
         adapter = new GridViewCustomAdapter(this, data);
         runOnUiThread(new Runnable() {
 
