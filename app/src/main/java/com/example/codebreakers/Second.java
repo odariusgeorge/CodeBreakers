@@ -51,6 +51,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -79,6 +81,8 @@ import it.unive.dais.legodroid.lib.plugs.UltrasonicSensor;
 import it.unive.dais.legodroid.lib.util.Prelude;
 
 import static java.lang.Math.abs;
+
+
 
 /**
  * Our GroundStation Activity. This Activity has 4 {@link State}s.
@@ -1087,10 +1091,6 @@ public class Second extends ConnectionsActivity {//implements SensorEventListene
     void goToSafeZone(EV3.Api api) throws  IOException {
         markZone(xCurrentPosition,yCurrentPosition);
         catchBall();
-        while (yCurrentPosition > 0) {
-            goBack(api);
-            markZone(xCurrentPosition,yCurrentPosition);
-        }
         while(xCurrentPosition!=xRobotValue) {
             if(xCurrentPosition > xRobotValue) {
                 goLeft(api,xCurrentPosition-xRobotValue);
@@ -1100,6 +1100,10 @@ public class Second extends ConnectionsActivity {//implements SensorEventListene
                 goRight(api,xRobotValue-xCurrentPosition);
                 markZone(xCurrentPosition,yCurrentPosition);
             }
+        }
+        while (yCurrentPosition > 0) {
+            goBack(api);
+            markZone(xCurrentPosition,yCurrentPosition);
         }
         turn180(api);
         releaseBall();
@@ -1369,13 +1373,24 @@ public class Second extends ConnectionsActivity {//implements SensorEventListene
         motorClaws = api.getTachoMotor(EV3.OutputPort.B);
         setUpCamera();
         ball_catched = 0;
-        markZone(xCurrentPosition,yCurrentPosition);
-        for(int i=0;i<coordinates.size();i++) {
-            goToBall(api,coordinates.get(i).first,coordinates.get(i).second);
+        markZone(xCurrentPosition, yCurrentPosition);
+        coordinates.size();
+
+        Collections.sort(coordinates, (p1, p2) -> {
+            if (p1.first != p2.first) {
+                return p1.first - p2.first;
+            } else {
+                return p1.second - p2.second;
+            }
+        });
+
+
+
+        for (int i = 0; i < coordinates.size(); i++) {
+            goToBall(api, coordinates.get(i).first, coordinates.get(i).second);
             goToSafeZone(api);
         }
-
-        }
+    }
 
     private static class MyCustomApi extends EV3.Api {
 
@@ -1391,8 +1406,8 @@ public class Second extends ConnectionsActivity {//implements SensorEventListene
         api.mySpecialCommand();
         EditText rows = findViewById(R.id.rows);
         EditText columns = findViewById(R.id.columns);
-        n = 3;
-        m = 3;
+        n = 2;
+        m = 2;
 //        n = Integer.valueOf(rows.getText().toString());
 //        m = Integer.valueOf(columns.getText().toString());
         EditText robotXCoordinate = findViewById(R.id.xRobot);
