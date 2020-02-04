@@ -859,8 +859,7 @@ public class Third extends ConnectionsActivity {//implements SensorEventListener
                                 String.format(
                                         "STOP message intercepted %s",
                                         str_bytes));
-                        //motor stop
-                        //operazione annullata coordinate Timestamp
+                        //TODO: motor stop, operazione annullata, coordinate e TIMESTAMP
                         return;
                     }
                     else if(str_bytes.charAt(3) == 'A'){
@@ -868,8 +867,7 @@ public class Third extends ConnectionsActivity {//implements SensorEventListener
                                 String.format(
                                         "START message intercepted %s",
                                         str_bytes));
-                        //motor resume
-                        //
+                        //TODO:
                         return;
                     }
                 }
@@ -1564,7 +1562,8 @@ public class Third extends ConnectionsActivity {//implements SensorEventListener
 
     private void legoMain(EV3.Api api) throws  IOException, InterruptedException, ExecutionException {
         final String TAG = Prelude.ReTAG("legoMain");
-
+        //TODO: mandare posizione quando trovo e cerco di prendere una palla (TIMESTAMP)
+        //TODO: mandare la posizione della palla broadcast quando la palla è in safezone(TIMESTAMP)
         motorLeft = api.getTachoMotor(EV3.OutputPort.A);
         motorRight = api.getTachoMotor(EV3.OutputPort.D);
         motorClaws = api.getTachoMotor(EV3.OutputPort.B);
