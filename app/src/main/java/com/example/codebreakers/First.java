@@ -72,6 +72,7 @@ public class First extends AppCompatActivity {
     protected Integer ball_catched = 0;
     private boolean ballIsCatched = false;
     float distance; //distance between sensor and ball
+    private ArrayList<Pair<Integer,Integer>> balls_position = new ArrayList<>();
 
     //Voice Recognition
     private TextView txvResult;
@@ -379,6 +380,8 @@ public class First extends AppCompatActivity {
     void goToSafeZone(EV3.Api api) throws  IOException {
         markZone(xCurrentPosition,yCurrentPosition);
         catchBall();
+        Pair<Integer,Integer> ball_posistion = new Pair<>(xCurrentPosition,yCurrentPosition);
+        balls_position.add(ball_posistion);
         while (yCurrentPosition > 0) {
             goBack(api);
             markZone(xCurrentPosition,yCurrentPosition);
@@ -689,6 +692,16 @@ public class First extends AppCompatActivity {
     void updateMap(int x, int y) {
         int maxim = max(n,m);
         ArrayList<String> data = new ArrayList<>();
+        if(balls_position.size()!=0) {
+            for (int i = 0; i <= maxim + 1; i++)
+                for (int j = 0; j <= maxim + 1; j++) {
+                    for (Pair<Integer, Integer> ball : balls_position) {
+                        if (i == (m - ball.b) && ball.a == j) {
+                            data.add("X");
+                        }
+                    }
+                }
+        }
         for (int i = 0; i <= maxim+1; i++)
             for(int j=0; j <= maxim+1;j++) {
                 if( i == (m-y) && x == j)  { data.add("O");}
