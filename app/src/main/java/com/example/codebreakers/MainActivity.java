@@ -66,16 +66,16 @@ public class MainActivity extends AppCompatActivity {
             for(int j=0;j<columns;j++)
                 //data.add(i+"*"+j);
                 if(i==j){
-                    data.add("O");
+                    data.add("");
                 }else{
                     data.add(" ");
                 }
 
         }
-        data.clear();
+        //data.clear();
         GridViewCustomAdapter adapter = new GridViewCustomAdapter(this, data);
 
-        //list = (GridView) findViewById(R.id.grid_view);
+        list = (GridView) findViewById(R.id.grid_view);
         list.setAdapter(adapter);
     }
 }

@@ -269,6 +269,7 @@ public class Second extends ConnectionsActivity {//implements SensorEventListene
         /* Comment here to generate a random name for the GroundStation */
         //mName = generateRandomName();
         mName = "CodeBreakers";
+
         mStop = new boolean[6];
         // all the robot are assumed to be in move
         Arrays.fill(mStop, true);
@@ -1091,6 +1092,10 @@ public class Second extends ConnectionsActivity {//implements SensorEventListene
     void goToSafeZone(EV3.Api api) throws  IOException {
         markZone(xCurrentPosition,yCurrentPosition);
         catchBall();
+        while (yCurrentPosition > 0) {
+            goBack(api);
+            markZone(xCurrentPosition,yCurrentPosition);
+        }
         while(xCurrentPosition!=xRobotValue) {
             if(xCurrentPosition > xRobotValue) {
                 goLeft(api,xCurrentPosition-xRobotValue);
@@ -1101,24 +1106,20 @@ public class Second extends ConnectionsActivity {//implements SensorEventListene
                 markZone(xCurrentPosition,yCurrentPosition);
             }
         }
-        while (yCurrentPosition > 0) {
-            goBack(api);
-            markZone(xCurrentPosition,yCurrentPosition);
-        }
         turn180(api);
         releaseBall();
         int i = 1;
         while(i!=2) {
             if(i%2==0) {
                 turn180(api);
-                motorLeft.setStepSpeed(-30, 0, 175, 0, true);
-                motorRight.setStepSpeed(-30, 0, 175, 0, true );
+                motorLeft.setStepSpeed(-30, 0, 160, 0, true);
+                motorRight.setStepSpeed(-30, 0, 160, 0, true );
                 motorLeft.waitCompletion();
                 motorRight.waitCompletion();
             }
             else {
-                motorRight.setStepSpeed(-30, 0, 171, 0, true);
-                motorLeft.setStepSpeed(-30, 0, 171, 0, true);
+                motorRight.setStepSpeed(-30, 0, 160, 0, true);
+                motorLeft.setStepSpeed(-30, 0, 160, 0, true);
                 motorRight.waitCompletion();
                 motorLeft.waitCompletion();
                 turn180(api);
@@ -1131,14 +1132,14 @@ public class Second extends ConnectionsActivity {//implements SensorEventListene
         while(i!=2) {
             if(i%2==0) {
                 turnFront(api);
-                motorLeft.setStepSpeed(-30, 0, 175, 0, true);
-                motorRight.setStepSpeed(-30, 0, 175, 0, true );
+                motorLeft.setStepSpeed(-30, 0, 160, 0, true);
+                motorRight.setStepSpeed(-30, 0, 160, 0, true );
                 motorLeft.waitCompletion();
                 motorRight.waitCompletion();
             }
             else {
-                motorRight.setStepSpeed(-30, 0, 171, 0, true);
-                motorLeft.setStepSpeed(-30, 0, 171, 0, true);
+                motorRight.setStepSpeed(-30, 0, 160, 0, true);
+                motorLeft.setStepSpeed(-30, 0, 160, 0, true);
                 motorRight.waitCompletion();
                 motorLeft.waitCompletion();
                 turnFront(api);

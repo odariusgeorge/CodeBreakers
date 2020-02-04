@@ -10,18 +10,14 @@
     <string name="start">START</string>
     <string name="second_round">Second Round</string>
     <string name="third_round">Third Round</string>
-    <string name="password_for_the_comunication">Password for the comunication</string>
+    <string name="password_for_the_comunication">Password </string>
     <string name="error_missing_permissions">Cannot start without required permissions</string>
-
+    <string name="id_of_the_robot">Id of the robot</string>
     <string name="toast_connected">Connected to %s</string>
     <string name="toast_disconnected">Disconnected from %s</string>
-
     <string name="status_unknown">Please wait</string>
     <string name="status_connected">Connected</string>
-
     <string name="status_advertising">Advertising</string>
     <string name="status_discovering">Press the button to start Advertisement.</string>
-
-
     <string name="secret_key">Encrypt Key</string>
 </resources>
