@@ -3,26 +3,21 @@ package com.example.codebreakers;
 
 import android.Manifest;
 import android.animation.Animator;
-import android.animation.ObjectAnimator;
 import android.content.Context;
 import android.content.res.AssetManager;
 import android.graphics.Color;
 import android.os.AsyncTask;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.SystemClock;
 import android.text.SpannableString;
-import android.text.format.DateFormat;
-import android.text.method.ScrollingMovementMethod;
 import android.text.style.ForegroundColorSpan;
 import android.util.Log;
 import android.util.Pair;
 import android.view.Gravity;
 import android.view.SurfaceView;
 import android.view.View;
-import android.view.ViewAnimationUtils;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.Button;
@@ -32,8 +27,6 @@ import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import androidx.annotation.UiThread;
 
 import com.google.android.gms.nearby.connection.ConnectionInfo;
 import com.google.android.gms.nearby.connection.Payload;
@@ -57,7 +50,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -74,14 +66,13 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.SecretKeySpec;
 
-import io.reactivex.annotations.NonNull;
-import io.reactivex.annotations.Nullable;
 import it.unive.dais.legodroid.lib.EV3;
 import it.unive.dais.legodroid.lib.GenEV3;
 import it.unive.dais.legodroid.lib.comm.BluetoothConnection;
 import it.unive.dais.legodroid.lib.plugs.GyroSensor;
 import it.unive.dais.legodroid.lib.plugs.Motors;
 import it.unive.dais.legodroid.lib.plugs.TachoMotor;
+import it.unive.dais.legodroid.lib.plugs.UltrasonicSensor;
 import it.unive.dais.legodroid.lib.util.Prelude;
 
 import static java.lang.Math.abs;
@@ -207,6 +198,7 @@ public class Third extends ConnectionsActivity {//implements SensorEventListener
     private boolean ballIsCatched = false;
     Point center;
     GridViewCustomAdapter adapter;
+    float distance; //distance between sensor and ball
 
     private void setUpCamera() {
         if (!OpenCVLoader.initDebug()) {
@@ -486,7 +478,6 @@ public class Third extends ConnectionsActivity {//implements SensorEventListener
     /**
      * Test function for all the possible strings of the protocol
      */
-    //TODO:from this method we will take for the sending of all the things we will need to send during the third round
     public void send_Byte(View view) {
 
         // passive protocol
@@ -522,7 +513,7 @@ public class Third extends ConnectionsActivity {//implements SensorEventListener
             e.printStackTrace();
         }
 
-
+        //TODO: this is to be made when we first connect to the GROUNDSTATION AND THE OTHER ROBOTS I THINK
         x = "Benvenuto sono " + mName;
         bytes = x.getBytes();
         send(Payload.fromBytes(bytes));
@@ -535,11 +526,13 @@ public class Third extends ConnectionsActivity {//implements SensorEventListener
         bytes = x.getBytes();
         send(Payload.fromBytes(bytes));
     }
-
+    //TODO: SENDUPDATE de inteles cum putem sa punem in otherRobots ceilalti.
     public void sendUpdateMessage(int xRobot, int yRobot, int xBall, int yBall, boolean status){
         String x,y;
         Calendar calendar = Calendar.getInstance();
         Long time_long = calendar.getTimeInMillis();
+
+        //nu bine asa
         otherRobots.add("2");
 
         byte[] bytes;
@@ -840,7 +833,6 @@ public class Third extends ConnectionsActivity {//implements SensorEventListener
 
 
     /** {@see ConnectionsActivity#onReceive(Endpoint, Payload)} */
-    //TODO:we will need to understand what he wants...
     @Override
     protected void onReceive(Endpoint endpoint, Payload payload) {
         if (payload.getType() == Payload.Type.BYTES) {
@@ -854,27 +846,32 @@ public class Third extends ConnectionsActivity {//implements SensorEventListener
             Integer aux = Character.getNumericValue(str_bytes.charAt(0));
             if((aux >= 0 && aux <=6) && ((str_bytes.charAt(1)=='S'))){
                 if(aux == 0 || aux == robotID) {
-                    if(str_bytes.charAt(3) == 'O'){
+                    if(str_bytes.contains("STOP")){
                         logD(
                                 String.format(
                                         "STOP message intercepted %s",
                                         str_bytes));
-                        //TODO: motor stop, operazione annullata, coordinate e TIMESTAMP
+                        //TODO: ONRECIVE motor stop, operazione annullata, coordinate e TIMESTAMP
+                        try {
+                            stopMotors();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                        //mai avem de trimis coordonatele
                         return;
-                    }
-                    else if(str_bytes.charAt(3) == 'A'){
+                    }else if(str_bytes.contains("RESUME")){
                         logD(
                                 String.format(
                                         "START message intercepted %s",
                                         str_bytes));
-                        //TODO:
+                        //TODO:ONRECIVE maybe this is the resume ? because on the pdf it says resume not start
                         return;
                     }
                 }
                 else {
                     logD(
                             String.format(
-                                    "STOP/START message ignored %s",
+                                    "STOP/RESUME message ignored %s",
                                     str_bytes));
                     // altrimenti lo ignoriamo
                     return;
@@ -915,6 +912,29 @@ public class Third extends ConnectionsActivity {//implements SensorEventListener
                                 "BYTE received %s from endpoint %s",
                                 s, endpoint.getName()));
                 System.out.println("BYTE received %s from endpoint %s");
+
+                if(s.contains("corso")){
+                    logD(
+                            String.format(
+                                    "OPERAZIONE IN CORSO received %s from endpoint %s",
+                                    s, endpoint.getName()));
+                    //TODO: ONRECIVE nu stiu
+
+                }else if(s.contains("annullata")){
+                    logD(
+                            String.format(
+                                    "OPERAZIONE ANNULLATA received %s from endpoint %s",
+                                    s, endpoint.getName()));
+                    //TODO: ONRECIVE nus situ
+
+                }if(s.contains("completata")){
+                    logD(
+                            String.format(
+                                    "OPERAZIONE COMPLETATA received %s from endpoint %s",
+                                    s, endpoint.getName()));
+                    //TODO: ONRECIVE nu stiu
+
+                }
 
             } catch (NoSuchAlgorithmException e) {
                 e.printStackTrace();
@@ -1284,8 +1304,11 @@ public class Third extends ConnectionsActivity {//implements SensorEventListener
     }
 
     void goToSafeZone(EV3.Api api) throws  IOException {
+        int xBall = xCurrentPosition;
+        int yball = yCurrentPosition;
         markZone(xCurrentPosition,yCurrentPosition);
         catchBall();
+        sendUpdateMessage(xCurrentPosition,yCurrentPosition,xBall,yball,true);
         while (yCurrentPosition > 0) {
             goBack(api);
             markZone(xCurrentPosition,yCurrentPosition);
@@ -1302,6 +1325,7 @@ public class Third extends ConnectionsActivity {//implements SensorEventListener
         }
         turn180(api);
         releaseBall();
+        sendUpdateMessage(xCurrentPosition,yCurrentPosition,xBall,yball,false);
         int i = 1;
         while(i!=2) {
             if(i%2==0) {
@@ -1557,34 +1581,94 @@ public class Third extends ConnectionsActivity {//implements SensorEventListener
         matrix[y][x] = 1;
         updateMap(xCurrentPosition,yCurrentPosition);
     }
+    boolean checkLine(int x) {
+        for(int y=0;y<=m;y++)
+            if(matrix[y][x]==0)
+                return false;
+        return true;
+    }
 
+    //Distance Sensor
+
+    int getDistance(EV3.Api api) throws IOException,ExecutionException, InterruptedException {
+        final UltrasonicSensor ultraSensor = api.getUltrasonicSensor(EV3.InputPort._1);
+        Log.i("",ultraSensor.getDistance().get().toString());
+        distance = Math.round(ultraSensor.getDistance().get());
+        return Math.round(ultraSensor.getDistance().get());
+    }
     //Robot Main
-
     private void legoMain(EV3.Api api) throws  IOException, InterruptedException, ExecutionException {
+
         final String TAG = Prelude.ReTAG("legoMain");
-        //TODO: mandare posizione quando trovo e cerco di prendere una palla (TIMESTAMP)
-        //TODO: mandare la posizione della palla broadcast quando la palla è in safezone(TIMESTAMP)
+        final UltrasonicSensor ultraSensor = api.getUltrasonicSensor(EV3.InputPort._1);
+        Log.i("",ultraSensor.getDistance().get().toString());
+        distance = ultraSensor.getDistance().get();
         motorLeft = api.getTachoMotor(EV3.OutputPort.A);
         motorRight = api.getTachoMotor(EV3.OutputPort.D);
         motorClaws = api.getTachoMotor(EV3.OutputPort.B);
         setUpCamera();
         ball_catched = 0;
-        markZone(xCurrentPosition, yCurrentPosition);
-        coordinates.size();
-
-        Collections.sort(coordinates, (p1, p2) -> {
-            if (p1.first != p2.first) {
-                return p1.first - p2.first;
-            } else {
-                return p1.second - p2.second;
+        while (ball_catched!=1) {
+            for (int line = xCurrentPosition; line >= 0; line--) {
+                while (checkLine(xCurrentPosition) != true) {
+                    distance = ultraSensor.getDistance().get();
+                    if(distance >= 15 && distance <=40)
+                    {
+                        ballIsCatched = true;
+                    }
+                    markZone(xCurrentPosition, yCurrentPosition);
+                    goForward(api);
+                    if(ballIsCatched) {
+                        goToSafeZone(api);
+                        line = xCurrentPosition;
+                        markZone(xCurrentPosition,yCurrentPosition);
+                    }
+                    markZone(xCurrentPosition, yCurrentPosition);
+                }
+                while(yCurrentPosition!=0) {
+                    goBack(api);
+                    updateMap(xCurrentPosition,yCurrentPosition);
+                }
+                if(xCurrentPosition==0) {
+                    break;
+                }
+                goLeft(api, 1);
+                updateMap(xCurrentPosition,yCurrentPosition);
             }
-        });
+            turnFront(api);
+            goRight(api,xRobotValue);
+            turnFront(api);
+            updateMap(xCurrentPosition,yCurrentPosition);
+            for (int line = xCurrentPosition; line <= n; line++) {
+                while (checkLine(xCurrentPosition) != true) {
+                    distance = ultraSensor.getDistance().get();
+                    if(distance >= 15 && distance <=40)
+                    {
+                        ballIsCatched = true;
+                    }
+                    markZone(xCurrentPosition, yCurrentPosition);
+                    goForward(api);
+                    if(ballIsCatched) {
+                        goToSafeZone(api);
+                        line = xCurrentPosition;
+                        markZone(xCurrentPosition,yCurrentPosition);
 
-
-
-        for (int i = 0; i < coordinates.size(); i++) {
-            goToBall(api, coordinates.get(i).first, coordinates.get(i).second);
-            goToSafeZone(api);
+                    }
+                    markZone(xCurrentPosition, yCurrentPosition);
+                }
+                while(yCurrentPosition!=0) {
+                    goBack(api);
+                    markZone(xCurrentPosition,yCurrentPosition);
+                }
+                if(xCurrentPosition==n) {
+                    break;
+                }
+                goRight(api, 1);
+                markZone(xCurrentPosition,yCurrentPosition);
+            }
+            goLeft(api,xCurrentPosition-xRobotValue);
+            turnFront(api);
+            ball_catched++;
         }
     }
 
