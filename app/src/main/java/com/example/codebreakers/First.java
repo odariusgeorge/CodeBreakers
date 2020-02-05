@@ -1,6 +1,10 @@
 package com.example.codebreakers;
 
 import android.content.Intent;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.speech.RecognizerIntent;
 import android.util.Log;
@@ -13,6 +17,8 @@ import android.widget.GridView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.util.Pair;
+import android.hardware.SensorManager;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -28,6 +34,7 @@ import org.opencv.imgproc.Imgproc;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.ExecutionException;
@@ -40,10 +47,11 @@ import it.unive.dais.legodroid.lib.plugs.TachoMotor;
 import it.unive.dais.legodroid.lib.plugs.UltrasonicSensor;
 import it.unive.dais.legodroid.lib.util.Prelude;
 
+import static android.hardware.Sensor.TYPE_GYROSCOPE;
 import static java.lang.Math.abs;
 import static java.lang.Math.max;
 
-public class First extends AppCompatActivity {
+public class First extends AppCompatActivity implements SensorEventListener {
 
     //MOTORS
     private static TachoMotor motorLeft;
@@ -88,7 +96,13 @@ public class First extends AppCompatActivity {
     private Point org;
     Point center;
 
+
+    //Sensors«
+    private SensorManager mSensorManager;
+    private Sensor mAccelerometer;
+    private Sensor mGyroscope;
     private static final String TAG = Prelude.ReTAG("MainActivity");
+    private float angle;
 
     private void setUpCamera() {
         if (!OpenCVLoader.initDebug()) {
@@ -130,6 +144,7 @@ public class First extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_first);
         Button start = findViewById(R.id.Start);
@@ -139,6 +154,9 @@ public class First extends AppCompatActivity {
         mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
         mOpenCvCameraView.setMaxFrameSize(640, 480);
         mOpenCvCameraView.disableFpsMeter();
+//        mSensorManager = (android.hardware.SensorManager) getSystemService(SENSOR_SERVICE);
+//        mGyroscope = mSensorManager.getDefaultSensor(TYPE_GYROSCOPE);
+//        mSensorManager.registerListener(this, mGyroscope, SensorManager.SENSOR_STATUS_ACCURACY_HIGH);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         list = findViewById(R.id.grid_view);
         list.setNumColumns(4);
@@ -148,6 +166,7 @@ public class First extends AppCompatActivity {
                 data.add("");
 
         }
+        
         adapter = new GridViewCustomAdapter(this, data);
         list.setAdapter(adapter);
         try {
@@ -163,7 +182,6 @@ public class First extends AppCompatActivity {
 
 
     }
-
 
     //Robot Movement
 
@@ -629,7 +647,6 @@ public class First extends AppCompatActivity {
                     }
                     motorLeft.start();
                     motorRight.start();
-                    Log.i("gyrosensor", gyroSensor.getAngle().get().toString());
                     current_angle = gyroSensor.getAngle().get();
                 } else if (current_angle < 1 ) {
                     if(current_angle > -30) {
@@ -642,7 +659,6 @@ public class First extends AppCompatActivity {
                     }
                     motorLeft.start();
                     motorRight.start();
-                    Log.i("gyrosensor", gyroSensor.getAngle().get().toString());
                     current_angle = gyroSensor.getAngle().get();
                 }
             }
@@ -690,25 +706,22 @@ public class First extends AppCompatActivity {
     }
 
     void updateMap(int x, int y) {
-        int maxim = max(n,m);
+        int maxim = max(n, m);
         ArrayList<String> data = new ArrayList<>();
-        if(balls_position.size()!=0) {
             for (int i = 0; i <= maxim + 1; i++)
                 for (int j = 0; j <= maxim + 1; j++) {
-                    for (Pair<Integer, Integer> ball : balls_position) {
-                        if (i == (m - ball.b) && ball.a == j) {
-                            data.add("X");
+                        if (i == (m - y) && x == j) {
+                            data.add("O");
                         }
-                    }
+                        else if (j > n) {
+                            data.add("\\");
+                        } else if (i > m && j <= n) {
+                            data.add("S");
+                        } else {
+                            data.add("");
+                        }
                 }
-        }
-        for (int i = 0; i <= maxim+1; i++)
-            for(int j=0; j <= maxim+1;j++) {
-                if( i == (m-y) && x == j)  { data.add("O");}
-                else if (j > n) { data.add("\\");}
-                else if (i > m && j<=n) { data.add("S"); }
-                else { data.add(""); }
-            }
+
         adapter = new GridViewCustomAdapter(this, data);
         runOnUiThread(new Runnable() {
 
@@ -729,6 +742,43 @@ public class First extends AppCompatActivity {
             if(matrix[y][x]==0)
                 return false;
         return true;
+    }
+
+    void showFinal() {
+        ArrayList<String> data = new ArrayList<>();
+        int maxim = max(n, m);
+        for (int i = 0; i <= maxim+1; i++) {
+            for(int j=0; j <= maxim+1;j++) {
+                if ( ((m-balls_position.get(0).second) == i) && (balls_position.get(0).first == j)) {
+                    data.add("X");
+                    if(balls_position.size()>1)
+                        balls_position.remove(0);
+                    }
+                    else if (j > n) {
+                        data.add("\\");
+                    } else if (i > m && j <= n) {
+                        data.add("S");
+                    } else {
+                        data.add("");
+                    }
+            }
+        }
+
+        adapter = new GridViewCustomAdapter(this, data);
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                int maxim = max(n,m);
+                maxim+=2;
+                list.setNumColumns(maxim);
+                list.setAdapter(adapter);
+
+            }
+        });
+        Intent intent = new Intent(First.this, MainActivity.class);
+        intent.putExtra("data",data);
+        intent.putExtra("maxim",maxim);
+        startActivity(intent);
     }
 
     //Distance Sensor
@@ -790,70 +840,88 @@ public class First extends AppCompatActivity {
         motorLeft = api.getTachoMotor(EV3.OutputPort.A);
         motorRight = api.getTachoMotor(EV3.OutputPort.D);
         motorClaws = api.getTachoMotor(EV3.OutputPort.B);
+        balls_position.clear();
         setUpCamera();
         ball_catched = 0;
             while (ball_catched!=1) {
                 for (int line = xCurrentPosition; line >= 0; line--) {
                     while (checkLine(xCurrentPosition) != true) {
                         distance = ultraSensor.getDistance().get();
-                        if(distance >= 15 && distance <=40)
-                        {
+                        if (distance >= 15 && distance <= 40) {
                             ballIsCatched = true;
                         }
                         markZone(xCurrentPosition, yCurrentPosition);
                         goForward(api);
-                        if(ballIsCatched) {
+                        if (ballIsCatched) {
                             goToSafeZone(api);
                             line = xCurrentPosition;
-                            markZone(xCurrentPosition,yCurrentPosition);
+                            markZone(xCurrentPosition, yCurrentPosition);
                         }
                         markZone(xCurrentPosition, yCurrentPosition);
                     }
-                    while(yCurrentPosition!=0) {
+                    while (yCurrentPosition != 0) {
                         goBack(api);
-                        updateMap(xCurrentPosition,yCurrentPosition);
+                        updateMap(xCurrentPosition, yCurrentPosition);
                     }
-                    if(xCurrentPosition==0) {
+                    if (xCurrentPosition == 0) {
                         break;
                     }
                     goLeft(api, 1);
-                    updateMap(xCurrentPosition,yCurrentPosition);
+                    updateMap(xCurrentPosition, yCurrentPosition);
                 }
                 turnFront(api);
-                goRight(api,xRobotValue);
+                goRight(api, xRobotValue);
                 turnFront(api);
-                updateMap(xCurrentPosition,yCurrentPosition);
+                updateMap(xCurrentPosition, yCurrentPosition);
                 for (int line = xCurrentPosition; line <= n; line++) {
                     while (checkLine(xCurrentPosition) != true) {
                         distance = ultraSensor.getDistance().get();
-                        if(distance >= 15 && distance <=40)
-                        {
+                        if (distance >= 15 && distance <= 40) {
                             ballIsCatched = true;
                         }
                         markZone(xCurrentPosition, yCurrentPosition);
                         goForward(api);
-                        if(ballIsCatched) {
+                        if (ballIsCatched) {
                             goToSafeZone(api);
                             line = xCurrentPosition;
-                            markZone(xCurrentPosition,yCurrentPosition);
+                            markZone(xCurrentPosition, yCurrentPosition);
 
                         }
                         markZone(xCurrentPosition, yCurrentPosition);
                     }
-                    while(yCurrentPosition!=0) {
+                    while (yCurrentPosition != 0) {
                         goBack(api);
-                        markZone(xCurrentPosition,yCurrentPosition);
+                        markZone(xCurrentPosition, yCurrentPosition);
                     }
-                    if(xCurrentPosition==n) {
+                    if (xCurrentPosition == n) {
                         break;
                     }
                     goRight(api, 1);
-                    markZone(xCurrentPosition,yCurrentPosition);
+                    markZone(xCurrentPosition, yCurrentPosition);
                 }
-                goLeft(api,xCurrentPosition-xRobotValue);
+                goLeft(api, xCurrentPosition - xRobotValue);
                 turnFront(api);
                 ball_catched++;
             }
+            Collections.sort(balls_position, (p1, p2) -> {
+            if (p1.first != p2.first) {
+                return p2.first - p1.first;
+            } else {
+                return p2.second - p1.second;
+            }
+            });
+            showFinal();
+    }
+
+    @Override
+    public void onSensorChanged(SensorEvent sensorEvent) {
+//        angle = sensorEvent.values[0];
+//        angle = (float)Math.toDegrees(angle);
+    }
+
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int i) {
+
     }
 
     private static class MyCustomApi extends EV3.Api {
@@ -885,4 +953,5 @@ public class First extends AppCompatActivity {
         totalBalls = 1;
         legoMain(api);
     }
+
 }
