@@ -330,10 +330,14 @@ public class Third extends ConnectionsActivity {//implements SensorEventListener
 
     @Override
     protected void onEndpointConnected(Endpoint endpoint) {
+        String x = "Benvenuto sono "+mName;
+        byte[] bytes;
         Toast.makeText(
                 this, getString(R.string.toast_connected, endpoint.getName()), Toast.LENGTH_SHORT)
                 .show();
         setState(State.CONNECTED);
+        bytes = x.getBytes();
+        send(Payload.fromBytes(bytes));
     }
 
     @Override
@@ -513,7 +517,6 @@ public class Third extends ConnectionsActivity {//implements SensorEventListener
             e.printStackTrace();
         }
 
-        //TODO: this is to be made when we first connect to the GROUNDSTATION AND THE OTHER ROBOTS I THINK
         x = "Benvenuto sono " + mName;
         bytes = x.getBytes();
         send(Payload.fromBytes(bytes));
@@ -546,7 +549,7 @@ public class Third extends ConnectionsActivity {//implements SensorEventListener
                 c.init(c.ENCRYPT_MODE, key);
 
                 byte[] ciphertext = c.doFinal(bytes);
-                send(Payload.fromBytes(ciphertext),otherRobots);
+                send(Payload.fromBytes(ciphertext));
                 System.out.println("CASO TRUE: Mando messaggio cifrato" + x);
 
             } catch (NoSuchAlgorithmException e) {
@@ -847,10 +850,7 @@ public class Third extends ConnectionsActivity {//implements SensorEventListener
             if((aux >= 0 && aux <=6) && ((str_bytes.charAt(1)=='S'))){
                 if(aux == 0 || aux == robotID) {
                     if(str_bytes.contains("STOP")){
-                        logD(
-                                String.format(
-                                        "STOP message intercepted %s",
-                                        str_bytes));
+                        logD(String.format("STOP message intercepted %s", str_bytes));
                         //TODO: ONRECIVE motor stop, operazione annullata, coordinate e TIMESTAMP
                         try {
                             stopMotors();
@@ -860,19 +860,13 @@ public class Third extends ConnectionsActivity {//implements SensorEventListener
                         //mai avem de trimis coordonatele
                         return;
                     }else if(str_bytes.contains("RESUME")){
-                        logD(
-                                String.format(
-                                        "START message intercepted %s",
-                                        str_bytes));
+                        logD(String.format("RESUME message intercepted %s", str_bytes));
                         //TODO:ONRECIVE maybe this is the resume ? because on the pdf it says resume not start
                         return;
                     }
                 }
                 else {
-                    logD(
-                            String.format(
-                                    "STOP/RESUME message ignored %s",
-                                    str_bytes));
+                    logD(String.format("STOP/RESUME message ignored %s", str_bytes));
                     // altrimenti lo ignoriamo
                     return;
                 }
@@ -880,10 +874,7 @@ public class Third extends ConnectionsActivity {//implements SensorEventListener
 
 
             if (str_bytes.toLowerCase().contains("recupero")) {
-                logD(
-                        String.format(
-                                "Recovery message: %s",
-                                str_bytes));
+                logD(String.format("Recovery message: %s",str_bytes));
                 receiveCoordinates(payload);
                 return;
             }
@@ -891,10 +882,7 @@ public class Third extends ConnectionsActivity {//implements SensorEventListener
 
 
             if (str_bytes.toLowerCase().contains("benvenuto")) {
-                logD(
-                        String.format(
-                                "Welcome message: %s",
-                                str_bytes));
+                logD(String.format("Welcome message: %s", str_bytes));
                 // messaggio di benvenuto
                 return;
             }

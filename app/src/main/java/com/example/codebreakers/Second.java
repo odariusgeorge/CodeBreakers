@@ -359,10 +359,17 @@ public class Second extends ConnectionsActivity {//implements SensorEventListene
 
     @Override
     protected void onEndpointConnected(Endpoint endpoint) {
+        String x = "Benvenuto sono "+mName;
+        byte[] bytes;
         Toast.makeText(
                 this, getString(R.string.toast_connected, endpoint.getName()), Toast.LENGTH_SHORT)
                 .show();
-        setState(State.CONNECTED);
+        setState(Second.State.CONNECTED);
+        bytes = x.getBytes();
+        send(Payload.fromBytes(bytes));
+
+        Log.i("BENVENUTO ", x);
+
     }
 
     @Override
