@@ -905,7 +905,7 @@ public class First extends AppCompatActivity implements SensorEventListener {
             }
             Collections.sort(balls_position, (p1, p2) -> {
             if (p1.first != p2.first) {
-                return p2.first - p1.first;
+                return p1.first - p2.first;
             } else {
                 return p2.second - p1.second;
             }
