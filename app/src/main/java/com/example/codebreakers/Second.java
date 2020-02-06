@@ -1008,7 +1008,7 @@ public class Second extends ConnectionsActivity {//implements SensorEventListene
         }
         motorLeft.setSpeed(0);
         motorRight.setSpeed(0);
-        markZone(xCurrentPosition,yCurrentPosition);
+        updateMap(xCurrentPosition,yCurrentPosition);
         for(int time=1;time<times;time++) {
             xCurrentPosition--;
             int i = 1;
@@ -1031,9 +1031,9 @@ public class Second extends ConnectionsActivity {//implements SensorEventListene
             }
             motorLeft.setSpeed(0);
             motorRight.setSpeed(0);
-            markZone(xCurrentPosition,yCurrentPosition);
+            updateMap(xCurrentPosition,yCurrentPosition);
         }
-        markZone(xCurrentPosition,yCurrentPosition);
+        updateMap(xCurrentPosition,yCurrentPosition);
 
     }
 
@@ -1080,9 +1080,9 @@ public class Second extends ConnectionsActivity {//implements SensorEventListene
             }
             motorLeft.setSpeed(0);
             motorRight.setSpeed(0);
-            markZone(xCurrentPosition,yCurrentPosition);
+            updateMap(xCurrentPosition,yCurrentPosition);
         }
-        markZone(xCurrentPosition,yCurrentPosition);
+        updateMap(xCurrentPosition,yCurrentPosition);
 
     }
 
@@ -1098,22 +1098,22 @@ public class Second extends ConnectionsActivity {//implements SensorEventListene
     }
 
     void goToSafeZone(EV3.Api api) throws  IOException {
-        markZone(xCurrentPosition,yCurrentPosition);
+        updateMap(xCurrentPosition,yCurrentPosition);
         catchBall();
         while(xCurrentPosition!=xRobotValue) {
-            if(xCurrentPosition > xRobotValue) {
-                goLeft(api,xCurrentPosition-xRobotValue);
-                markZone(xCurrentPosition,yCurrentPosition);
-            }
             if(xCurrentPosition < xRobotValue) {
                 goRight(api,xRobotValue-xCurrentPosition);
-                markZone(xCurrentPosition,yCurrentPosition);
+                updateMap(xCurrentPosition,yCurrentPosition);
+            }
+            if(xCurrentPosition > xRobotValue) {
+                goLeft(api,xCurrentPosition-xRobotValue);
+                updateMap(xCurrentPosition,yCurrentPosition);
             }
         }
         while (yCurrentPosition > 0) {
-            markZone(xCurrentPosition,yCurrentPosition);
+            updateMap(xCurrentPosition,yCurrentPosition);
             goBack(api);
-            markZone(xCurrentPosition,yCurrentPosition);
+            updateMap(xCurrentPosition,yCurrentPosition);
         }
         turn180(api);
         releaseBall();
@@ -1166,20 +1166,20 @@ public class Second extends ConnectionsActivity {//implements SensorEventListene
     }
 
     void goToBall(EV3.Api api, int x, int y) throws IOException {
-        while(yCurrentPosition!=y) {
-            markZone(xCurrentPosition,yCurrentPosition);
-            goForward(api);
-            markZone(xCurrentPosition,yCurrentPosition);
-        }
         if(xCurrentPosition>x) {
-            markZone(xCurrentPosition,yCurrentPosition);
+            updateMap(xCurrentPosition,yCurrentPosition);
             goLeft(api,xCurrentPosition-x);
-            markZone(xCurrentPosition,yCurrentPosition);
+            updateMap(xCurrentPosition,yCurrentPosition);
         }
         if(xCurrentPosition<x) {
-            markZone(xCurrentPosition,yCurrentPosition);
+            updateMap(xCurrentPosition,yCurrentPosition);
             goRight(api,x-xCurrentPosition);
-            markZone(xCurrentPosition,yCurrentPosition);
+            updateMap(xCurrentPosition,yCurrentPosition);
+        }
+        while(yCurrentPosition!=y) {
+            updateMap(xCurrentPosition,yCurrentPosition);
+            goForward(api);
+            updateMap(xCurrentPosition,yCurrentPosition);
         }
 
 
@@ -1363,53 +1363,26 @@ public class Second extends ConnectionsActivity {//implements SensorEventListene
 
     }
 
-    int[][] constructMatrix(int n, int m) {
-        int [][] matrix = new int[n+1][m+1];
-        for(int i=0;i<=n;i++)
-            for(int j=0;j<=m;j++)
-                matrix[i][j] = 0;
-        return matrix;
-    }
-
-    void markZone(int x,int y) {
-        matrix[y][x] = 1;
-        updateMap(xCurrentPosition,yCurrentPosition);
-    }
-
     void showFinal() {
         ArrayList<String> data = new ArrayList<>();
-        int maxim = max(n, m);
-        for (int i = 0; i <= maxim+1; i++) {
-            for(int j=0; j <= maxim+1;j++) {
-                if ( ((m-coordinates.get(0).b) == i) && (coordinates.get(0).a == j)) {
-                    data.add("X");
-                    if(coordinates.size()>1)
-                        coordinates.remove(0);
-                }
-                else if (j > n) {
-                    data.add("\\");
-                } else if (i > m && j <= n) {
-                    data.add("S");
-                } else {
-                    data.add("");
-                }
-            }
+
+        for(com.example.codebreakers.Pair pair: coordinates) {
+            String s = "x: " + pair.a + " " + "y: " + pair.b;
+            data.add(s);
         }
 
         adapter = new GridViewCustomAdapter(this, data);
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                int maxim = max(n,m);
-                maxim+=2;
-                list.setNumColumns(maxim);
+                list.setNumColumns(coordinates.size());
                 list.setAdapter(adapter);
 
             }
         });
         Intent intent = new Intent(Second.this, MainActivity.class);
         intent.putExtra("data",data);
-        intent.putExtra("maxim",maxim);
+        intent.putExtra("maxim",coordinates.size());
         startActivity(intent);
     }
 
@@ -1423,37 +1396,31 @@ public class Second extends ConnectionsActivity {//implements SensorEventListene
         motorClaws = api.getTachoMotor(EV3.OutputPort.B);
         setUpCamera();
         ball_catched = 0;
-        markZone(xCurrentPosition, yCurrentPosition);
-
+        updateMap(xCurrentPosition,yCurrentPosition);
+        Pair<Integer,Integer> pair4 = new Pair<Integer, Integer>(2,1);
+        coordinates.add(pair4);
         for(com.example.codebreakers.Pair pair: coordinates) {
             if(orientation==0)
                 continue;
-            if(orientation==1){
-                int aux = m;
-                m = n;
-                n = aux;
+            else if(orientation==1){
                 Integer aux_a = (Integer)pair.a;
                 Integer aux_b = (Integer)pair.b;
-                pair.a = m-aux_b;
+                pair.a = n-aux_b;
                 pair.b = aux_a;
             }
-            if(orientation==2){
+            else if(orientation==2){
                 Integer aux_a = (Integer)pair.a;
                 Integer aux_b = (Integer)pair.b;
                 pair.a = n-aux_a;
                 pair.b = m-aux_b;
             }
-            if(orientation==3){
-                int aux = m;
-                m = n;
-                n = aux;
+            else if(orientation==3){
                 Integer aux_a = (Integer)pair.a;
                 Integer aux_b = (Integer)pair.b;
                 pair.a = aux_b;
                 pair.b = m-aux_a;
             }
         }
-
         Collections.sort(coordinates, (p1, p2) -> {
             if (p1.a != p2.a) {
                 return p1.a - p2.a;
@@ -1466,15 +1433,6 @@ public class Second extends ConnectionsActivity {//implements SensorEventListene
             goToBall(api, coordinates.get(i).a, coordinates.get(i).b);
             goToSafeZone(api);
         }
-
-        Collections.sort(coordinates, (p1, p2) -> {
-            if (p1.a != p2.a) {
-                return p1.a - p2.a;
-            } else {
-                return p2.b - p1.b;
-            }
-        });
-
         showFinal();
     }
 
@@ -1492,23 +1450,20 @@ public class Second extends ConnectionsActivity {//implements SensorEventListene
         api.mySpecialCommand();
         EditText rows = findViewById(R.id.rows);
         EditText columns = findViewById(R.id.columns);
-        n = 3;
-        m = 4;
-//        n = Integer.valueOf(rows.getText().toString());
-//        m = Integer.valueOf(columns.getText().toString());
+        n = Integer.valueOf(rows.getText().toString());
+        m = Integer.valueOf(columns.getText().toString());
         EditText robotXCoordinate = findViewById(R.id.xRobot);
         EditText robotYCoordinate = findViewById(R.id.yRobot);
-//        xRobotValue = Integer.valueOf(robotXCoordinate.getText().toString());
+        xRobotValue = Integer.valueOf(robotXCoordinate.getText().toString());
         orientation = Integer.valueOf(robotYCoordinate.getText().toString());
-        xRobotValue = 0;
         yRobotValue = 0;
         xCurrentPosition = xRobotValue;
         yCurrentPosition = yRobotValue;
-        matrix = constructMatrix(m,n);
-
-        EditText numberOfBalls  = findViewById(R.id.balls);
-//        totalBalls = Integer.valueOf(numberOfBalls.getText().toString());
-        totalBalls = 1;
+        if(orientation == 1 || orientation == 3) {
+            int aux = m;
+            m = n;
+            n = aux;
+        }
         legoMain(api);
 
     }
