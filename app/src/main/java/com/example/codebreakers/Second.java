@@ -80,7 +80,7 @@ import it.unive.dais.legodroid.lib.plugs.UltrasonicSensor;
 import it.unive.dais.legodroid.lib.util.Prelude;
 
 import static java.lang.Math.abs;
-
+import static java.lang.Math.max;
 
 
 /**
@@ -1031,9 +1031,9 @@ public class Second extends ConnectionsActivity {//implements SensorEventListene
             motorLeft.setSpeed(0);
             motorRight.setSpeed(0);
             markZone(xCurrentPosition,yCurrentPosition);
-
         }
-        turnFront(api);
+        markZone(xCurrentPosition,yCurrentPosition);
+
     }
 
     void goRight(EV3.Api api, int times) throws  IOException {
@@ -1079,8 +1079,8 @@ public class Second extends ConnectionsActivity {//implements SensorEventListene
             }
             motorLeft.setSpeed(0);
             motorRight.setSpeed(0);
+            markZone(xCurrentPosition,yCurrentPosition);
         }
-        turnFront(api);
         markZone(xCurrentPosition,yCurrentPosition);
 
     }
@@ -1099,10 +1099,6 @@ public class Second extends ConnectionsActivity {//implements SensorEventListene
     void goToSafeZone(EV3.Api api) throws  IOException {
         markZone(xCurrentPosition,yCurrentPosition);
         catchBall();
-        while (yCurrentPosition > 0) {
-            goBack(api);
-            markZone(xCurrentPosition,yCurrentPosition);
-        }
         while(xCurrentPosition!=xRobotValue) {
             if(xCurrentPosition > xRobotValue) {
                 goLeft(api,xCurrentPosition-xRobotValue);
@@ -1112,6 +1108,11 @@ public class Second extends ConnectionsActivity {//implements SensorEventListene
                 goRight(api,xRobotValue-xCurrentPosition);
                 markZone(xCurrentPosition,yCurrentPosition);
             }
+        }
+        while (yCurrentPosition > 0) {
+            markZone(xCurrentPosition,yCurrentPosition);
+            goBack(api);
+            markZone(xCurrentPosition,yCurrentPosition);
         }
         turn180(api);
         releaseBall();
@@ -1330,27 +1331,30 @@ public class Second extends ConnectionsActivity {//implements SensorEventListene
     //Matrix and Display Map
 
     void updateMap(int x, int y) {
+        int maxim = max(n, m);
         ArrayList<String> data = new ArrayList<>();
-        for (int i = 0; i <= n+1; i++) {
-            for(int j=0;j <= m+1;j++)
-                if(i==(n-y) && x==j){
+        for (int i = 0; i <= maxim + 1; i++)
+            for (int j = 0; j <= maxim + 1; j++) {
+                if (i == (m - y) && x == j) {
                     data.add("O");
-                } else if(i==n+1){
-                    data.add("S");
-                } else if(j>=m+1) {
-                    data.add("\\");
                 }
-                else{
+                else if (j > n) {
+                    data.add("\\");
+                } else if (i > m && j <= n) {
+                    data.add("S");
+                } else {
                     data.add("");
                 }
+            }
 
-        }
         adapter = new GridViewCustomAdapter(this, data);
         runOnUiThread(new Runnable() {
 
             @Override
             public void run() {
-                list.setNumColumns(n+2);
+                int maxim = max(n,m);
+                maxim+=2;
+                list.setNumColumns(maxim);
                 list.setAdapter(adapter);
 
             }
@@ -1398,8 +1402,8 @@ public class Second extends ConnectionsActivity {//implements SensorEventListene
             if(orientation==2){
                 Integer aux_a = (Integer)pair.a;
                 Integer aux_b = (Integer)pair.b;
-                pair.a = m-aux_a;
-                pair.b = n-aux_b;
+                pair.a = n-aux_a;
+                pair.b = m-aux_b;
             }
             if(orientation==3){
                 int aux = m;
@@ -1440,8 +1444,8 @@ public class Second extends ConnectionsActivity {//implements SensorEventListene
         api.mySpecialCommand();
         EditText rows = findViewById(R.id.rows);
         EditText columns = findViewById(R.id.columns);
-        n = 2;
-        m = 2;
+        n = 3;
+        m = 4;
 //        n = Integer.valueOf(rows.getText().toString());
 //        m = Integer.valueOf(columns.getText().toString());
         EditText robotXCoordinate = findViewById(R.id.xRobot);
