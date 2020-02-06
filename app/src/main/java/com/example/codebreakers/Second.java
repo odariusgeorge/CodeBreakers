@@ -5,6 +5,7 @@ import android.Manifest;
 import android.animation.Animator;
 import android.animation.ObjectAnimator;
 import android.content.Context;
+import android.content.Intent;
 import android.content.res.AssetManager;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -1375,6 +1376,43 @@ public class Second extends ConnectionsActivity {//implements SensorEventListene
         updateMap(xCurrentPosition,yCurrentPosition);
     }
 
+    void showFinal() {
+        ArrayList<String> data = new ArrayList<>();
+        int maxim = max(n, m);
+        for (int i = 0; i <= maxim+1; i++) {
+            for(int j=0; j <= maxim+1;j++) {
+                if ( ((m-coordinates.get(0).b) == i) && (coordinates.get(0).a == j)) {
+                    data.add("X");
+                    if(coordinates.size()>1)
+                        coordinates.remove(0);
+                }
+                else if (j > n) {
+                    data.add("\\");
+                } else if (i > m && j <= n) {
+                    data.add("S");
+                } else {
+                    data.add("");
+                }
+            }
+        }
+
+        adapter = new GridViewCustomAdapter(this, data);
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                int maxim = max(n,m);
+                maxim+=2;
+                list.setNumColumns(maxim);
+                list.setAdapter(adapter);
+
+            }
+        });
+        Intent intent = new Intent(Second.this, MainActivity.class);
+        intent.putExtra("data",data);
+        intent.putExtra("maxim",maxim);
+        startActivity(intent);
+    }
+
     //Robot Main
 
     private void legoMain(EV3.Api api) throws  IOException, InterruptedException, ExecutionException {
@@ -1428,6 +1466,16 @@ public class Second extends ConnectionsActivity {//implements SensorEventListene
             goToBall(api, coordinates.get(i).a, coordinates.get(i).b);
             goToSafeZone(api);
         }
+
+        Collections.sort(coordinates, (p1, p2) -> {
+            if (p1.a != p2.a) {
+                return p1.a - p2.a;
+            } else {
+                return p2.b - p1.b;
+            }
+        });
+
+        showFinal();
     }
 
     private static class MyCustomApi extends EV3.Api {
