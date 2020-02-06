@@ -13,8 +13,6 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Vector;
 
 import it.unive.dais.legodroid.lib.util.Prelude;
 
@@ -39,7 +37,7 @@ public class MainActivity extends AppCompatActivity {
         firstRound.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent i = new Intent(MainActivity.this, First.class);
+                Intent i = new Intent(MainActivity.this,FirstG.class);
                 startActivity(i);
             }
         });

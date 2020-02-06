@@ -10,10 +10,7 @@
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.VIBRATE" />
-    <uses-feature android:name="android.hardware.sensor.accelerometer" android:required="true" />
-    <uses-feature
-        android:name="android.hardware.sensor.gyroscope"
-        android:required="true" />
+    <uses-feature android:name="android.hardware.sensor.gyroscope" android:required="true"/>
     <uses-feature
         android:name="android.hardware.camera"
         android:required="false" />
@@ -36,6 +33,10 @@
         android:theme="@style/AppTheme">
         <activity
             android:name=".First"
+            android:label="@string/title_activity_first"
+            android:theme="@style/AppTheme.NoActionBar"></activity>
+        <activity
+            android:name=".FirstG"
             android:label="@string/title_activity_first"
             android:theme="@style/AppTheme.NoActionBar"></activity>
         <activity
