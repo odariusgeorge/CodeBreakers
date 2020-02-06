@@ -16,7 +16,6 @@ import android.text.SpannableString;
 import android.text.format.DateFormat;
 import android.text.style.ForegroundColorSpan;
 import android.util.Log;
-import android.util.Pair;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewAnimationUtils;
@@ -106,7 +105,7 @@ public class Second extends ConnectionsActivity {//implements SensorEventListene
 
     private Set<String> otherRobots = new HashSet<>();
 
-    ArrayList<Pair<Integer,Integer>> coordinates = new ArrayList<>();
+    ArrayList<com.example.codebreakers.Pair<Integer,Integer>> coordinates = new ArrayList<>();
 
     /**
      * If true, debug logs are shown on the device.
@@ -221,6 +220,7 @@ public class Second extends ConnectionsActivity {//implements SensorEventListene
     private Integer xCurrentPosition;
     private Integer yCurrentPosition;
     private boolean ballIsCatched = false;
+    private Integer orientation;
     Point center;
     GridViewCustomAdapter adapter;
 
@@ -752,7 +752,7 @@ public class Second extends ConnectionsActivity {//implements SensorEventListene
                 Integer x = Integer.valueOf(m.group());
                 m.find();
                 Integer y = Integer.valueOf(m.group());
-                Pair<Integer,Integer> pair = new Pair<Integer, Integer>(x,y);
+                com.example.codebreakers.Pair<Integer,Integer> pair = new Pair<>(x,y);
                 coordinates.add(pair);
             }
         }
@@ -1382,20 +1382,46 @@ public class Second extends ConnectionsActivity {//implements SensorEventListene
         setUpCamera();
         ball_catched = 0;
         markZone(xCurrentPosition, yCurrentPosition);
-        coordinates.size();
+
+        for(com.example.codebreakers.Pair pair: coordinates) {
+            if(orientation==0)
+                continue;
+            if(orientation==1){
+                int aux = m;
+                m = n;
+                n = aux;
+                Integer aux_a = (Integer)pair.a;
+                Integer aux_b = (Integer)pair.b;
+                pair.a = m-aux_b;
+                pair.b = aux_a;
+            }
+            if(orientation==2){
+                Integer aux_a = (Integer)pair.a;
+                Integer aux_b = (Integer)pair.b;
+                pair.a = m-aux_a;
+                pair.b = n-aux_b;
+            }
+            if(orientation==3){
+                int aux = m;
+                m = n;
+                n = aux;
+                Integer aux_a = (Integer)pair.a;
+                Integer aux_b = (Integer)pair.b;
+                pair.a = aux_b;
+                pair.b = m-aux_a;
+            }
+        }
 
         Collections.sort(coordinates, (p1, p2) -> {
-            if (p1.first != p2.first) {
-                return p1.first - p2.first;
+            if (p1.a != p2.a) {
+                return p1.a - p2.a;
             } else {
-                return p1.second - p2.second;
+                return p1.b - p2.b;
             }
         });
 
-
-
         for (int i = 0; i < coordinates.size(); i++) {
-            goToBall(api, coordinates.get(i).first, coordinates.get(i).second);
+            goToBall(api, coordinates.get(i).a, coordinates.get(i).b);
             goToSafeZone(api);
         }
     }
@@ -1421,7 +1447,7 @@ public class Second extends ConnectionsActivity {//implements SensorEventListene
         EditText robotXCoordinate = findViewById(R.id.xRobot);
         EditText robotYCoordinate = findViewById(R.id.yRobot);
 //        xRobotValue = Integer.valueOf(robotXCoordinate.getText().toString());
-//        yRobotValue = Integer.valueOf(robotYCoordinate.getText().toString());
+        orientation = Integer.valueOf(robotYCoordinate.getText().toString());
         xRobotValue = 0;
         yRobotValue = 0;
         xCurrentPosition = xRobotValue;
