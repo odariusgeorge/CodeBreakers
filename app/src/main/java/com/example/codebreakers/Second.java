@@ -35,9 +35,8 @@ import com.google.android.gms.nearby.connection.Strategy;
 
 import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.OpenCVLoader;
-import org.opencv.core.CvType;
+import org.opencv.core.Core;
 import org.opencv.core.Mat;
-import org.opencv.core.MatOfPoint;
 import org.opencv.core.Point;
 import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
@@ -52,10 +51,8 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
@@ -77,7 +74,6 @@ import it.unive.dais.legodroid.lib.comm.BluetoothConnection;
 import it.unive.dais.legodroid.lib.plugs.GyroSensor;
 import it.unive.dais.legodroid.lib.plugs.Motors;
 import it.unive.dais.legodroid.lib.plugs.TachoMotor;
-import it.unive.dais.legodroid.lib.plugs.UltrasonicSensor;
 import it.unive.dais.legodroid.lib.util.Prelude;
 
 import static java.lang.Math.abs;
@@ -227,40 +223,56 @@ public class Second extends ConnectionsActivity {//implements SensorEventListene
     GridViewCustomAdapter adapter;
 
     private void setUpCamera() {
+        // Carica le librerie di OpenCV in maniera sincrona
         if (!OpenCVLoader.initDebug()) {
             Log.e(TAG, "Unable to load OpenCV");
         } else {
             Log.d(TAG, "OpenCV loaded");
         }
 
+        // Configura l'elemento della camera
+        mOpenCvCameraView = findViewById(R.id.HelloOpenCvView);
+        mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
+        mOpenCvCameraView.setMaxFrameSize(1920, 1080);
+        mOpenCvCameraView.disableFpsMeter();
         mOpenCvCameraView.setCvCameraViewListener(new CameraBridgeViewBase.CvCameraViewListener2() {
             @Override
             public void onCameraViewStarted(int width, int height) {
-                mRgba = new Mat(height, width, CvType.CV_8UC4);
-                mRgbaF = new Mat(height, width, CvType.CV_8UC4);
-                mRgbaT = new Mat(width, width, CvType.CV_8UC4);
-                mDetector = new ColorBlobDetector();
-                mBlobColorHsv = new Scalar(280/2,0.65*255,0.75*255,255);
-                mDetector.setHsvColor(mBlobColorHsv);
-                CONTOUR_COLOR = new Scalar(255,0,0,255);
-                MARKER_COLOR = new Scalar(0,0,255,255);
-                org = new Point(1,20);
+
+                Log.d(TAG, "Camera Started");
             }
+
             @Override
             public void onCameraViewStopped() {
-
+                Log.d(TAG, "Camera Stopped");
             }
+
+            // Viene eseguito ad ogni frame, con inputFrame l'immagine corrente
             @Override
             public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
-                mRgba = inputFrame.rgba();
-                mDetector.process(mRgba);
-                List<MatOfPoint> contours = mDetector.getContours();
-                Imgproc.drawContours(mRgba, contours, -1, CONTOUR_COLOR);
-                center = mDetector.getCenterOfMaxContour();
-                double direction = 0;
-                return mRgba;
+                // Salva il frame corrente su un oggetto Mat, ossia una matrice bitmap
+                Mat frame = inputFrame.rgba();
+                Mat frameT = frame.t();
+                Core.flip(frame.t(), frameT, 1);
+                Imgproc.resize(frameT, frameT, frame.size());
+
+                BallFinder ballFinder = new BallFinder(frameT, true);
+                ballFinder.setMinArea(1000);
+                ballFinder.setViewRatio(0.4f);
+                ballFinder.setOrientation("landscape");
+                ArrayList<Ball> f = ballFinder.findBalls();
+                for (Ball b : f) {
+                    Log.e("ball", String.valueOf(b.center.x));
+                    Log.e("ball", String.valueOf(b.center.y));
+                    Log.e("ball", String.valueOf(b.radius));
+                    Log.e("ball", b.color);
+                }
+
+                return frameT;
             }
         });
+
+        // Abilita la visualizzazione dell'immagine sullo schermo
         mOpenCvCameraView.enableView();
     }
 

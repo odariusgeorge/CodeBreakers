@@ -23,7 +23,7 @@
             android:layout_height="wrap_content"
             android:visibility="gone"
             opencv:camera_id="any"
-            opencv:show_fps="true" />
+            opencv:show_fps="false" />
     </LinearLayout>
 
     <LinearLayout
