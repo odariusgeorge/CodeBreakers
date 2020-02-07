@@ -107,6 +107,7 @@ public class Second extends ConnectionsActivity {//implements SensorEventListene
     private Set<String> otherRobots = new HashSet<>();
 
     ArrayList<com.example.codebreakers.Pair<Integer,Integer>> coordinates = new ArrayList<>();
+    ArrayList<com.example.codebreakers.Pair<Integer,Integer>> original_coordinates = new ArrayList<>();
 
     /**
      * If true, debug logs are shown on the device.
@@ -1100,20 +1101,38 @@ public class Second extends ConnectionsActivity {//implements SensorEventListene
     void goToSafeZone(EV3.Api api) throws  IOException {
         updateMap(xCurrentPosition,yCurrentPosition);
         catchBall();
-        while(xCurrentPosition!=xRobotValue) {
-            if(xCurrentPosition < xRobotValue) {
-                goRight(api,xRobotValue-xCurrentPosition);
+        if(xCurrentPosition < xRobotValue) {
+            while (yCurrentPosition > 0) {
+                updateMap(xCurrentPosition,yCurrentPosition);
+                goBack(api);
                 updateMap(xCurrentPosition,yCurrentPosition);
             }
-            if(xCurrentPosition > xRobotValue) {
-                goLeft(api,xCurrentPosition-xRobotValue);
+            while(xCurrentPosition!=xRobotValue) {
+                if(xCurrentPosition < xRobotValue) {
+                    goRight(api,xRobotValue-xCurrentPosition);
+                    updateMap(xCurrentPosition,yCurrentPosition);
+                }
+                if(xCurrentPosition > xRobotValue) {
+                    goLeft(api,xCurrentPosition-xRobotValue);
+                    updateMap(xCurrentPosition,yCurrentPosition);
+                }
+            }
+        } else {
+            while(xCurrentPosition!=xRobotValue) {
+                if(xCurrentPosition < xRobotValue) {
+                    goRight(api,xRobotValue-xCurrentPosition);
+                    updateMap(xCurrentPosition,yCurrentPosition);
+                }
+                if(xCurrentPosition > xRobotValue) {
+                    goLeft(api,xCurrentPosition-xRobotValue);
+                    updateMap(xCurrentPosition,yCurrentPosition);
+                }
+            }
+            while (yCurrentPosition > 0) {
+                updateMap(xCurrentPosition,yCurrentPosition);
+                goBack(api);
                 updateMap(xCurrentPosition,yCurrentPosition);
             }
-        }
-        while (yCurrentPosition > 0) {
-            updateMap(xCurrentPosition,yCurrentPosition);
-            goBack(api);
-            updateMap(xCurrentPosition,yCurrentPosition);
         }
         turn180(api);
         releaseBall();
@@ -1364,25 +1383,54 @@ public class Second extends ConnectionsActivity {//implements SensorEventListene
     }
 
     void showFinal() {
-        ArrayList<String> data = new ArrayList<>();
 
-        for(com.example.codebreakers.Pair pair: coordinates) {
-            String s = "x: " + pair.a + " " + "y: " + pair.b;
-            data.add(s);
+        if(orientation == 1 || orientation == 3) {
+            int aux = m;
+            m = n;
+            n = aux;
+        }
+
+        Collections.sort(original_coordinates, (p1, p2) -> {
+            if (p1.a != p2.b) {
+                return p1.a - p2.a;
+            } else {
+                return p2.b - p1.b;
+            }
+        });
+
+        ArrayList<String> data = new ArrayList<>();
+        int maxim = max(n, m);
+        for (int i = 0; i <= maxim+1; i++) {
+            for(int j=0; j <= maxim+1;j++) {
+                if ( ((m-original_coordinates.get(0).b) == i) && (original_coordinates.get(0).a == j)) {
+                    data.add("X");
+                    if(original_coordinates.size()>1)
+                        original_coordinates.remove(0);
+                }
+                else if (j > n) {
+                    data.add("\\");
+                } else if (i > m && j <= n) {
+                    data.add("S");
+                } else {
+                    data.add("");
+                }
+            }
         }
 
         adapter = new GridViewCustomAdapter(this, data);
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                list.setNumColumns(coordinates.size());
+                int maxim = max(n,m);
+                maxim+=2;
+                list.setNumColumns(maxim);
                 list.setAdapter(adapter);
 
             }
         });
         Intent intent = new Intent(Second.this, MainActivity.class);
         intent.putExtra("data",data);
-        intent.putExtra("maxim",coordinates.size());
+        intent.putExtra("maxim",maxim);
         startActivity(intent);
     }
 
@@ -1397,8 +1445,14 @@ public class Second extends ConnectionsActivity {//implements SensorEventListene
         setUpCamera();
         ball_catched = 0;
         updateMap(xCurrentPosition,yCurrentPosition);
-        Pair<Integer,Integer> pair4 = new Pair<Integer, Integer>(2,1);
+        Pair<Integer,Integer> pair4 = new Pair<Integer, Integer>(0,5);
         coordinates.add(pair4);
+        for(com.example.codebreakers.Pair pair: coordinates) {
+            Pair<Integer,Integer> new_pair = new Pair<Integer, Integer>(0,0);
+            new_pair.a = (int)pair.a;
+            new_pair.b = (int)pair.b;
+            original_coordinates.add(new_pair);
+        }
         for(com.example.codebreakers.Pair pair: coordinates) {
             if(orientation==0)
                 continue;
@@ -1433,6 +1487,7 @@ public class Second extends ConnectionsActivity {//implements SensorEventListene
             goToBall(api, coordinates.get(i).a, coordinates.get(i).b);
             goToSafeZone(api);
         }
+
         showFinal();
     }
 
