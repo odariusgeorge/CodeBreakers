@@ -76,6 +76,7 @@ import it.unive.dais.legodroid.lib.plugs.UltrasonicSensor;
 import it.unive.dais.legodroid.lib.util.Prelude;
 
 import static java.lang.Math.abs;
+import static java.lang.Thread.sleep;
 
 /**
  * Our GroundStation Activity. This Activity has 4 {@link State}s.
@@ -199,6 +200,7 @@ public class Third extends ConnectionsActivity {//implements SensorEventListener
     Point center;
     GridViewCustomAdapter adapter;
     float distance; //distance between sensor and ball
+    boolean flag = true;
 
     private void setUpCamera() {
         if (!OpenCVLoader.initDebug()) {
@@ -852,16 +854,13 @@ public class Third extends ConnectionsActivity {//implements SensorEventListener
                     if(str_bytes.contains("STOP")){
                         logD(String.format("STOP message intercepted %s", str_bytes));
                         //TODO: ONRECIVE motor stop, operazione annullata, coordinate e TIMESTAMP
-                        try {
-                            stopMotors();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
+                        flag = false;
                         //mai avem de trimis coordonatele
                         return;
-                    }else if(str_bytes.contains("RESUME")){
+                    }else if(str_bytes.contains("START")){
                         logD(String.format("RESUME message intercepted %s", str_bytes));
                         //TODO:ONRECIVE maybe this is the resume ? because on the pdf it says resume not start
+                        flag = true;
                         return;
                     }
                 }
@@ -955,9 +954,6 @@ public class Third extends ConnectionsActivity {//implements SensorEventListener
 
     }
 
-
-
-
     private void motion_stop (Integer n){
         String str;
 
@@ -1034,16 +1030,11 @@ public class Third extends ConnectionsActivity {//implements SensorEventListener
         mUiHandler.removeCallbacks(r);
     }
 
-
-
-
     private static CharSequence toColor(String msg, int color) {
         SpannableString spannable = new SpannableString(msg);
         spannable.setSpan(new ForegroundColorSpan(color), 0, msg.length(), 0);
         return spannable;
     }
-
-
 
     @SuppressWarnings("unchecked")
     private static <T> T pickRandomElem(Collection<T> collection) {
@@ -1054,6 +1045,7 @@ public class Third extends ConnectionsActivity {//implements SensorEventListener
      * Provides an implementation of Animator.AnimatorListener so that we only have to override the
      * method(s) we're interested in.
      */
+
     private abstract static class AnimatorListener implements Animator.AnimatorListener {
         @Override
         public void onAnimationStart(Animator animator) {}
@@ -1078,11 +1070,12 @@ public class Third extends ConnectionsActivity {//implements SensorEventListener
 
     //Robot Movement
 
-    void goForward(EV3.Api api) throws IOException{
+    void goForward(EV3.Api api) throws IOException, InterruptedException{
         if(ballIsCatched == false) {
             yCurrentPosition++;
             int i = 1;
             while(i!=5) {
+                while (flag == false) { sleep(100); }
                 turnFront(api);
                 if(i%2==0) {
                     motorLeft.setStepSpeed(30, 0, 161, 0, true);
@@ -1106,6 +1099,7 @@ public class Third extends ConnectionsActivity {//implements SensorEventListener
             yCurrentPosition++;
             int i = 1;
             while(i!=5) {
+                while (flag == false) { sleep(100); }
                 turnFront(api);
                 if(i%2==0) {
                     motorLeft.setStepSpeed(30, 0, 162, 0, true);
@@ -1128,11 +1122,12 @@ public class Third extends ConnectionsActivity {//implements SensorEventListener
 
     }
 
-    void goBack(EV3.Api api) throws  IOException {
+    void goBack(EV3.Api api) throws  IOException, InterruptedException {
         if(ballIsCatched == false) {
             yCurrentPosition--;
             int i = 1;
             while(i!=5) {
+                while (flag == false) { sleep(100); }
                 turnFront(api);
                 if(i%2==0) {
                     motorLeft.setStepSpeed(-30, 0, 156, 0, true);
@@ -1156,6 +1151,7 @@ public class Third extends ConnectionsActivity {//implements SensorEventListener
             yCurrentPosition--;
             int i = 1;
             while(i!=5) {
+                while (flag == false) { sleep(100); }
                 turnFront(api);
                 if(i%2==0) {
                     motorLeft.setStepSpeed(-27, 0, 162, 0, true);
@@ -1179,11 +1175,12 @@ public class Third extends ConnectionsActivity {//implements SensorEventListener
 
     }
 
-    void goLeft(EV3.Api api, int times) throws  IOException {
+    void goLeft(EV3.Api api, int times) throws  IOException, InterruptedException {
         xCurrentPosition--;
         turnLeft(api);
         int j = 1;
         while(j!=5) {
+            while (flag == false) { sleep(100); }
             turnLeft(api);
             if(j%2==0) {
                 motorLeft.setStepSpeed(30, 0, 160, 0, true);
@@ -1207,6 +1204,7 @@ public class Third extends ConnectionsActivity {//implements SensorEventListener
             xCurrentPosition--;
             int i = 1;
             while(i!=5) {
+                while (flag == false) { sleep(100); }
                 turnLeft(api);
                 if(i%2==0) {
                     motorLeft.setStepSpeed(30, 0, 161, 0, true);
@@ -1231,11 +1229,12 @@ public class Third extends ConnectionsActivity {//implements SensorEventListener
         turnFront(api);
     }
 
-    void goRight(EV3.Api api, int times) throws  IOException {
+    void goRight(EV3.Api api, int times) throws  IOException, InterruptedException {
         xCurrentPosition++;
         turnRight(api);
         int j = 1;
         while(j!=5) {
+            while (flag == false) { sleep(100); }
             turnRight(api);
             if(j%2==0) {
                 motorLeft.setStepSpeed(30, 0, 160, 0, true);
@@ -1256,6 +1255,7 @@ public class Third extends ConnectionsActivity {//implements SensorEventListener
             xCurrentPosition++;
             int i = 1;
             while(i!=5) {
+                while (flag == false) { sleep(100); }
                 turnRight(api);
                 if(i%2==0) {
                     motorLeft.setStepSpeed(30, 0, 161, 0, true);
@@ -1291,7 +1291,7 @@ public class Third extends ConnectionsActivity {//implements SensorEventListener
         motorClaws.waitCompletion();
     }
 
-    void goToSafeZone(EV3.Api api) throws  IOException {
+    void goToSafeZone(EV3.Api api) throws  IOException, InterruptedException {
         int xBall = xCurrentPosition;
         int yball = yCurrentPosition;
         markZone(xCurrentPosition,yCurrentPosition);
@@ -1356,29 +1356,10 @@ public class Third extends ConnectionsActivity {//implements SensorEventListener
         ballIsCatched = false;
     }
 
-    void stopMotors() throws IOException {
+    void stopMotors() throws IOException, InterruptedException {
         motorRight.stop();
         motorLeft.stop();
         motorClaws.stop();
-    }
-
-    void goToBall(EV3.Api api, int x, int y) throws IOException {
-        while(yCurrentPosition!=y) {
-            markZone(xCurrentPosition,yCurrentPosition);
-            goForward(api);
-            markZone(xCurrentPosition,yCurrentPosition);
-        }
-        if(xCurrentPosition>x) {
-            markZone(xCurrentPosition,yCurrentPosition);
-            goLeft(api,xCurrentPosition-x);
-            markZone(xCurrentPosition,yCurrentPosition);
-        }
-        if(xCurrentPosition<x) {
-            markZone(xCurrentPosition,yCurrentPosition);
-            goRight(api,x-xCurrentPosition);
-            markZone(xCurrentPosition,yCurrentPosition);
-        }
-
 
     }
 
@@ -1569,6 +1550,7 @@ public class Third extends ConnectionsActivity {//implements SensorEventListener
         matrix[y][x] = 1;
         updateMap(xCurrentPosition,yCurrentPosition);
     }
+
     boolean checkLine(int x) {
         for(int y=0;y<=m;y++)
             if(matrix[y][x]==0)
@@ -1584,6 +1566,7 @@ public class Third extends ConnectionsActivity {//implements SensorEventListener
         distance = Math.round(ultraSensor.getDistance().get());
         return Math.round(ultraSensor.getDistance().get());
     }
+
     //Robot Main
     private void legoMain(EV3.Api api) throws  IOException, InterruptedException, ExecutionException {
 

@@ -47,7 +47,6 @@ import it.unive.dais.legodroid.lib.plugs.TachoMotor;
 import it.unive.dais.legodroid.lib.plugs.UltrasonicSensor;
 import it.unive.dais.legodroid.lib.util.Prelude;
 
-import static android.hardware.Sensor.TYPE_GYROSCOPE;
 import static java.lang.Math.abs;
 import static java.lang.Math.max;
 
@@ -97,12 +96,7 @@ public class First extends AppCompatActivity implements SensorEventListener {
     Point center;
 
 
-    //Sensors«
-    private SensorManager mSensorManager;
-    private Sensor mAccelerometer;
-    private Sensor mGyroscope;
     private static final String TAG = Prelude.ReTAG("MainActivity");
-    private float angle;
 
     private void setUpCamera() {
         if (!OpenCVLoader.initDebug()) {
@@ -154,9 +148,6 @@ public class First extends AppCompatActivity implements SensorEventListener {
         mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
         mOpenCvCameraView.setMaxFrameSize(640, 480);
         mOpenCvCameraView.disableFpsMeter();
-//        mSensorManager = (android.hardware.SensorManager) getSystemService(SENSOR_SERVICE);
-//        mGyroscope = mSensorManager.getDefaultSensor(TYPE_GYROSCOPE);
-//        mSensorManager.registerListener(this, mGyroscope, SensorManager.SENSOR_STATUS_ACCURACY_HIGH);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         list = findViewById(R.id.grid_view);
         list.setNumColumns(4);
