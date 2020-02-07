@@ -343,7 +343,9 @@ public class First extends AppCompatActivity implements SensorEventListener {
                 markZone(xCurrentPosition,yCurrentPosition);
 
             }
+            if(ballIsCatched==false)
             turnFront(api);
+            markZone(xCurrentPosition,yCurrentPosition);
         }
     }
 
@@ -394,7 +396,8 @@ public class First extends AppCompatActivity implements SensorEventListener {
                 motorLeft.setSpeed(0);
                 motorRight.setSpeed(0);
             }
-            turnFront(api);
+            if(ballIsCatched==false)
+                turnFront(api);
             markZone(xCurrentPosition,yCurrentPosition);
         }
     }
@@ -870,7 +873,17 @@ public class First extends AppCompatActivity implements SensorEventListener {
                     if (xCurrentPosition == 0) {
                         break;
                     }
+                    turnLeft(api);
+                    distance = ultraSensor.getDistance().get();
+                    if (distance >= 15 && distance <= 40) {
+                        ballIsCatched = true;
+                    }
                     goLeft(api, 1);
+                    if(ballIsCatched) {
+                        goToSafeZone(api);
+                        line = xCurrentPosition;
+                        markZone(xCurrentPosition,yCurrentPosition);
+                    }
                     updateMap(xCurrentPosition, yCurrentPosition);
                 }
                 turnFront(api);
@@ -900,7 +913,17 @@ public class First extends AppCompatActivity implements SensorEventListener {
                     if (xCurrentPosition == n) {
                         break;
                     }
+                    turnRight(api);
+                    distance = ultraSensor.getDistance().get();
+                    if (distance >= 15 && distance <= 40) {
+                        ballIsCatched = true;
+                    }
                     goRight(api, 1);
+                    if(ballIsCatched) {
+                        goToSafeZone(api);
+                        line = xCurrentPosition;
+                        markZone(xCurrentPosition,yCurrentPosition);
+                    }
                     markZone(xCurrentPosition, yCurrentPosition);
                 }
                 goLeft(api, xCurrentPosition - xRobotValue);
