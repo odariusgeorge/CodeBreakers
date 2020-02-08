@@ -196,7 +196,6 @@ public class Second extends ConnectionsActivity {//implements SensorEventListene
     private static final int CAMERA_PERMISSION_CODE=100;
     private static final String TAG = Prelude.ReTAG("MainActivity");
     private CameraBridgeViewBase mOpenCvCameraView;
-    private ColorBlobDetector  mDetector;
     private TextView textView;
     private Mat mRgba, mRgbaF, mRgbaT;
     private Scalar mBlobColorHsv;
@@ -1368,12 +1367,12 @@ public class Second extends ConnectionsActivity {//implements SensorEventListene
         for (int i = 0; i <= maxim + 1; i++)
             for (int j = 0; j <= maxim + 1; j++) {
                 if (i == (m - y) && x == j) {
-                    data.add("O");
+                    data.add("R");
                 }
                 else if (j > n) {
                     data.add("\\");
                 } else if (i > m && j <= n) {
-                    data.add("S");
+                    data.add("\\");
                 } else {
                     data.add("");
                 }
@@ -1403,10 +1402,10 @@ public class Second extends ConnectionsActivity {//implements SensorEventListene
         }
 
         Collections.sort(original_coordinates, (p1, p2) -> {
-            if (p1.a != p2.b) {
-                return p1.a - p2.a;
-            } else {
+            if (p1.b > p2.b) {
                 return p2.b - p1.b;
+            } else {
+                return p1.a - p2.a;
             }
         });
 
@@ -1415,14 +1414,14 @@ public class Second extends ConnectionsActivity {//implements SensorEventListene
         for (int i = 0; i <= maxim+1; i++) {
             for(int j=0; j <= maxim+1;j++) {
                 if ( ((m-original_coordinates.get(0).b) == i) && (original_coordinates.get(0).a == j)) {
-                    data.add("X");
+                    data.add("O");
                     if(original_coordinates.size()>1)
                         original_coordinates.remove(0);
                 }
                 else if (j > n) {
                     data.add("\\");
                 } else if (i > m && j <= n) {
-                    data.add("S");
+                    data.add("\\");
                 } else {
                     data.add("");
                 }
@@ -1457,14 +1456,22 @@ public class Second extends ConnectionsActivity {//implements SensorEventListene
         setUpCamera();
         ball_catched = 0;
         updateMap(xCurrentPosition,yCurrentPosition);
-        Pair<Integer,Integer> pair4 = new Pair<Integer, Integer>(0,5);
-        coordinates.add(pair4);
+
         for(com.example.codebreakers.Pair pair: coordinates) {
             Pair<Integer,Integer> new_pair = new Pair<Integer, Integer>(0,0);
             new_pair.a = (int)pair.a;
             new_pair.b = (int)pair.b;
             original_coordinates.add(new_pair);
         }
+
+        Collections.sort(original_coordinates, (p1, p2) -> {
+            if (p1.a != p2.a) {
+                return p1.a - p2.a;
+            } else {
+                return p1.b - p2.b;
+            }
+        });
+
         for(com.example.codebreakers.Pair pair: coordinates) {
             if(orientation==0)
                 continue;

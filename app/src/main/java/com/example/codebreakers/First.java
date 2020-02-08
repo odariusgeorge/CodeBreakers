@@ -83,7 +83,6 @@ public class First extends AppCompatActivity implements SensorEventListener {
     //Camera
     private static final int CAMERA_PERMISSION_CODE=100;
     private CameraBridgeViewBase mOpenCvCameraView;
-    private ColorBlobDetector  mDetector;
     private Mat mRgba, mRgbaF, mRgbaT;
     private Scalar mBlobColorHsv;
     private Scalar CONTOUR_COLOR;
@@ -718,12 +717,12 @@ public class First extends AppCompatActivity implements SensorEventListener {
             for (int i = 0; i <= maxim + 1; i++)
                 for (int j = 0; j <= maxim + 1; j++) {
                         if (i == (m - y) && x == j) {
-                            data.add("O");
+                            data.add("R");
                         }
                         else if (j > n) {
                             data.add("\\");
                         } else if (i > m && j <= n) {
-                            data.add("S");
+                            data.add("\\");
                         } else {
                             data.add("");
                         }
@@ -757,14 +756,14 @@ public class First extends AppCompatActivity implements SensorEventListener {
         for (int i = 0; i <= maxim+1; i++) {
             for(int j=0; j <= maxim+1;j++) {
                 if ( ((m-balls_position.get(0).second) == i) && (balls_position.get(0).first == j)) {
-                    data.add("X");
+                    data.add("O");
                     if(balls_position.size()>1)
                         balls_position.remove(0);
                     }
                     else if (j > n) {
                         data.add("\\");
                     } else if (i > m && j <= n) {
-                        data.add("S");
+                        data.add("\\");
                     } else {
                         data.add("");
                     }
@@ -850,93 +849,104 @@ public class First extends AppCompatActivity implements SensorEventListener {
         balls_position.clear();
         setUpCamera();
         ball_catched = 0;
-            while (ball_catched!=1) {
-                for (int line = xCurrentPosition; line >= 0; line--) {
-                    while (checkLine(xCurrentPosition) != true) {
-                        distance = ultraSensor.getDistance().get();
-                        if (distance >= 15 && distance <= 40) {
-                            ballIsCatched = true;
-                        }
-                        markZone(xCurrentPosition, yCurrentPosition);
-                        goForward(api);
-                        if (ballIsCatched) {
-                            goToSafeZone(api);
-                            line = xCurrentPosition;
-                            markZone(xCurrentPosition, yCurrentPosition);
-                        }
-                        markZone(xCurrentPosition, yCurrentPosition);
-                    }
-                    while (yCurrentPosition != 0) {
-                        goBack(api);
-                        updateMap(xCurrentPosition, yCurrentPosition);
-                    }
-                    if (xCurrentPosition == 0) {
-                        break;
-                    }
-                    turnLeft(api);
-                    distance = ultraSensor.getDistance().get();
-                    if (distance >= 15 && distance <= 40) {
-                        ballIsCatched = true;
-                    }
-                    goLeft(api, 1);
-                    if(ballIsCatched) {
-                        goToSafeZone(api);
-                        line = xCurrentPosition;
-                        markZone(xCurrentPosition,yCurrentPosition);
-                    }
-                    updateMap(xCurrentPosition, yCurrentPosition);
-                }
-                turnFront(api);
-                goRight(api, xRobotValue);
-                turnFront(api);
-                updateMap(xCurrentPosition, yCurrentPosition);
-                for (int line = xCurrentPosition; line <= n; line++) {
-                    while (checkLine(xCurrentPosition) != true) {
-                        distance = ultraSensor.getDistance().get();
-                        if (distance >= 15 && distance <= 40) {
-                            ballIsCatched = true;
-                        }
-                        markZone(xCurrentPosition, yCurrentPosition);
-                        goForward(api);
-                        if (ballIsCatched) {
-                            goToSafeZone(api);
-                            line = xCurrentPosition;
-                            markZone(xCurrentPosition, yCurrentPosition);
+//            while (ball_catched!=1) {
+//                for (int line = xCurrentPosition; line >= 0; line--) {
+//                    while (checkLine(xCurrentPosition) != true) {
+//                        distance = ultraSensor.getDistance().get();
+//                        if (distance >= 15 && distance <= 40) {
+//                            ballIsCatched = true;
+//                        }
+//                        markZone(xCurrentPosition, yCurrentPosition);
+//                        goForward(api);
+//                        if (ballIsCatched) {
+//                            goToSafeZone(api);
+//                            line = xCurrentPosition;
+//                            markZone(xCurrentPosition, yCurrentPosition);
+//                        }
+//                        markZone(xCurrentPosition, yCurrentPosition);
+//                    }
+//                    while (yCurrentPosition != 0) {
+//                        goBack(api);
+//                        updateMap(xCurrentPosition, yCurrentPosition);
+//                    }
+//                    if (xCurrentPosition == 0) {
+//                        break;
+//                    }
+//                    turnLeft(api);
+//                    distance = ultraSensor.getDistance().get();
+//                    if (distance >= 15 && distance <= 40) {
+//                        ballIsCatched = true;
+//                    }
+//                    goLeft(api, 1);
+//                    markZone(xCurrentPosition,yCurrentPosition);
+//                    if(ballIsCatched) {
+//                        goToSafeZone(api);
+//                        line+=(xRobotValue-xCurrentPosition);
+//                    }
+//                    updateMap(xCurrentPosition, yCurrentPosition);
+//                }
+//                turnFront(api);
+//                goRight(api, xRobotValue);
+//                turnFront(api);
+//                ball_catched++;
+//                updateMap(xCurrentPosition, yCurrentPosition);
+//                for (int line = xCurrentPosition; line <= n; line++) {
+//                    while (checkLine(xCurrentPosition) != true) {
+//                        distance = ultraSensor.getDistance().get();
+//                        if (distance >= 15 && distance <= 40) {
+//                            ballIsCatched = true;
+//                        }
+//                        markZone(xCurrentPosition, yCurrentPosition);
+//                        goForward(api);
+//                        if (ballIsCatched) {
+//                            goToSafeZone(api);
+//                            line = xCurrentPosition;
+//                            markZone(xCurrentPosition, yCurrentPosition);
+//
+//                        }
+//                        markZone(xCurrentPosition, yCurrentPosition);
+//                    }
+//                    while (yCurrentPosition != 0) {
+//                        goBack(api);
+//                        markZone(xCurrentPosition, yCurrentPosition);
+//                    }
+//                    if (xCurrentPosition == n) {
+//                        break;
+//                    }
+//                    turnRight(api);
+//                    if (distance >= 15 && distance <= 40) {
+//                        ballIsCatched = true;
+//                    }
+//                    goRight(api, 1);
+//                    if(ballIsCatched) {
+//                        goToSafeZone(api);
+//                        line = xCurrentPosition;
+//                        markZone(xCurrentPosition,yCurrentPosition);
+//                    }
+//                    markZone(xCurrentPosition, yCurrentPosition);
+//                }
+//                goLeft(api, xCurrentPosition - xRobotValue);
+//                turnFront(api);
+//                ball_catched++;
+//            }
 
-                        }
-                        markZone(xCurrentPosition, yCurrentPosition);
-                    }
-                    while (yCurrentPosition != 0) {
-                        goBack(api);
-                        markZone(xCurrentPosition, yCurrentPosition);
-                    }
-                    if (xCurrentPosition == n) {
-                        break;
-                    }
-                    turnRight(api);
-                    distance = ultraSensor.getDistance().get();
-                    if (distance >= 15 && distance <= 40) {
-                        ballIsCatched = true;
-                    }
-                    goRight(api, 1);
-                    if(ballIsCatched) {
-                        goToSafeZone(api);
-                        line = xCurrentPosition;
-                        markZone(xCurrentPosition,yCurrentPosition);
-                    }
-                    markZone(xCurrentPosition, yCurrentPosition);
-                }
-                goLeft(api, xCurrentPosition - xRobotValue);
-                turnFront(api);
-                ball_catched++;
-            }
-            Collections.sort(balls_position, (p1, p2) -> {
+        Collections.sort(balls_position, (p1, p2) -> {
             if (p1.first != p2.first) {
                 return p1.first - p2.first;
             } else {
+                return p1.second - p2.second;
+            }
+        });
+
+
+            Collections.sort(balls_position, (p1, p2) -> {
+            if (p1.second > p2.second) {
                 return p2.second - p1.second;
+            } else {
+                return p1.first - p2.first;
             }
             });
+
             showFinal();
     }
 
