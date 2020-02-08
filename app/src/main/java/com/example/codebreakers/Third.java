@@ -262,6 +262,10 @@ public class Third extends ConnectionsActivity {//implements SensorEventListener
         //mName = generateRandomName();
         mName = "CodeBreakers";
         mStop = new boolean[6];
+        mOpenCvCameraView = findViewById(R.id.HelloOpenCvView);
+        mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
+        mOpenCvCameraView.setMaxFrameSize(640, 480);
+        mOpenCvCameraView.disableFpsMeter();
         // all the robot are assumed to be in move
         Arrays.fill(mStop, true);
         Button start = findViewById(R.id.Start);
@@ -540,6 +544,14 @@ public class Third extends ConnectionsActivity {//implements SensorEventListener
         bytes = x.getBytes();
         send(Payload.fromBytes(bytes));
     }
+
+    public void sendUpdate( int xBall, int yBall){
+        String x;
+        byte[] ballBytes;
+        x = "Coordinate recupero" + xBall + ";" + yBall;
+        ballBytes = x.getBytes();
+        send(Payload.fromBytes(ballBytes));
+    }
     //TODO: SENDUPDATE de inteles cum putem sa punem in otherRobots ceilalti.
     public void sendUpdateMessage(int xRobot, int yRobot, int xBall, int yBall, boolean status){
         String x,y;
@@ -573,23 +585,14 @@ public class Third extends ConnectionsActivity {//implements SensorEventListener
             }
         } else {
             x = "Operazione completata" + xRobot + ";" + yRobot + ";[" + time_long.toString() + "];";
-            y = "Coordinate recupero" + xBall + ";" + yBall;
-
             bytes = x.getBytes();
-            ballBytes = y.getBytes();
-
             try {
                 SecretKeySpec key = new SecretKeySpec(KEY.getBytes(), "DES");
                 Cipher c = Cipher.getInstance("DES/ECB/ISO10126Padding");
                 c.init(c.ENCRYPT_MODE, key);
-
                 byte[] ciphertext = c.doFinal(bytes);
-
                 System.out.println("ELSE : Mando messaggio cifrato" + x);
-                System.out.println("ELSE : Mando messaggio plaintext" + y);
-
                 send(Payload.fromBytes(ciphertext));
-                send(Payload.fromBytes(ballBytes));
 
             } catch (NoSuchAlgorithmException e) {
                 e.printStackTrace();
@@ -602,6 +605,7 @@ public class Third extends ConnectionsActivity {//implements SensorEventListener
             } catch (IllegalBlockSizeException e) {
                 e.printStackTrace();
             }
+            sendUpdate(xBall,yBall);
 
         }
     }
@@ -889,11 +893,10 @@ public class Third extends ConnectionsActivity {//implements SensorEventListener
                         flag = false;
                         //mai avem de trimis coordonatele
                         return;
-                    }else if(str_bytes.contains("RESUME")){
-                        logD(String.format("RESUME message intercepted %s", str_bytes));
-                        flag = true;
-                        return;
                     }
+                }else if(str_bytes.contains("RESUME")) {
+                    flag = true;
+                    return;
                 }
                 else {
                     logD(String.format("STOP/RESUME message ignored %s", str_bytes));
@@ -930,8 +933,14 @@ public class Third extends ConnectionsActivity {//implements SensorEventListener
                                 "BYTE received %s from endpoint %s",
                                 s, endpoint.getName()));
                 System.out.println("BYTE received %s from endpoint %s");
+                if(s.contains("RESUME")){
+                    logD(
+                            String.format(
+                                    "OPERAZIONE IN CORSO received %s from endpoint %s",
+                                    s, endpoint.getName()));
+                    flag = false;
 
-                if(s.contains("corso")){
+                }else if(s.contains("corso")){
                     logD(
                             String.format(
                                     "OPERAZIONE IN CORSO received %s from endpoint %s",
