@@ -25,8 +25,6 @@ import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.OpenCVLoader;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
-import org.opencv.core.Point;
-import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 
 import java.io.IOException;
@@ -83,12 +81,6 @@ public class First extends AppCompatActivity implements SensorEventListener {
     //Camera
     private static final int CAMERA_PERMISSION_CODE=100;
     private CameraBridgeViewBase mOpenCvCameraView;
-    private Mat mRgba, mRgbaF, mRgbaT;
-    private Scalar mBlobColorHsv;
-    private Scalar CONTOUR_COLOR;
-    private Scalar MARKER_COLOR;
-    private Point org;
-    Point center;
 
 
     private static final String TAG = Prelude.ReTAG("MainActivity");
@@ -940,8 +932,7 @@ public class First extends AppCompatActivity implements SensorEventListener {
             }
         });
 
-
-            Collections.sort(balls_position, (p1, p2) -> {
+        Collections.sort(balls_position, (p1, p2) -> {
             if (p1.second > p2.second) {
                 return p2.second - p1.second;
             } else {
@@ -949,7 +940,7 @@ public class First extends AppCompatActivity implements SensorEventListener {
             }
             });
 
-            showFinal();
+        showFinal();
     }
 
     @Override
@@ -988,8 +979,7 @@ public class First extends AppCompatActivity implements SensorEventListener {
         matrix = constructMatrix(m,n);
 
         EditText numberOfBalls  = findViewById(R.id.balls);
-//        totalBalls = Integer.valueOf(numberOfBalls.getText().toString());
-        totalBalls = 4;
+        totalBalls = Integer.valueOf(numberOfBalls.getText().toString());
         legoMain(api);
     }
 
