@@ -547,9 +547,6 @@ public class Third extends ConnectionsActivity {//implements SensorEventListener
         Calendar calendar = Calendar.getInstance();
         Long time_long = calendar.getTimeInMillis();
 
-        //nu bine asa
-        otherRobots.add("2");
-
         byte[] bytes;
         byte[] ballBytes;
         if(status){
@@ -592,7 +589,7 @@ public class Third extends ConnectionsActivity {//implements SensorEventListener
                 System.out.println("ELSE : Mando messaggio cifrato" + x);
                 System.out.println("ELSE : Mando messaggio plaintext" + y);
 
-                send(Payload.fromBytes(ciphertext),otherRobots);
+                send(Payload.fromBytes(ciphertext));
                 send(Payload.fromBytes(ballBytes));
 
             } catch (NoSuchAlgorithmException e) {
@@ -864,12 +861,37 @@ public class Third extends ConnectionsActivity {//implements SensorEventListener
                     if(str_bytes.contains("STOP")){
                         logD(String.format("STOP message intercepted %s", str_bytes));
                         //TODO: ONRECIVE motor stop, operazione annullata, coordinate e TIMESTAMP
+                        String x;
+                        Calendar calendar = Calendar.getInstance();
+                        Long time_long = calendar.getTimeInMillis();
+                        byte[] message;
+                        x = "Operazione annullata:" + xCurrentPosition + ";" + yCurrentPosition + ";[" + time_long.toString() + "];";
+                        message = x.getBytes();
+                        try {
+                            SecretKeySpec key = new SecretKeySpec(KEY.getBytes(), "DES");
+                            Cipher c = Cipher.getInstance("DES/ECB/ISO10126Padding");
+                            c.init(c.ENCRYPT_MODE, key);
+
+                            byte[] ciphertext = c.doFinal(message);
+                            send(Payload.fromBytes(ciphertext));
+                            System.out.println("CASO TRUE: Mando messaggio cifrato" + x);
+
+                        } catch (NoSuchAlgorithmException e) {
+                            e.printStackTrace();
+                        } catch (InvalidKeyException e) {
+                            e.printStackTrace();
+                        } catch (NoSuchPaddingException e) {
+                            e.printStackTrace();
+                        } catch (BadPaddingException e) {
+                            e.printStackTrace();
+                        } catch (IllegalBlockSizeException e) {
+                            e.printStackTrace();
+                        }
                         flag = false;
                         //mai avem de trimis coordonatele
                         return;
-                    }else if(str_bytes.contains("START")){
+                    }else if(str_bytes.contains("RESUME")){
                         logD(String.format("RESUME message intercepted %s", str_bytes));
-                        //TODO:ONRECIVE maybe this is the resume ? because on the pdf it says resume not start
                         flag = true;
                         return;
                     }
@@ -915,21 +937,21 @@ public class Third extends ConnectionsActivity {//implements SensorEventListener
                             String.format(
                                     "OPERAZIONE IN CORSO received %s from endpoint %s",
                                     s, endpoint.getName()));
-                    //TODO: ONRECIVE nu stiu
+
 
                 }else if(s.contains("annullata")){
                     logD(
                             String.format(
                                     "OPERAZIONE ANNULLATA received %s from endpoint %s",
                                     s, endpoint.getName()));
-                    //TODO: ONRECIVE nus situ
+
 
                 }if(s.contains("completata")){
                     logD(
                             String.format(
                                     "OPERAZIONE COMPLETATA received %s from endpoint %s",
                                     s, endpoint.getName()));
-                    //TODO: ONRECIVE nu stiu
+
 
                 }
 
@@ -1303,10 +1325,12 @@ public class Third extends ConnectionsActivity {//implements SensorEventListener
 
     void goToSafeZone(EV3.Api api) throws  IOException, InterruptedException {
         int xBall = xCurrentPosition;
-        int yball = yCurrentPosition;
+        int yBall = yCurrentPosition;
+        Pair<Integer,Integer> p1 = new Pair<>(xBall,yBall);
         markZone(xCurrentPosition,yCurrentPosition);
         catchBall();
-        sendUpdateMessage(xCurrentPosition,yCurrentPosition,xBall,yball,true);
+        coordinates.add(p1);
+        sendUpdateMessage(xCurrentPosition,yCurrentPosition,xBall,yBall,true);
         while (yCurrentPosition > 0) {
             goBack(api);
             markZone(xCurrentPosition,yCurrentPosition);
@@ -1323,7 +1347,7 @@ public class Third extends ConnectionsActivity {//implements SensorEventListener
         }
         turn180(api);
         releaseBall();
-        sendUpdateMessage(xCurrentPosition,yCurrentPosition,xBall,yball,false);
+        sendUpdateMessage(xCurrentPosition,yCurrentPosition,xBall,yBall,false);
         int i = 1;
         while(i!=2) {
             if(i%2==0) {
