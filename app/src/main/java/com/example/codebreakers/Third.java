@@ -859,7 +859,7 @@ public class Third extends ConnectionsActivity {//implements SensorEventListener
             // those are needed if you are a robot!
 
             Integer aux = Character.getNumericValue(str_bytes.charAt(0));
-            if((aux >= 0 && aux <=6) && ((str_bytes.charAt(1)=='S'))){
+            if((aux >= 0 && aux <=6) && ((str_bytes.charAt(1)=='S') || (str_bytes.charAt(1)=='R'))){
                 if(aux == 0 || aux == robotID) {
                     if(str_bytes.contains("STOP")){
                         logD(String.format("STOP message intercepted %s", str_bytes));
@@ -879,26 +879,16 @@ public class Third extends ConnectionsActivity {//implements SensorEventListener
                             send(Payload.fromBytes(ciphertext));
                             System.out.println("CASO TRUE: Mando messaggio cifrato" + x);
 
-                        } catch (NoSuchAlgorithmException e) {
-                            e.printStackTrace();
-                        } catch (InvalidKeyException e) {
-                            e.printStackTrace();
-                        } catch (NoSuchPaddingException e) {
-                            e.printStackTrace();
-                        } catch (BadPaddingException e) {
-                            e.printStackTrace();
-                        } catch (IllegalBlockSizeException e) {
+                        } catch (NoSuchAlgorithmException | InvalidKeyException | NoSuchPaddingException | BadPaddingException | IllegalBlockSizeException e) {
                             e.printStackTrace();
                         }
                         flag = false;
-                        //mai avem de trimis coordonatele
+                        return;
+                    } else if(str_bytes.contains("RESUME")) {
+                        flag = true;
                         return;
                     }
-                }else if(str_bytes.contains("RESUME")) {
-                    flag = true;
-                    return;
-                }
-                else {
+                } else {
                     logD(String.format("STOP/RESUME message ignored %s", str_bytes));
                     // altrimenti lo ignoriamo
                     return;
@@ -933,14 +923,7 @@ public class Third extends ConnectionsActivity {//implements SensorEventListener
                                 "BYTE received %s from endpoint %s",
                                 s, endpoint.getName()));
                 System.out.println("BYTE received %s from endpoint %s");
-                if(s.contains("RESUME")){
-                    logD(
-                            String.format(
-                                    "OPERAZIONE IN CORSO received %s from endpoint %s",
-                                    s, endpoint.getName()));
-                    flag = false;
-
-                }else if(s.contains("corso")){
+                 if(s.contains("corso")){
                     logD(
                             String.format(
                                     "OPERAZIONE IN CORSO received %s from endpoint %s",
@@ -990,7 +973,9 @@ public class Third extends ConnectionsActivity {//implements SensorEventListener
                                 endpoint.getName()));
                 e.printStackTrace();
             }
+
         }
+
 
     }
 
@@ -1004,7 +989,7 @@ public class Third extends ConnectionsActivity {//implements SensorEventListener
         }
         else
         {
-            str = n.toString()+"START";
+            str = n.toString()+"RESUME";
             mStop[n] = true;
             if(n == 0){ Arrays.fill(mStop, true);}
         }
