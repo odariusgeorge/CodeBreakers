@@ -173,7 +173,6 @@ public class Third extends ConnectionsActivity {//implements SensorEventListener
     private static final int CAMERA_PERMISSION_CODE=100;
     private static final String TAG = Prelude.ReTAG("MainActivity");
     private CameraBridgeViewBase mOpenCvCameraView;
-    private ColorBlobDetector  mDetector;
     private TextView textView;
     private Mat mRgba, mRgbaF, mRgbaT;
     private Scalar mBlobColorHsv;

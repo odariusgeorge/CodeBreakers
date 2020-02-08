@@ -849,86 +849,88 @@ public class First extends AppCompatActivity implements SensorEventListener {
         balls_position.clear();
         setUpCamera();
         ball_catched = 0;
-//            while (ball_catched!=1) {
-//                for (int line = xCurrentPosition; line >= 0; line--) {
-//                    while (checkLine(xCurrentPosition) != true) {
-//                        distance = ultraSensor.getDistance().get();
-//                        if (distance >= 15 && distance <= 40) {
-//                            ballIsCatched = true;
-//                        }
-//                        markZone(xCurrentPosition, yCurrentPosition);
-//                        goForward(api);
-//                        if (ballIsCatched) {
-//                            goToSafeZone(api);
-//                            line = xCurrentPosition;
-//                            markZone(xCurrentPosition, yCurrentPosition);
-//                        }
-//                        markZone(xCurrentPosition, yCurrentPosition);
-//                    }
-//                    while (yCurrentPosition != 0) {
-//                        goBack(api);
-//                        updateMap(xCurrentPosition, yCurrentPosition);
-//                    }
-//                    if (xCurrentPosition == 0) {
-//                        break;
-//                    }
-//                    turnLeft(api);
-//                    distance = ultraSensor.getDistance().get();
-//                    if (distance >= 15 && distance <= 40) {
-//                        ballIsCatched = true;
-//                    }
-//                    goLeft(api, 1);
-//                    markZone(xCurrentPosition,yCurrentPosition);
-//                    if(ballIsCatched) {
-//                        goToSafeZone(api);
-//                        line+=(xRobotValue-xCurrentPosition);
-//                    }
-//                    updateMap(xCurrentPosition, yCurrentPosition);
-//                }
-//                turnFront(api);
-//                goRight(api, xRobotValue);
-//                turnFront(api);
-//                ball_catched++;
-//                updateMap(xCurrentPosition, yCurrentPosition);
-//                for (int line = xCurrentPosition; line <= n; line++) {
-//                    while (checkLine(xCurrentPosition) != true) {
-//                        distance = ultraSensor.getDistance().get();
-//                        if (distance >= 15 && distance <= 40) {
-//                            ballIsCatched = true;
-//                        }
-//                        markZone(xCurrentPosition, yCurrentPosition);
-//                        goForward(api);
-//                        if (ballIsCatched) {
-//                            goToSafeZone(api);
-//                            line = xCurrentPosition;
-//                            markZone(xCurrentPosition, yCurrentPosition);
-//
-//                        }
-//                        markZone(xCurrentPosition, yCurrentPosition);
-//                    }
-//                    while (yCurrentPosition != 0) {
-//                        goBack(api);
-//                        markZone(xCurrentPosition, yCurrentPosition);
-//                    }
-//                    if (xCurrentPosition == n) {
-//                        break;
-//                    }
-//                    turnRight(api);
-//                    if (distance >= 15 && distance <= 40) {
-//                        ballIsCatched = true;
-//                    }
-//                    goRight(api, 1);
-//                    if(ballIsCatched) {
-//                        goToSafeZone(api);
-//                        line = xCurrentPosition;
-//                        markZone(xCurrentPosition,yCurrentPosition);
-//                    }
-//                    markZone(xCurrentPosition, yCurrentPosition);
-//                }
-//                goLeft(api, xCurrentPosition - xRobotValue);
-//                turnFront(api);
-//                ball_catched++;
-//            }
+            while (ball_catched!=totalBalls) {
+                for (int line = xCurrentPosition; line >= 0; line--) {
+                    while (checkLine(xCurrentPosition) != true) {
+                        distance = ultraSensor.getDistance().get();
+                        if (distance >= 15 && distance <= 40) {
+                            ballIsCatched = true;
+                        }
+                        markZone(xCurrentPosition, yCurrentPosition);
+                        goForward(api);
+                        if (ballIsCatched) {
+                            goToSafeZone(api);
+                            line = xCurrentPosition;
+                            markZone(xCurrentPosition, yCurrentPosition);
+                            ball_catched++;
+                        }
+                        markZone(xCurrentPosition, yCurrentPosition);
+                    }
+                    while (yCurrentPosition != 0) {
+                        goBack(api);
+                        updateMap(xCurrentPosition, yCurrentPosition);
+                    }
+                    if (xCurrentPosition == 0) {
+                        break;
+                    }
+                    turnLeft(api);
+                    distance = ultraSensor.getDistance().get();
+                    if (distance >= 15 && distance <= 40) {
+                        ballIsCatched = true;
+                    }
+                    goLeft(api, 1);
+                    markZone(xCurrentPosition,yCurrentPosition);
+                    if(ballIsCatched) {
+                        updateMap(xCurrentPosition, yCurrentPosition);
+                        goToSafeZone(api);
+                        ball_catched++;
+                    }
+                    updateMap(xCurrentPosition, yCurrentPosition);
+                }
+                turnFront(api);
+                goRight(api, xRobotValue);
+                turnFront(api);
+                updateMap(xCurrentPosition, yCurrentPosition);
+                for (int line = xCurrentPosition; line <= n; line++) {
+                    while (checkLine(xCurrentPosition) != true) {
+                        distance = ultraSensor.getDistance().get();
+                        if (distance >= 15 && distance <= 40) {
+                            ballIsCatched = true;
+                        }
+                        markZone(xCurrentPosition, yCurrentPosition);
+                        goForward(api);
+                        if (ballIsCatched) {
+                            goToSafeZone(api);
+                            line = xCurrentPosition;
+                            markZone(xCurrentPosition, yCurrentPosition);
+                            ball_catched++;
+
+                        }
+                        markZone(xCurrentPosition, yCurrentPosition);
+                    }
+                    while (yCurrentPosition != 0) {
+                        goBack(api);
+                        markZone(xCurrentPosition, yCurrentPosition);
+                    }
+                    if (xCurrentPosition == n) {
+                        break;
+                    }
+                    turnRight(api);
+                    distance = ultraSensor.getDistance().get();
+                    if (distance >= 15 && distance <= 40) {
+                        ballIsCatched = true;
+                    }
+                    goRight(api, 1);
+                    if(ballIsCatched) {
+                        updateMap(xCurrentPosition,yCurrentPosition);
+                        goToSafeZone(api);
+                        ball_catched++;
+                    }
+                    markZone(xCurrentPosition, yCurrentPosition);
+                }
+                goLeft(api, xCurrentPosition - xRobotValue);
+                turnFront(api);
+            }
 
         Collections.sort(balls_position, (p1, p2) -> {
             if (p1.first != p2.first) {
@@ -987,7 +989,7 @@ public class First extends AppCompatActivity implements SensorEventListener {
 
         EditText numberOfBalls  = findViewById(R.id.balls);
 //        totalBalls = Integer.valueOf(numberOfBalls.getText().toString());
-        totalBalls = 1;
+        totalBalls = 4;
         legoMain(api);
     }
 
