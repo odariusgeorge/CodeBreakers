@@ -3,29 +3,16 @@ package com.example.codebreakers;
 
 import android.Manifest;
 import android.animation.Animator;
-import android.animation.ObjectAnimator;
-import android.content.Context;
 import android.content.Intent;
-import android.content.res.AssetManager;
-import android.os.AsyncTask;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.os.SystemClock;
-import android.text.SpannableString;
-import android.text.format.DateFormat;
-import android.text.style.ForegroundColorSpan;
 import android.util.Log;
 import android.view.SurfaceView;
-import android.view.View;
-import android.view.ViewAnimationUtils;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.GridView;
-import android.widget.LinearLayout;
-import android.widget.PopupWindow;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -37,42 +24,23 @@ import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.OpenCVLoader;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
-import org.opencv.core.Point;
-import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
 import java.util.Random;
-import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.Cipher;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
-import javax.crypto.spec.SecretKeySpec;
-
-import io.reactivex.annotations.NonNull;
 import io.reactivex.annotations.Nullable;
 import it.unive.dais.legodroid.lib.EV3;
 import it.unive.dais.legodroid.lib.GenEV3;
 import it.unive.dais.legodroid.lib.comm.BluetoothConnection;
 import it.unive.dais.legodroid.lib.plugs.GyroSensor;
-import it.unive.dais.legodroid.lib.plugs.Motors;
 import it.unive.dais.legodroid.lib.plugs.TachoMotor;
 import it.unive.dais.legodroid.lib.util.Prelude;
 
@@ -86,34 +54,41 @@ public class Second extends ConnectionsActivity {
     private State mState = State.UNKNOWN;
     private String mName;
     private TextView mCurrentStateView;
-    @Nullable private Animator mCurrentAnimator;
-    private TextView mDebugLogView;
-    private String KEY = "abcdefgh";
+
+    public enum State {
+        UNKNOWN,
+        DISCOVERING,
+        ADVERTISING,
+        CONNECTED
+    }
+
+    @Nullable
+    private Animator mCurrentAnimator;
     private boolean[] mStop;
     private final Handler mUiHandler = new Handler(Looper.getMainLooper());
     private final Runnable mDiscoverRunnable = new Runnable() {
-                @Override
-                public void run() {
-                    setState(State.DISCOVERING);
-                }
-            };
+        @Override
+        public void run() {
+            setState(State.DISCOVERING);
+        }
+    };
 
     //Robot Values
     private Integer xRobotValue;
     private Integer yRobotValue;
     private Integer xCurrentPosition;
     private Integer yCurrentPosition;
+    private Integer orientation;
 
     //Balls Values
     private boolean ballIsCatched = false;
-    ArrayList<com.example.codebreakers.Pair<Integer,Integer>> coordinates = new ArrayList<>();
-    ArrayList<com.example.codebreakers.Pair<Integer,Integer>> original_coordinates = new ArrayList<>();
+    ArrayList<com.example.codebreakers.Pair<Integer, Integer>> coordinates = new ArrayList<>();
+    ArrayList<com.example.codebreakers.Pair<Integer, Integer>> original_coordinates = new ArrayList<>();
 
 
     //Camera
     private static GridView list;
-    private static final int CAMERA_PERMISSION_CODE=100;
-    private Integer orientation;
+    private static final int CAMERA_PERMISSION_CODE = 100;
     private CameraBridgeViewBase mOpenCvCameraView;
 
     //Motors
@@ -129,125 +104,23 @@ public class Second extends ConnectionsActivity {
 
     private static final String TAG = Prelude.ReTAG("MainActivity");
 
-    private void setUpCamera() {
-        // Carica le librerie di OpenCV in maniera sincrona
-        if (!OpenCVLoader.initDebug()) {
-            Log.e(TAG, "Unable to load OpenCV");
-        } else {
-            Log.d(TAG, "OpenCV loaded");
-        }
+    //Connectivity
 
-        // Configura l'elemento della camera
-        mOpenCvCameraView = findViewById(R.id.HelloOpenCvView);
-        mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
-        mOpenCvCameraView.setMaxFrameSize(1920, 1080);
-        mOpenCvCameraView.disableFpsMeter();
-        mOpenCvCameraView.setCvCameraViewListener(new CameraBridgeViewBase.CvCameraViewListener2() {
-            @Override
-            public void onCameraViewStarted(int width, int height) {
-
-                Log.d(TAG, "Camera Started");
-            }
-
-            @Override
-            public void onCameraViewStopped() {
-                Log.d(TAG, "Camera Stopped");
-            }
-
-            // Viene eseguito ad ogni frame, con inputFrame l'immagine corrente
-            @Override
-            public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
-                // Salva il frame corrente su un oggetto Mat, ossia una matrice bitmap
-                Mat frame = inputFrame.rgba();
-                Mat frameT = frame.t();
-                Core.flip(frame.t(), frameT, 1);
-                Imgproc.resize(frameT, frameT, frame.size());
-
-                BallFinder ballFinder = new BallFinder(frameT, true);
-                ballFinder.setMinArea(1000);
-                ballFinder.setViewRatio(0.4f);
-                ballFinder.setOrientation("landscape");
-                ArrayList<Ball> f = ballFinder.findBalls();
-                for (Ball b : f) {
-                    Log.e("ball", String.valueOf(b.center.x));
-                    Log.e("ball", String.valueOf(b.center.y));
-                    Log.e("ball", String.valueOf(b.radius));
-                    Log.e("ball", b.color);
-                }
-
-                return frameT;
-            }
-        });
-
-        // Abilita la visualizzazione dell'immagine sullo schermo
-        mOpenCvCameraView.enableView();
-    }
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_second);
-        /* Comment here to generate a random name for the GroundStation */
-        //mName = generateRandomName();
-        mName = "CodeBreakers";
-
-        mStop = new boolean[6];
-        // all the robot are assumed to be in move
-        Arrays.fill(mStop, true);
-
-        Button start = findViewById(R.id.Start);
-        LinearLayout matrixView = findViewById(R.id.matrix);
-        mOpenCvCameraView = findViewById(R.id.HelloOpenCvView);
-        mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
-        mOpenCvCameraView.setMaxFrameSize(640, 480);
-        mOpenCvCameraView.disableFpsMeter();
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-        list = findViewById(R.id.grid_view);
-        list.setNumColumns(4);
-        ArrayList<String> data = new ArrayList<>();
-        for (int i = 0; i < 4; i++) {
-            for(int j=0; j < 4;j++)
-                data.add("");
-
-        }
-        adapter = new GridViewCustomAdapter(this, data);
-        list.setAdapter(adapter);
-        try {
-            BluetoothConnection.BluetoothChannel conn = new BluetoothConnection("Willy").connect(); // replace with your own brick name
-            GenEV3<Second.MyCustomApi> ev3 = new GenEV3<>(conn);
-
-            Button startButton = findViewById(R.id.Start);
-            startButton.setOnClickListener(v -> Prelude.trap(() -> ev3.run(this::legoMainCustomApi, Second.MyCustomApi::new)));
-        } catch (IOException e) {
-            Log.e(TAG, "fatal error: cannot connect to EV3");
-            e.printStackTrace();
-        }
-    }
-
-    @Override
-    protected void onStart() {
+    @Override protected void onStart() {
         super.onStart();
-        // Swap the two functions below if you want to start on Discovering rather than Advertising.
         setState(State.DISCOVERING);
-        //setState(State.ADVERTISING);
     }
 
-    @Override
-    protected void onStop() {
-
+    @Override protected void onStop() {
         setState(State.UNKNOWN);
-
         mUiHandler.removeCallbacksAndMessages(null);
-
         if (mCurrentAnimator != null && mCurrentAnimator.isRunning()) {
             mCurrentAnimator.cancel();
         }
-
         super.onStop();
     }
 
-    @Override
-    public void onBackPressed() {
+    @Override public void onBackPressed() {
         if (getState() == State.CONNECTED || getState() == State.ADVERTISING) {
             setState(State.DISCOVERING);
             return;
@@ -255,23 +128,19 @@ public class Second extends ConnectionsActivity {
         super.onBackPressed();
     }
 
-    @Override
-    protected void onEndpointDiscovered(Endpoint endpoint) {
-        // We found an advertiser!
+    @Override protected void onEndpointDiscovered(Endpoint endpoint) {
         if (!isConnecting()) {
             connectToEndpoint(endpoint);
         }
     }
 
-    @Override
-    protected void onConnectionInitiated(Endpoint endpoint, ConnectionInfo connectionInfo) {
+    @Override protected void onConnectionInitiated(Endpoint endpoint, ConnectionInfo connectionInfo) {
         // A connection to another device has been initiated! We'll accept the connection immediately.
         acceptConnection(endpoint);
     }
 
-    @Override
-    protected void onEndpointConnected(Endpoint endpoint) {
-        String x = "Benvenuto sono "+mName;
+    @Override protected void onEndpointConnected(Endpoint endpoint) {
+        String x = "Benvenuto sono " + mName;
         byte[] bytes;
         Toast.makeText(
                 this, getString(R.string.toast_connected, endpoint.getName()), Toast.LENGTH_SHORT)
@@ -284,22 +153,16 @@ public class Second extends ConnectionsActivity {
 
     }
 
-    @Override
-    protected void onEndpointDisconnected(Endpoint endpoint) {
+    @Override protected void onEndpointDisconnected(Endpoint endpoint) {
         Toast.makeText(
                 this, getString(R.string.toast_disconnected, endpoint.getName()), Toast.LENGTH_SHORT)
                 .show();
-
-        // If we lost all our endpoints, then we should reset the state of our app and go back
-        // to our initial state (discovering).
         if (getConnectedEndpoints().isEmpty()) {
             setState(State.DISCOVERING);
         }
     }
 
-    @Override
-    protected void onConnectionFailed(Endpoint endpoint) {
-        // Let's try someone else.
+    @Override protected void onConnectionFailed(Endpoint endpoint) {
         if (getState() == State.DISCOVERING && !getDiscoveredEndpoints().isEmpty()) {
             connectToEndpoint(pickRandomElem(getDiscoveredEndpoints()));
         }
@@ -325,8 +188,6 @@ public class Second extends ConnectionsActivity {
         if (mCurrentAnimator != null && mCurrentAnimator.isRunning()) {
             mCurrentAnimator.cancel();
         }
-
-        // Update Nearby Connections to the new state.
         switch (newState) {
             case DISCOVERING:
                 if (isAdvertising()) {
@@ -346,8 +207,6 @@ public class Second extends ConnectionsActivity {
                 if (isDiscovering()) {
                     stopDiscovering();
                 } else if (isAdvertising()) {
-                    // Continue to advertise, so others can still connect,
-                    // but clear the discover runnable.
                     removeCallbacks(mDiscoverRunnable);
                 }
                 break;
@@ -355,16 +214,11 @@ public class Second extends ConnectionsActivity {
                 stopAllEndpoints();
                 break;
             default:
-                // no-op
                 break;
         }
 
-        // Update the UI.
         switch (oldState) {
             case UNKNOWN:
-                // Unknown is our initial state. Whatever state we move to,
-                // we're transitioning forwards.
-
                 break;
             case DISCOVERING:
                 switch (newState) {
@@ -405,12 +259,9 @@ public class Second extends ConnectionsActivity {
         }
     }
 
-    //The onRecive of the second round
-    @Override
-    protected void onReceive(Endpoint endpoint, Payload payload){
+    @Override protected void onReceive(Endpoint endpoint, Payload payload) {
         Pattern p = Pattern.compile("-?\\d+");
-
-        if(payload.getType() == Payload.Type.BYTES){
+        if (payload.getType() == Payload.Type.BYTES) {
             byte[] bytes = payload.asBytes();
             String str_bytes = new String(bytes);
 
@@ -420,21 +271,18 @@ public class Second extends ConnectionsActivity {
                 Integer x = Integer.valueOf(m.group());
                 m.find();
                 Integer y = Integer.valueOf(m.group());
-                com.example.codebreakers.Pair<Integer,Integer> pair = new Pair<>(x,y);
+                com.example.codebreakers.Pair<Integer, Integer> pair = new Pair<>(x, y);
                 coordinates.add(pair);
             }
         }
     }
 
-    /** {@see ConnectionsActivity#getRequiredPermissions()} */
-    @Override
-    protected String[] getRequiredPermissions() {
+    @Override protected String[] getRequiredPermissions() {
         return join(
                 super.getRequiredPermissions(),
                 Manifest.permission.RECORD_AUDIO);
     }
 
-    /** Joins 2 arrays together. */
     private static String[] join(String[] a, String... b) {
         String[] join = new String[a.length + b.length];
         System.arraycopy(a, 0, join, 0, a.length);
@@ -442,54 +290,75 @@ public class Second extends ConnectionsActivity {
         return join;
     }
 
-    /** {@see ConnectionsActivity#getServiceId()} */
-    @Override
-    public String getServiceId() {
+    @Override public String getServiceId() {
         return SERVICE_ID;
     }
-    @Override
-    protected String getName() {
+
+    @Override protected String getName() {
         return mName;
     }
 
-    /** {@see ConnectionsActivity#getStrategy()} */
-    @Override
-    public Strategy getStrategy() {
+    @Override public Strategy getStrategy() {
         return STRATEGY;
     }
 
-    /** {@see Handler#removeCallbacks(Runnable)} */
     protected void removeCallbacks(Runnable r) {
         mUiHandler.removeCallbacks(r);
     }
-    
+
     private static <T> T pickRandomElem(Collection<T> collection) {
         return (T) collection.toArray()[new Random().nextInt(collection.size())];
     }
 
-    /** States that the UI goes through. */
-    public enum State {
-        UNKNOWN,
-        DISCOVERING,
-        ADVERTISING,
-        CONNECTED
+    //On Create
+
+    @Override protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_second);
+        mName = "CodeBreakers";
+        mStop = new boolean[6];
+        Arrays.fill(mStop, true);
+
+        mOpenCvCameraView = findViewById(R.id.HelloOpenCvView);
+        mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
+        mOpenCvCameraView.setMaxFrameSize(640, 480);
+        mOpenCvCameraView.disableFpsMeter();
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        list = findViewById(R.id.grid_view);
+        list.setNumColumns(4);
+        ArrayList<String> data = new ArrayList<>();
+        for (int i = 0; i < 4; i++) {
+            for (int j = 0; j < 4; j++)
+                data.add("");
+        }
+        adapter = new GridViewCustomAdapter(this, data);
+        list.setAdapter(adapter);
+        try {
+            BluetoothConnection.BluetoothChannel conn = new BluetoothConnection("Willy").connect();
+            GenEV3<Second.MyCustomApi> ev3 = new GenEV3<>(conn);
+
+            Button startButton = findViewById(R.id.Start);
+            startButton.setOnClickListener(v -> Prelude.trap(() -> ev3.run(this::legoMainCustomApi, Second.MyCustomApi::new)));
+        } catch (IOException e) {
+            Log.e(TAG, "fatal error: cannot connect to EV3");
+            e.printStackTrace();
+        }
     }
 
     //Robot Movement
 
-    void goForward(EV3.Api api) throws IOException{
-        if(ballIsCatched == false) {
+    void goForward(EV3.Api api) throws IOException {
+        if (ballIsCatched == false) {
             yCurrentPosition++;
             int i = 1;
-            while(i!=5) {
+            while (i != 5) {
                 turnFront(api);
-                if(i%2==0) {
+                if (i % 2 == 0) {
                     motorLeft.setStepSpeed(30, 0, 161, 0, true);
-                    motorRight.setStepSpeed(30, 0, 161, 0, true );
+                    motorRight.setStepSpeed(30, 0, 161, 0, true);
                     motorLeft.waitCompletion();
                     motorRight.waitCompletion();
-                }
-                else {
+                } else {
                     motorRight.setStepSpeed(30, 0, 161, 0, true);
                     motorLeft.setStepSpeed(30, 0, 161, 0, true);
                     motorRight.waitCompletion();
@@ -500,19 +369,17 @@ public class Second extends ConnectionsActivity {
             }
             motorLeft.setSpeed(0);
             motorRight.setSpeed(0);
-        }
-        else {
+        } else {
             yCurrentPosition++;
             int i = 1;
-            while(i!=5) {
+            while (i != 5) {
                 turnFront(api);
-                if(i%2==0) {
+                if (i % 2 == 0) {
                     motorLeft.setStepSpeed(30, 0, 162, 0, true);
-                    motorRight.setStepSpeed(30, 0, 162, 0, true );
+                    motorRight.setStepSpeed(30, 0, 162, 0, true);
                     motorLeft.waitCompletion();
                     motorRight.waitCompletion();
-                }
-                else {
+                } else {
                     motorRight.setStepSpeed(30, 0, 158, 0, true);
                     motorLeft.setStepSpeed(30, 0, 158, 0, true);
                     motorRight.waitCompletion();
@@ -527,19 +394,18 @@ public class Second extends ConnectionsActivity {
 
     }
 
-    void goBack(EV3.Api api) throws  IOException {
-        if(ballIsCatched == false) {
+    void goBack(EV3.Api api) throws IOException {
+        if (ballIsCatched == false) {
             yCurrentPosition--;
             int i = 1;
-            while(i!=5) {
+            while (i != 5) {
                 turnFront(api);
-                if(i%2==0) {
+                if (i % 2 == 0) {
                     motorLeft.setStepSpeed(-30, 0, 156, 0, true);
-                    motorRight.setStepSpeed(-30, 0, 156, 0, true );
+                    motorRight.setStepSpeed(-30, 0, 156, 0, true);
                     motorLeft.waitCompletion();
                     motorRight.waitCompletion();
-                }
-                else {
+                } else {
                     motorRight.setStepSpeed(-30, 0, 155, 0, true);
                     motorLeft.setStepSpeed(-30, 0, 155, 0, true);
                     motorRight.waitCompletion();
@@ -550,19 +416,17 @@ public class Second extends ConnectionsActivity {
             }
             motorLeft.setSpeed(0);
             motorRight.setSpeed(0);
-        }
-        else {
+        } else {
             yCurrentPosition--;
             int i = 1;
-            while(i!=5) {
+            while (i != 5) {
                 turnFront(api);
-                if(i%2==0) {
+                if (i % 2 == 0) {
                     motorLeft.setStepSpeed(-27, 0, 162, 0, true);
-                    motorRight.setStepSpeed(-27, 0, 162, 0, true );
+                    motorRight.setStepSpeed(-27, 0, 162, 0, true);
                     motorLeft.waitCompletion();
                     motorRight.waitCompletion();
-                }
-                else {
+                } else {
                     motorRight.setStepSpeed(-27, 0, 158, 0, true);
                     motorLeft.setStepSpeed(-27, 0, 158, 0, true);
                     motorRight.waitCompletion();
@@ -578,19 +442,18 @@ public class Second extends ConnectionsActivity {
 
     }
 
-    void goLeft(EV3.Api api, int times) throws  IOException {
+    void goLeft(EV3.Api api, int times) throws IOException {
         xCurrentPosition--;
         turnLeft(api);
         int j = 1;
-        while(j!=5) {
+        while (j != 5) {
             turnLeft(api);
-            if(j%2==0) {
+            if (j % 2 == 0) {
                 motorLeft.setStepSpeed(30, 0, 160, 0, true);
-                motorRight.setStepSpeed(30, 0, 160, 0, true );
+                motorRight.setStepSpeed(30, 0, 160, 0, true);
                 motorLeft.waitCompletion();
                 motorRight.waitCompletion();
-            }
-            else {
+            } else {
                 motorRight.setStepSpeed(30, 0, 155, 0, true);
                 motorLeft.setStepSpeed(30, 0, 155, 0, true);
                 motorRight.waitCompletion();
@@ -601,19 +464,18 @@ public class Second extends ConnectionsActivity {
         }
         motorLeft.setSpeed(0);
         motorRight.setSpeed(0);
-        updateMap(xCurrentPosition,yCurrentPosition);
-        for(int time=1;time<times;time++) {
+        updateMap(xCurrentPosition, yCurrentPosition);
+        for (int time = 1; time < times; time++) {
             xCurrentPosition--;
             int i = 1;
-            while(i!=5) {
+            while (i != 5) {
                 turnLeft(api);
-                if(i%2==0) {
+                if (i % 2 == 0) {
                     motorLeft.setStepSpeed(30, 0, 161, 0, true);
-                    motorRight.setStepSpeed(30, 0, 161, 0, true );
+                    motorRight.setStepSpeed(30, 0, 161, 0, true);
                     motorLeft.waitCompletion();
                     motorRight.waitCompletion();
-                }
-                else {
+                } else {
                     motorRight.setStepSpeed(30, 0, 161, 0, true);
                     motorLeft.setStepSpeed(30, 0, 161, 0, true);
                     motorRight.waitCompletion();
@@ -624,25 +486,24 @@ public class Second extends ConnectionsActivity {
             }
             motorLeft.setSpeed(0);
             motorRight.setSpeed(0);
-            updateMap(xCurrentPosition,yCurrentPosition);
+            updateMap(xCurrentPosition, yCurrentPosition);
         }
-        updateMap(xCurrentPosition,yCurrentPosition);
+        updateMap(xCurrentPosition, yCurrentPosition);
 
     }
 
-    void goRight(EV3.Api api, int times) throws  IOException {
+    void goRight(EV3.Api api, int times) throws IOException {
         xCurrentPosition++;
         turnRight(api);
         int j = 1;
-        while(j!=5) {
+        while (j != 5) {
             turnRight(api);
-            if(j%2==0) {
+            if (j % 2 == 0) {
                 motorLeft.setStepSpeed(30, 0, 160, 0, true);
-                motorRight.setStepSpeed(30, 0, 160, 0, true );
+                motorRight.setStepSpeed(30, 0, 160, 0, true);
                 motorLeft.waitCompletion();
                 motorRight.waitCompletion();
-            }
-            else {
+            } else {
                 motorRight.setStepSpeed(30, 0, 155, 0, true);
                 motorLeft.setStepSpeed(30, 0, 155, 0, true);
                 motorRight.waitCompletion();
@@ -651,18 +512,17 @@ public class Second extends ConnectionsActivity {
             turnRight(api);
             j++;
         }
-        for(int time=1;time<times;time++) {
+        for (int time = 1; time < times; time++) {
             xCurrentPosition++;
             int i = 1;
-            while(i!=5) {
+            while (i != 5) {
                 turnRight(api);
-                if(i%2==0) {
+                if (i % 2 == 0) {
                     motorLeft.setStepSpeed(30, 0, 161, 0, true);
-                    motorRight.setStepSpeed(30, 0, 161, 0, true );
+                    motorRight.setStepSpeed(30, 0, 161, 0, true);
                     motorLeft.waitCompletion();
                     motorRight.waitCompletion();
-                }
-                else {
+                } else {
                     motorRight.setStepSpeed(30, 0, 161, 0, true);
                     motorLeft.setStepSpeed(30, 0, 161, 0, true);
                     motorRight.waitCompletion();
@@ -673,71 +533,70 @@ public class Second extends ConnectionsActivity {
             }
             motorLeft.setSpeed(0);
             motorRight.setSpeed(0);
-            updateMap(xCurrentPosition,yCurrentPosition);
+            updateMap(xCurrentPosition, yCurrentPosition);
         }
-        updateMap(xCurrentPosition,yCurrentPosition);
+        updateMap(xCurrentPosition, yCurrentPosition);
 
     }
 
     void catchBall() throws IOException {
-        motorClaws.setStepSpeed(50,0,2150,0,true);
+        motorClaws.setStepSpeed(50, 0, 2200, 0, true);
         motorClaws.waitCompletion();
         motorClaws.stop();
     }
 
     void releaseBall() throws IOException {
-        motorClaws.setStepSpeed(-50,0,2150,0,true);
+        motorClaws.setStepSpeed(-50, 0, 2200, 0, true);
         motorClaws.waitCompletion();
     }
 
-    void goToSafeZone(EV3.Api api) throws  IOException {
-        updateMap(xCurrentPosition,yCurrentPosition);
+    void goToSafeZone(EV3.Api api) throws IOException {
+        updateMap(xCurrentPosition, yCurrentPosition);
         catchBall();
-        if(xCurrentPosition < xRobotValue) {
+        if (xCurrentPosition < xRobotValue) {
             while (yCurrentPosition > 0) {
-                updateMap(xCurrentPosition,yCurrentPosition);
+                updateMap(xCurrentPosition, yCurrentPosition);
                 goBack(api);
-                updateMap(xCurrentPosition,yCurrentPosition);
+                updateMap(xCurrentPosition, yCurrentPosition);
             }
-            while(xCurrentPosition!=xRobotValue) {
-                if(xCurrentPosition < xRobotValue) {
-                    goRight(api,xRobotValue-xCurrentPosition);
-                    updateMap(xCurrentPosition,yCurrentPosition);
+            while (xCurrentPosition != xRobotValue) {
+                if (xCurrentPosition < xRobotValue) {
+                    goRight(api, xRobotValue - xCurrentPosition);
+                    updateMap(xCurrentPosition, yCurrentPosition);
                 }
-                if(xCurrentPosition > xRobotValue) {
-                    goLeft(api,xCurrentPosition-xRobotValue);
-                    updateMap(xCurrentPosition,yCurrentPosition);
+                if (xCurrentPosition > xRobotValue) {
+                    goLeft(api, xCurrentPosition - xRobotValue);
+                    updateMap(xCurrentPosition, yCurrentPosition);
                 }
             }
         } else {
-            while(xCurrentPosition!=xRobotValue) {
-                if(xCurrentPosition < xRobotValue) {
-                    goRight(api,xRobotValue-xCurrentPosition);
-                    updateMap(xCurrentPosition,yCurrentPosition);
+            while (xCurrentPosition != xRobotValue) {
+                if (xCurrentPosition < xRobotValue) {
+                    goRight(api, xRobotValue - xCurrentPosition);
+                    updateMap(xCurrentPosition, yCurrentPosition);
                 }
-                if(xCurrentPosition > xRobotValue) {
-                    goLeft(api,xCurrentPosition-xRobotValue);
-                    updateMap(xCurrentPosition,yCurrentPosition);
+                if (xCurrentPosition > xRobotValue) {
+                    goLeft(api, xCurrentPosition - xRobotValue);
+                    updateMap(xCurrentPosition, yCurrentPosition);
                 }
             }
             while (yCurrentPosition > 0) {
-                updateMap(xCurrentPosition,yCurrentPosition);
+                updateMap(xCurrentPosition, yCurrentPosition);
                 goBack(api);
-                updateMap(xCurrentPosition,yCurrentPosition);
+                updateMap(xCurrentPosition, yCurrentPosition);
             }
         }
         turn180(api);
         releaseBall();
         int i = 1;
-        while(i!=2) {
-            if(i%2==0) {
+        while (i != 2) {
+            if (i % 2 == 0) {
                 turn180(api);
                 motorLeft.setStepSpeed(-30, 0, 160, 0, true);
-                motorRight.setStepSpeed(-30, 0, 160, 0, true );
+                motorRight.setStepSpeed(-30, 0, 160, 0, true);
                 motorLeft.waitCompletion();
                 motorRight.waitCompletion();
-            }
-            else {
+            } else {
                 motorRight.setStepSpeed(-30, 0, 160, 0, true);
                 motorLeft.setStepSpeed(-30, 0, 160, 0, true);
                 motorRight.waitCompletion();
@@ -749,15 +608,14 @@ public class Second extends ConnectionsActivity {
         turn180(api);
         turnFront(api);
         i = 1;
-        while(i!=2) {
-            if(i%2==0) {
+        while (i != 2) {
+            if (i % 2 == 0) {
                 turnFront(api);
                 motorLeft.setStepSpeed(-30, 0, 160, 0, true);
-                motorRight.setStepSpeed(-30, 0, 160, 0, true );
+                motorRight.setStepSpeed(-30, 0, 160, 0, true);
                 motorLeft.waitCompletion();
                 motorRight.waitCompletion();
-            }
-            else {
+            } else {
                 motorRight.setStepSpeed(-30, 0, 160, 0, true);
                 motorLeft.setStepSpeed(-30, 0, 160, 0, true);
                 motorRight.waitCompletion();
@@ -777,20 +635,20 @@ public class Second extends ConnectionsActivity {
     }
 
     void goToBall(EV3.Api api, int x, int y) throws IOException {
-        if(xCurrentPosition>x) {
-            updateMap(xCurrentPosition,yCurrentPosition);
-            goLeft(api,xCurrentPosition-x);
-            updateMap(xCurrentPosition,yCurrentPosition);
+        if (xCurrentPosition > x) {
+            updateMap(xCurrentPosition, yCurrentPosition);
+            goLeft(api, xCurrentPosition - x);
+            updateMap(xCurrentPosition, yCurrentPosition);
         }
-        if(xCurrentPosition<x) {
-            updateMap(xCurrentPosition,yCurrentPosition);
-            goRight(api,x-xCurrentPosition);
-            updateMap(xCurrentPosition,yCurrentPosition);
+        if (xCurrentPosition < x) {
+            updateMap(xCurrentPosition, yCurrentPosition);
+            goRight(api, x - xCurrentPosition);
+            updateMap(xCurrentPosition, yCurrentPosition);
         }
-        while(yCurrentPosition!=y) {
-            updateMap(xCurrentPosition,yCurrentPosition);
+        while (yCurrentPosition != y) {
+            updateMap(xCurrentPosition, yCurrentPosition);
             goForward(api);
-            updateMap(xCurrentPosition,yCurrentPosition);
+            updateMap(xCurrentPosition, yCurrentPosition);
         }
 
 
@@ -802,34 +660,32 @@ public class Second extends ConnectionsActivity {
         int speed = 1;
         final GyroSensor gyroSensor = api.getGyroSensor(EV3.InputPort._4);
         try {
-            float current_angle = gyroSensor.getAngle().get()+90;
-            while ( abs(current_angle) > 1 )  {
+            float current_angle = gyroSensor.getAngle().get() + 90;
+            while (abs(current_angle) > 1) {
                 if (current_angle > 1) {
-                    if(current_angle > 30) {
+                    if (current_angle > 30) {
                         motorLeft.setSpeed(-5);
                         motorRight.setSpeed(5);
-                    }
-                    else {
+                    } else {
                         motorLeft.setSpeed(-speed);
                         motorRight.setSpeed(speed);
                     }
                     motorLeft.start();
                     motorRight.start();
                     Log.i("gyrosensor", gyroSensor.getAngle().get().toString());
-                    current_angle = gyroSensor.getAngle().get()+90;
-                } else if (current_angle < 1 ) {
-                    if(current_angle > -30) {
+                    current_angle = gyroSensor.getAngle().get() + 90;
+                } else if (current_angle < 1) {
+                    if (current_angle > -30) {
                         motorLeft.setSpeed(speed);
                         motorRight.setSpeed(-speed);
-                    }
-                    else {
+                    } else {
                         motorLeft.setSpeed(5);
                         motorRight.setSpeed(-5);
                     }
                     motorLeft.start();
                     motorRight.start();
                     Log.i("gyrosensor", gyroSensor.getAngle().get().toString());
-                    current_angle = gyroSensor.getAngle().get()+90;
+                    current_angle = gyroSensor.getAngle().get() + 90;
                 }
             }
             stopMotors();
@@ -842,34 +698,32 @@ public class Second extends ConnectionsActivity {
         int speed = 1;
         final GyroSensor gyroSensor = api.getGyroSensor(EV3.InputPort._4);
         try {
-            float current_angle = gyroSensor.getAngle().get()-90;
-            while ( abs(current_angle) > 1 )  {
+            float current_angle = gyroSensor.getAngle().get() - 90;
+            while (abs(current_angle) > 1) {
                 if (current_angle > 1) {
-                    if(current_angle > 30) {
+                    if (current_angle > 30) {
                         motorLeft.setSpeed(-5);
                         motorRight.setSpeed(5);
-                    }
-                    else {
+                    } else {
                         motorLeft.setSpeed(-speed);
                         motorRight.setSpeed(speed);
                     }
                     motorLeft.start();
                     motorRight.start();
                     Log.i("gyrosensor", gyroSensor.getAngle().get().toString());
-                    current_angle = gyroSensor.getAngle().get()-90;
-                } else if (current_angle < 1 ) {
-                    if(current_angle > -30) {
+                    current_angle = gyroSensor.getAngle().get() - 90;
+                } else if (current_angle < 1) {
+                    if (current_angle > -30) {
                         motorLeft.setSpeed(speed);
                         motorRight.setSpeed(-speed);
-                    }
-                    else {
+                    } else {
                         motorLeft.setSpeed(5);
                         motorRight.setSpeed(-5);
                     }
                     motorLeft.start();
                     motorRight.start();
                     Log.i("gyrosensor", gyroSensor.getAngle().get().toString());
-                    current_angle = gyroSensor.getAngle().get()-90;
+                    current_angle = gyroSensor.getAngle().get() - 90;
                 }
             }
             stopMotors();
@@ -883,13 +737,12 @@ public class Second extends ConnectionsActivity {
         final GyroSensor gyroSensor = api.getGyroSensor(EV3.InputPort._4);
         try {
             float current_angle = gyroSensor.getAngle().get();
-            while ( abs(current_angle) > 1 )  {
+            while (abs(current_angle) > 1) {
                 if (current_angle > 1) {
-                    if(current_angle > 30) {
+                    if (current_angle > 30) {
                         motorLeft.setSpeed(-5);
                         motorRight.setSpeed(5);
-                    }
-                    else {
+                    } else {
                         motorLeft.setSpeed(-speed);
                         motorRight.setSpeed(speed);
                     }
@@ -897,12 +750,11 @@ public class Second extends ConnectionsActivity {
                     motorRight.start();
                     Log.i("gyrosensor", gyroSensor.getAngle().get().toString());
                     current_angle = gyroSensor.getAngle().get();
-                } else if (current_angle < 1 ) {
-                    if(current_angle > -30) {
+                } else if (current_angle < 1) {
+                    if (current_angle > -30) {
                         motorLeft.setSpeed(speed);
                         motorRight.setSpeed(-speed);
-                    }
-                    else {
+                    } else {
                         motorLeft.setSpeed(5);
                         motorRight.setSpeed(-5);
                     }
@@ -923,10 +775,10 @@ public class Second extends ConnectionsActivity {
         final GyroSensor gyroSensor = api.getGyroSensor(EV3.InputPort._4);
         try {
             float current_angle = gyroSensor.getAngle().get();
-            while (current_angle > -176){
+            while (current_angle > -176) {
                 motorLeft.setSpeed(-speed);
                 motorRight.setSpeed(speed);
-                if(current_angle < -150) {
+                if (current_angle < -150) {
                     speed = 1;
                 }
                 motorLeft.start();
@@ -949,8 +801,7 @@ public class Second extends ConnectionsActivity {
             for (int j = 0; j <= maxim + 1; j++) {
                 if (i == (m - y) && x == j) {
                     data.add("R");
-                }
-                else if (j > n) {
+                } else if (j > n) {
                     data.add("\\");
                 } else if (i > m && j <= n) {
                     data.add("\\");
@@ -964,8 +815,8 @@ public class Second extends ConnectionsActivity {
 
             @Override
             public void run() {
-                int maxim = max(n,m);
-                maxim+=2;
+                int maxim = max(n, m);
+                maxim += 2;
                 list.setNumColumns(maxim);
                 list.setAdapter(adapter);
 
@@ -976,7 +827,7 @@ public class Second extends ConnectionsActivity {
 
     void showFinal() {
 
-        if(orientation == 1 || orientation == 3) {
+        if (orientation == 1 || orientation == 3) {
             int aux = m;
             m = n;
             n = aux;
@@ -992,14 +843,13 @@ public class Second extends ConnectionsActivity {
 
         ArrayList<String> data = new ArrayList<>();
         int maxim = max(n, m);
-        for (int i = 0; i <= maxim+1; i++) {
-            for(int j=0; j <= maxim+1;j++) {
-                if ( ((m-original_coordinates.get(0).b) == i) && (original_coordinates.get(0).a == j)) {
+        for (int i = 0; i <= maxim + 1; i++) {
+            for (int j = 0; j <= maxim + 1; j++) {
+                if (((m - original_coordinates.get(0).b) == i) && (original_coordinates.get(0).a == j)) {
                     data.add("O");
-                    if(original_coordinates.size()>1)
+                    if (original_coordinates.size() > 1)
                         original_coordinates.remove(0);
-                }
-                else if (j > n) {
+                } else if (j > n) {
                     data.add("\\");
                 } else if (i > m && j <= n) {
                     data.add("\\");
@@ -1013,34 +863,83 @@ public class Second extends ConnectionsActivity {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                int maxim = max(n,m);
-                maxim+=2;
+                int maxim = max(n, m);
+                maxim += 2;
                 list.setNumColumns(maxim);
                 list.setAdapter(adapter);
 
             }
         });
         Intent intent = new Intent(Second.this, MainActivity.class);
-        intent.putExtra("data",data);
-        intent.putExtra("maxim",maxim);
+        intent.putExtra("data", data);
+        intent.putExtra("maxim", maxim);
         startActivity(intent);
+    }
+
+    private void setUpCamera() {
+        if (!OpenCVLoader.initDebug()) {
+            Log.e(TAG, "Unable to load OpenCV");
+        } else {
+            Log.d(TAG, "OpenCV loaded");
+        }
+        mOpenCvCameraView = findViewById(R.id.HelloOpenCvView);
+        mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
+        mOpenCvCameraView.setMaxFrameSize(1920, 1080);
+        mOpenCvCameraView.disableFpsMeter();
+        mOpenCvCameraView.setCvCameraViewListener(new CameraBridgeViewBase.CvCameraViewListener2() {
+            @Override
+            public void onCameraViewStarted(int width, int height) {
+
+                Log.d(TAG, "Camera Started");
+            }
+
+            @Override
+            public void onCameraViewStopped() {
+                Log.d(TAG, "Camera Stopped");
+            }
+
+            @Override
+            public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
+                Mat frame = inputFrame.rgba();
+                Mat frameT = frame.t();
+                Core.flip(frame.t(), frameT, 1);
+                Imgproc.resize(frameT, frameT, frame.size());
+
+                BallFinder ballFinder = new BallFinder(frameT, true);
+                ballFinder.setMinArea(1000);
+                ballFinder.setViewRatio(0.4f);
+                ballFinder.setOrientation("landscape");
+                ArrayList<Ball> f = ballFinder.findBalls();
+                for (Ball b : f) {
+                    Log.e("ball", String.valueOf(b.center.x));
+                    Log.e("ball", String.valueOf(b.center.y));
+                    Log.e("ball", String.valueOf(b.radius));
+                    Log.e("ball", b.color);
+                }
+
+                return frameT;
+            }
+        });
+
+        // Abilita la visualizzazione dell'immagine sullo schermo
+        mOpenCvCameraView.enableView();
     }
 
     //Robot Main
 
-    private void legoMain(EV3.Api api) throws  IOException {
+    private void legoMain(EV3.Api api) throws IOException {
         final String TAG = Prelude.ReTAG("legoMain");
 
         motorLeft = api.getTachoMotor(EV3.OutputPort.A);
         motorRight = api.getTachoMotor(EV3.OutputPort.D);
         motorClaws = api.getTachoMotor(EV3.OutputPort.B);
         setUpCamera();
-        updateMap(xCurrentPosition,yCurrentPosition);
+        updateMap(xCurrentPosition, yCurrentPosition);
 
-        for(com.example.codebreakers.Pair pair: coordinates) {
-            Pair<Integer,Integer> new_pair = new Pair<Integer, Integer>(0,0);
-            new_pair.a = (int)pair.a;
-            new_pair.b = (int)pair.b;
+        for (com.example.codebreakers.Pair pair : coordinates) {
+            Pair<Integer, Integer> new_pair = new Pair<Integer, Integer>(0, 0);
+            new_pair.a = (int) pair.a;
+            new_pair.b = (int) pair.b;
             original_coordinates.add(new_pair);
         }
 
@@ -1052,28 +951,27 @@ public class Second extends ConnectionsActivity {
             }
         });
 
-        for(com.example.codebreakers.Pair pair: coordinates) {
-            if(orientation==0)
+        for (com.example.codebreakers.Pair pair : coordinates) {
+            if (orientation == 0)
                 continue;
-            else if(orientation==1){
-                Integer aux_a = (Integer)pair.a;
-                Integer aux_b = (Integer)pair.b;
-                pair.a = n-aux_b;
+            else if (orientation == 1) {
+                Integer aux_a = (Integer) pair.a;
+                Integer aux_b = (Integer) pair.b;
+                pair.a = n - aux_b;
                 pair.b = aux_a;
-            }
-            else if(orientation==2){
-                Integer aux_a = (Integer)pair.a;
-                Integer aux_b = (Integer)pair.b;
-                pair.a = n-aux_a;
-                pair.b = m-aux_b;
-            }
-            else if(orientation==3){
-                Integer aux_a = (Integer)pair.a;
-                Integer aux_b = (Integer)pair.b;
+            } else if (orientation == 2) {
+                Integer aux_a = (Integer) pair.a;
+                Integer aux_b = (Integer) pair.b;
+                pair.a = n - aux_a;
+                pair.b = m - aux_b;
+            } else if (orientation == 3) {
+                Integer aux_a = (Integer) pair.a;
+                Integer aux_b = (Integer) pair.b;
                 pair.a = aux_b;
-                pair.b = m-aux_a;
+                pair.b = m - aux_a;
             }
         }
+
         Collections.sort(coordinates, (p1, p2) -> {
             if (p1.a != p2.a) {
                 return p1.a - p2.a;
@@ -1096,10 +994,11 @@ public class Second extends ConnectionsActivity {
             super(ev3);
         }
 
-        public void mySpecialCommand() {}
+        public void mySpecialCommand() {
+        }
     }
 
-    private void legoMainCustomApi(Second.MyCustomApi api) throws InterruptedException, ExecutionException, IOException {
+    private void legoMainCustomApi(Second.MyCustomApi api) throws IOException {
         final String TAG = Prelude.ReTAG("legoMainCustomApi");
         api.mySpecialCommand();
         EditText rows = findViewById(R.id.rows);
@@ -1113,7 +1012,7 @@ public class Second extends ConnectionsActivity {
         yRobotValue = 0;
         xCurrentPosition = xRobotValue;
         yCurrentPosition = yRobotValue;
-        if(orientation == 1 || orientation == 3) {
+        if (orientation == 1 || orientation == 3) {
             int aux = m;
             m = n;
             n = aux;
@@ -1121,5 +1020,6 @@ public class Second extends ConnectionsActivity {
         legoMain(api);
 
     }
+
 }
 

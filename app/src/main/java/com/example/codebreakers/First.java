@@ -1,9 +1,6 @@
 package com.example.codebreakers;
 
 import android.content.Intent;
-import android.hardware.Sensor;
-import android.hardware.SensorEvent;
-import android.hardware.SensorEventListener;
 import android.os.Bundle;
 import android.speech.RecognizerIntent;
 import android.util.Log;
@@ -14,7 +11,6 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.GridView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -32,6 +28,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Locale;
 import java.util.concurrent.ExecutionException;
+import static java.lang.Math.abs;
+import static java.lang.Math.max;
 
 import it.unive.dais.legodroid.lib.EV3;
 import it.unive.dais.legodroid.lib.GenEV3;
@@ -41,10 +39,8 @@ import it.unive.dais.legodroid.lib.plugs.TachoMotor;
 import it.unive.dais.legodroid.lib.plugs.UltrasonicSensor;
 import it.unive.dais.legodroid.lib.util.Prelude;
 
-import static java.lang.Math.abs;
-import static java.lang.Math.max;
 
-public class First extends AppCompatActivity implements SensorEventListener {
+public class First extends AppCompatActivity {
 
     //MOTORS
     private static TachoMotor motorLeft;
@@ -82,18 +78,15 @@ public class First extends AppCompatActivity implements SensorEventListener {
     private static final int CAMERA_PERMISSION_CODE=100;
     private CameraBridgeViewBase mOpenCvCameraView;
 
-
     private static final String TAG = Prelude.ReTAG("MainActivity");
 
     private void setUpCamera() {
-        // Carica le librerie di OpenCV in maniera sincrona
         if (!OpenCVLoader.initDebug()) {
             Log.e(TAG, "Unable to load OpenCV");
         } else {
             Log.d(TAG, "OpenCV loaded");
         }
 
-        // Configura l'elemento della camera
         mOpenCvCameraView = findViewById(R.id.HelloOpenCvView);
         mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
         mOpenCvCameraView.disableFpsMeter();
@@ -111,10 +104,8 @@ public class First extends AppCompatActivity implements SensorEventListener {
                 Log.d(TAG, "Camera Stopped");
             }
 
-            // Viene eseguito ad ogni frame, con inputFrame l'immagine corrente
             @Override
             public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
-                // Salva il frame corrente su un oggetto Mat, ossia una matrice bitmap
                 Mat frame = inputFrame.rgba();
                 Mat frameT = frame.t();
                 Core.flip(frame.t(), frameT, 1);
@@ -135,18 +126,13 @@ public class First extends AppCompatActivity implements SensorEventListener {
                 return frameT;
             }
         });
-
-        // Abilita la visualizzazione dell'immagine sullo schermo
         mOpenCvCameraView.enableView();
     }
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    @Override protected void onCreate(Bundle savedInstanceState) {
         
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_first);
-        Button start = findViewById(R.id.Start);
-        LinearLayout matrixView = findViewById(R.id.matrix);
         mOpenCvCameraView = findViewById(R.id.HelloOpenCvView);
         txvResult = findViewById(R.id.txvResult);
         mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
@@ -161,21 +147,17 @@ public class First extends AppCompatActivity implements SensorEventListener {
                 data.add("");
 
         }
-        
         adapter = new GridViewCustomAdapter(this, data);
         list.setAdapter(adapter);
         try {
-            BluetoothConnection.BluetoothChannel conn = new BluetoothConnection("Willy").connect(); // replace with your own brick name
+            BluetoothConnection.BluetoothChannel conn = new BluetoothConnection("Willy").connect();
             GenEV3<MyCustomApi> ev3 = new GenEV3<>(conn);
-
             Button startButton = findViewById(R.id.Start);
             startButton.setOnClickListener(v -> Prelude.trap(() -> ev3.run(this::legoMainCustomApi, MyCustomApi::new)));
         } catch (IOException e) {
             Log.e(TAG, "fatal error: cannot connect to EV3");
             e.printStackTrace();
         }
-
-
     }
 
     //Robot Movement
@@ -457,13 +439,13 @@ public class First extends AppCompatActivity implements SensorEventListener {
     }
 
     void catchBall() throws IOException {
-        motorClaws.setStepSpeed(50,0,2150,0,true);
+        motorClaws.setStepSpeed(50,0,2200,0,true);
         motorClaws.waitCompletion();
         motorClaws.stop();
     }
 
     void releaseBall() throws IOException {
-        motorClaws.setStepSpeed(-50,0,2150,0,true);
+        motorClaws.setStepSpeed(-50,0,2200,0,true);
         motorClaws.waitCompletion();
     }
 
@@ -943,17 +925,6 @@ public class First extends AppCompatActivity implements SensorEventListener {
         showFinal();
     }
 
-    @Override
-    public void onSensorChanged(SensorEvent sensorEvent) {
-//        angle = sensorEvent.values[0];
-//        angle = (float)Math.toDegrees(angle);
-    }
-
-    @Override
-    public void onAccuracyChanged(Sensor sensor, int i) {
-
-    }
-
     private static class MyCustomApi extends EV3.Api {
 
         private MyCustomApi(@NonNull GenEV3<? extends EV3.Api> ev3) {
@@ -975,9 +946,9 @@ public class First extends AppCompatActivity implements SensorEventListener {
         xRobotValue = Integer.valueOf(robotXCoordinate.getText().toString());
         yRobotValue = Integer.valueOf(robotYCoordinate.getText().toString());
         xCurrentPosition = xRobotValue;
+        yRobotValue = 0;
         yCurrentPosition = yRobotValue;
         matrix = constructMatrix(m,n);
-
         EditText numberOfBalls  = findViewById(R.id.balls);
         totalBalls = Integer.valueOf(numberOfBalls.getText().toString());
         legoMain(api);

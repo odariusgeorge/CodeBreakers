@@ -57,7 +57,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:ems="10"
-            android:hint="@string/number_of_rows"
+            android:hint="@string/number_of_columns"
             android:importantForAutofill="no"
             android:inputType="numberDecimal" />
 
@@ -67,7 +67,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:ems="10"
-            android:hint="@string/number_of_columns"
+            android:hint="@string/number_of_rows"
             android:importantForAutofill="no"
             android:inputType="numberDecimal" />
     </LinearLayout>

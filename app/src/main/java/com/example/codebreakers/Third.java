@@ -2,30 +2,18 @@ package com.example.codebreakers;
 
 
 import android.Manifest;
-import android.animation.Animator;
-import android.content.Context;
-import android.content.res.AssetManager;
-import android.graphics.Color;
-import android.os.AsyncTask;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.os.SystemClock;
-import android.text.SpannableString;
-import android.text.style.ForegroundColorSpan;
 import android.util.Log;
 import android.util.Pair;
-import android.view.Gravity;
 import android.view.SurfaceView;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.GridView;
-import android.widget.LinearLayout;
-import android.widget.PopupWindow;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.nearby.connection.ConnectionInfo;
@@ -36,24 +24,17 @@ import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.OpenCVLoader;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
-import org.opencv.core.Point;
-import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
+import java.util.Collections;
 import java.util.Random;
-import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -68,146 +49,80 @@ import it.unive.dais.legodroid.lib.EV3;
 import it.unive.dais.legodroid.lib.GenEV3;
 import it.unive.dais.legodroid.lib.comm.BluetoothConnection;
 import it.unive.dais.legodroid.lib.plugs.GyroSensor;
-import it.unive.dais.legodroid.lib.plugs.Motors;
 import it.unive.dais.legodroid.lib.plugs.TachoMotor;
 import it.unive.dais.legodroid.lib.plugs.UltrasonicSensor;
 import it.unive.dais.legodroid.lib.util.Prelude;
 
 import static java.lang.Math.abs;
+import static java.lang.Math.max;
 import static java.lang.Thread.sleep;
 
-/**
- * Our GroundStation Activity. This Activity has 4 {@link State}s.
- *
- * <p>{@link State#UNKNOWN}: We cannot do anything while we're in this state. The app is likely in
- * the background.
- *
- * <p>{@link State#DISCOVERING}: Our default state (after we've connected). We constantly listen for
- * a device to advertise near us.
- *
- * <p>{@link State#ADVERTISING}: If a user shakes their device, they enter this state. We advertise
- * our device so that others nearby can discover us.
- *
- * <p>{@link State#CONNECTED}: We've connected to another device. We can now talk to them by holding
- * down the volume keys and speaking into the phone. We'll continue to advertise (if we were already
- * advertising) so that more people can connect to us.
- */
-public class Third extends ConnectionsActivity {//implements SensorEventListener {
+public class Third extends ConnectionsActivity {
 
-    private int robotID ;
-
-    private Set<String> otherRobots = new HashSet<>();
-
-    ArrayList<Pair<Integer,Integer>> coordinates = new ArrayList<>();
-
-    /**
-     * If true, debug logs are shown on the device.
-     */
-    private static final boolean DEBUG = true;
-
-    /**
-     * The connection strategy we'll use for Nearby Connections. In this case, we've decided on
-     * P2P_STAR, which is a combination of Bluetooth Classic and WiFi Hotspots.
-     */
+    //Connection
+    private int robotID;
     private static final Strategy STRATEGY = Strategy.P2P_STAR;
-
-    /**
-     * Advertise for 30 seconds before going back to discovering. If a client connects, we'll continue
-     * to advertise indefinitely so others can still connect.
-     */
     private static final long ADVERTISING_DURATION = 30000;
-
-    /**
-     * Length of state change animations.
-     */
-    private static final long ANIMATION_DURATION = 600;
-
-    /**
-     * This service id lets us find other nearby devices that are interested in the same thing. Our
-     * sample does exactly one thing, so we hardcode the ID.
-     */
-    private static final String SERVICE_ID =
-            "it.unive.dais.nearby.apps.SERVICE_ID";
-
-    /**
-     * The state of the app. As the app changes states, the UI will update and advertising/discovery
-     * will start/stop.
-     */
+    private static final String SERVICE_ID = "it.unive.dais.nearby.apps.SERVICE_ID";
     private State mState = State.UNKNOWN;
-
-    /**
-     * A random UID used as this device's endpoint name.
-     */
     private String mName;
-
-    /**
-     * A running log of debug messages. Only visible when DEBUG=true.
-     */
-
-    private String KEY = "abcdefgh";
-    PopupWindow popupWindow;
-
-    /**
-     * Array of mStop agents
-     */
+    private String KEY;
     private boolean[] mStop;
-
-
-    /**
-     * A Handler that allows us to post back on to the UI thread. We use this to resume discovery
-     * after an uneventful bout of advertising.
-     */
     private final Handler mUiHandler = new Handler(Looper.getMainLooper());
-
-    /**
-     * Starts discovery. Used in a postDelayed manor with {@link #mUiHandler}.
-     */
-    private final Runnable mDiscoverRunnable =
-            new Runnable() {
+    private final Runnable mDiscoverRunnable = new Runnable() {
                 @Override
                 public void run() {
                     setState(State.DISCOVERING);
                 }
             };
-    private static GridView list;
-    private static final int CAMERA_PERMISSION_CODE=100;
-    private static final String TAG = Prelude.ReTAG("MainActivity");
-    private CameraBridgeViewBase mOpenCvCameraView;
-    private TextView textView;
-    private Mat mRgba, mRgbaF, mRgbaT;
-    private Scalar mBlobColorHsv;
-    private Scalar CONTOUR_COLOR;
-    private Scalar MARKER_COLOR;
-    private Point org;
-    private final Map<String, Object> statusMap = new HashMap<>();
-    private static TachoMotor motorLeft;
-    private static TachoMotor motorRight;
-    private static TachoMotor motorClaws;
-    private static Motors motoare;
-    private int[][] matrix;
-    private Integer n;
-    private Integer m;
-    private Integer totalBalls;
-    private Integer ball_catched = 0;
+    public enum State {
+        UNKNOWN,
+        DISCOVERING,
+        ADVERTISING,
+        CONNECTED
+    }
+
+
+    //Robot
     private Integer xRobotValue;
     private Integer yRobotValue;
     private Integer xCurrentPosition;
     private Integer yCurrentPosition;
-    private boolean ballIsCatched = false;
-    Point center;
-    GridViewCustomAdapter adapter;
-    float distance; //distance between sensor and ball
+    private Integer orientation;
     boolean flag = true;
 
+    //Motors
+    private static TachoMotor motorLeft;
+    private static TachoMotor motorRight;
+    private static TachoMotor motorClaws;
+
+
+    //Camera
+    private static final int CAMERA_PERMISSION_CODE=100;
+    private CameraBridgeViewBase mOpenCvCameraView;
+
+
+    //Balls
+    private Integer n;
+    private Integer m;
+    private Integer ball_catched = 0;
+    float distance;
+    ArrayList<Pair<Integer,Integer>> coordinates = new ArrayList<>();
+    private boolean ballIsCatched = false;
+
+    //Map
+    private static GridView list;
+    private int[][] matrix;
+    GridViewCustomAdapter adapter;
+
+    private static final String TAG = Prelude.ReTAG("MainActivity");
+
     private void setUpCamera() {
-        // Carica le librerie di OpenCV in maniera sincrona
         if (!OpenCVLoader.initDebug()) {
             Log.e(TAG, "Unable to load OpenCV");
         } else {
             Log.d(TAG, "OpenCV loaded");
         }
-
-        // Configura l'elemento della camera
         mOpenCvCameraView = findViewById(R.id.HelloOpenCvView);
         mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
         mOpenCvCameraView.setMaxFrameSize(1920, 1080);
@@ -223,18 +138,15 @@ public class Third extends ConnectionsActivity {//implements SensorEventListener
             public void onCameraViewStopped() {
                 Log.d(TAG, "Camera Stopped");
             }
-
-            // Viene eseguito ad ogni frame, con inputFrame l'immagine corrente
             @Override
             public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
-                // Salva il frame corrente su un oggetto Mat, ossia una matrice bitmap
                 Mat frame = inputFrame.rgba();
                 Mat frameT = frame.t();
                 Core.flip(frame.t(), frameT, 1);
                 Imgproc.resize(frameT, frameT, frame.size());
 
                 BallFinder ballFinder = new BallFinder(frameT, true);
-                ballFinder.setMinArea(1000);
+                ballFinder.setMinArea(5500);
                 ballFinder.setViewRatio(0.4f);
                 ballFinder.setOrientation("landscape");
                 ArrayList<Ball> f = ballFinder.findBalls();
@@ -248,70 +160,17 @@ public class Third extends ConnectionsActivity {//implements SensorEventListener
                 return frameT;
             }
         });
-
-        // Abilita la visualizzazione dell'immagine sullo schermo
         mOpenCvCameraView.enableView();
     }
 
+    //Connectivity
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_third);
-        /* Comment here to generate a random name for the GroundStation */
-        //mName = generateRandomName();
-        mName = "CodeBreakers";
-        mStop = new boolean[6];
-        mOpenCvCameraView = findViewById(R.id.HelloOpenCvView);
-        mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
-        mOpenCvCameraView.setMaxFrameSize(640, 480);
-        mOpenCvCameraView.disableFpsMeter();
-        // all the robot are assumed to be in move
-        Arrays.fill(mStop, true);
-        Button start = findViewById(R.id.Start);
-        LinearLayout matrixView = findViewById(R.id.matrix);
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-        list = findViewById(R.id.grid_view);
-        list.setNumColumns(4);
-        ArrayList<String> data = new ArrayList<>();
-        for (int i = 0; i < 4; i++) {
-            for(int j=0; j < 4;j++)
-                data.add("");
-
-        }
-        adapter = new GridViewCustomAdapter(this, data);
-        list.setAdapter(adapter);
-        try {
-            BluetoothConnection.BluetoothChannel conn = new BluetoothConnection("Willy").connect(); // replace with your own brick name
-            GenEV3<Third.MyCustomApi> ev3 = new GenEV3<>(conn);
-
-            Button startButton = findViewById(R.id.Start);
-            startButton.setOnClickListener(v -> Prelude.trap(() -> ev3.run(this::legoMainCustomApi, Third.MyCustomApi::new)));
-        } catch (IOException e) {
-            Log.e(TAG, "fatal error: cannot connect to EV3");
-            e.printStackTrace();
-        }
-    }
-
-    private static String generateRandomName() {
-        String name = "";
-        Random random = new Random();
-        for (int i = 0; i < 5; i++) {
-            name += random.nextInt(10);
-        }
-        return name;
-    }
-
-    @Override
-    protected void onStart() {
+    @Override protected void onStart() {
         super.onStart();
-        // Swap the two functions below if you want to start on Discovering rather than Advertising.
         setState(State.DISCOVERING);
-        //setState(State.ADVERTISING);
     }
 
-    @Override
-    protected void onStop() {
+    @Override protected void onStop() {
 
         setState(State.UNKNOWN);
 
@@ -320,8 +179,7 @@ public class Third extends ConnectionsActivity {//implements SensorEventListener
         super.onStop();
     }
 
-    @Override
-    public void onBackPressed() {
+    @Override public void onBackPressed() {
         if (getState() == State.CONNECTED || getState() == State.ADVERTISING) {
             setState(State.DISCOVERING);
             return;
@@ -329,22 +187,17 @@ public class Third extends ConnectionsActivity {//implements SensorEventListener
         super.onBackPressed();
     }
 
-    @Override
-    protected void onEndpointDiscovered(Endpoint endpoint) {
-        // We found an advertiser!
+    @Override protected void onEndpointDiscovered(Endpoint endpoint) {
         if (!isConnecting()) {
             connectToEndpoint(endpoint);
         }
     }
 
-    @Override
-    protected void onConnectionInitiated(Endpoint endpoint, ConnectionInfo connectionInfo) {
-        // A connection to another device has been initiated! We'll accept the connection immediately.
+    @Override protected void onConnectionInitiated(Endpoint endpoint, ConnectionInfo connectionInfo) {
         acceptConnection(endpoint);
     }
 
-    @Override
-    protected void onEndpointConnected(Endpoint endpoint) {
+    @Override protected void onEndpointConnected(Endpoint endpoint) {
         String x = "Benvenuto sono "+mName;
         byte[] bytes;
         Toast.makeText(
@@ -355,32 +208,21 @@ public class Third extends ConnectionsActivity {//implements SensorEventListener
         send(Payload.fromBytes(bytes));
     }
 
-    @Override
-    protected void onEndpointDisconnected(Endpoint endpoint) {
+    @Override protected void onEndpointDisconnected(Endpoint endpoint) {
         Toast.makeText(
                 this, getString(R.string.toast_disconnected, endpoint.getName()), Toast.LENGTH_SHORT)
                 .show();
-
-        // If we lost all our endpoints, then we should reset the state of our app and go back
-        // to our initial state (discovering).
         if (getConnectedEndpoints().isEmpty()) {
             setState(State.DISCOVERING);
         }
     }
 
-    @Override
-    protected void onConnectionFailed(Endpoint endpoint) {
-        // Let's try someone else.
+    @Override protected void onConnectionFailed(Endpoint endpoint) {
         if (getState() == State.DISCOVERING && !getDiscoveredEndpoints().isEmpty()) {
             connectToEndpoint(pickRandomElem(getDiscoveredEndpoints()));
         }
     }
 
-    /**
-     * The state has changed. I wonder what we'll be doing now.
-     *
-     * @param state The new state.
-     */
     private void setState(State state) {
         if (mState == state) {
             logW("State set to " + state + " but already in that state");
@@ -393,22 +235,11 @@ public class Third extends ConnectionsActivity {//implements SensorEventListener
         onStateChanged(oldState, state);
     }
 
-    /**
-     * @return The current state.
-     */
     private State getState() {
         return mState;
     }
 
-    /**
-     * State has changed.
-     *
-     * @param oldState The previous state we were in. Clean up anything related to this state.
-     * @param newState The new state we're now in. Prepare the UI for this state.
-     */
     private void onStateChanged(State oldState, State newState) {
-
-        // Update Nearby Connections to the new state.
         switch (newState) {
             case DISCOVERING:
                 if (isAdvertising()) {
@@ -428,8 +259,6 @@ public class Third extends ConnectionsActivity {//implements SensorEventListener
                 if (isDiscovering()) {
                     stopDiscovering();
                 } else if (isAdvertising()) {
-                    // Continue to advertise, so others can still connect,
-                    // but clear the discover runnable.
                     removeCallbacks(mDiscoverRunnable);
                 }
                 break;
@@ -437,28 +266,19 @@ public class Third extends ConnectionsActivity {//implements SensorEventListener
                 stopAllEndpoints();
                 break;
             default:
-                // no-op
                 break;
         }
-
-        // Update the UI.
         switch (oldState) {
             case UNKNOWN:
-                // Unknown is our initial state. Whatever state we move to,
-                // we're transitioning forwards.
-
                 break;
             case DISCOVERING:
                 switch (newState) {
                     case UNKNOWN:
-
                         break;
                     case ADVERTISING:
                     case CONNECTED:
-
                         break;
                     default:
-                        // no-op
                         break;
                 }
                 break;
@@ -486,101 +306,31 @@ public class Third extends ConnectionsActivity {//implements SensorEventListener
         }
     }
 
-    public void start_advertise(View view) {
-
-        setState(State.ADVERTISING);
-        postDelayed(mDiscoverRunnable, ADVERTISING_DURATION);
-        Toast toast = Toast.makeText(this, "Starting Advertising", Toast.LENGTH_LONG);
-        toast.show();
-    }
-
-    /**
-     * Test function for all the possible strings of the protocol
-     */
-    public void send_Byte(View view) {
-
-        // passive protocol
-        String x = "Coordinate recupero:3;6;";
-        byte[] bytes = x.getBytes();
-        send(Payload.fromBytes(bytes));
-
-
-        // test encrypted
-        x = "Operazione in corso:4;8;";
-        Calendar calendar = Calendar.getInstance();
-        Long time_long = calendar.getTimeInMillis();
-        x = x+time_long.toString()+";";
-
-        bytes = x.getBytes();
-        try {
-            SecretKeySpec key = new SecretKeySpec(KEY.getBytes(), "DES");
-            Cipher c = Cipher.getInstance("DES/ECB/ISO10126Padding");
-            c.init(c.ENCRYPT_MODE, key);
-
-            byte[] ciphertext = c.doFinal(bytes);
-            send(Payload.fromBytes(ciphertext));
-
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        } catch (InvalidKeyException e) {
-            e.printStackTrace();
-        } catch (NoSuchPaddingException e) {
-            e.printStackTrace();
-        } catch (BadPaddingException e) {
-            e.printStackTrace();
-        } catch (IllegalBlockSizeException e) {
-            e.printStackTrace();
-        }
-
-        x = "Benvenuto sono " + mName;
-        bytes = x.getBytes();
-        send(Payload.fromBytes(bytes));
-
-        x = "0STOP";
-        bytes = x.getBytes();
-        send(Payload.fromBytes(bytes));
-
-        x = "1STOP";
-        bytes = x.getBytes();
-        send(Payload.fromBytes(bytes));
-    }
-
-    public void sendUpdate( int xBall, int yBall){
+    public void sendUpdate( int xBall, int yBall) {
         String x;
         byte[] ballBytes;
         x = "Coordinate recupero" + xBall + ";" + yBall;
         ballBytes = x.getBytes();
         send(Payload.fromBytes(ballBytes));
     }
-    //TODO: SENDUPDATE de inteles cum putem sa punem in otherRobots ceilalti.
+
     public void sendUpdateMessage(int xRobot, int yRobot, int xBall, int yBall, boolean status){
-        String x,y;
+        String x;
         Calendar calendar = Calendar.getInstance();
         Long time_long = calendar.getTimeInMillis();
-
         byte[] bytes;
-        byte[] ballBytes;
-        if(status){
+        if(status) {
             x = "Operazione in corso:" + xBall + ";" + yBall + ";[" + time_long.toString() + "];";
             bytes = x.getBytes();
             try {
                 SecretKeySpec key = new SecretKeySpec(KEY.getBytes(), "DES");
                 Cipher c = Cipher.getInstance("DES/ECB/ISO10126Padding");
                 c.init(c.ENCRYPT_MODE, key);
-
                 byte[] ciphertext = c.doFinal(bytes);
                 send(Payload.fromBytes(ciphertext));
                 System.out.println("CASO TRUE: Mando messaggio cifrato" + x);
 
-            } catch (NoSuchAlgorithmException e) {
-                e.printStackTrace();
-            } catch (InvalidKeyException e) {
-                e.printStackTrace();
-            } catch (NoSuchPaddingException e) {
-                e.printStackTrace();
-            } catch (BadPaddingException e) {
-                e.printStackTrace();
-            } catch (IllegalBlockSizeException e) {
+            } catch (NoSuchAlgorithmException | InvalidKeyException | NoSuchPaddingException | BadPaddingException | IllegalBlockSizeException e) {
                 e.printStackTrace();
             }
         } else {
@@ -594,242 +344,15 @@ public class Third extends ConnectionsActivity {//implements SensorEventListener
                 System.out.println("ELSE : Mando messaggio cifrato" + x);
                 send(Payload.fromBytes(ciphertext));
 
-            } catch (NoSuchAlgorithmException e) {
-                e.printStackTrace();
-            } catch (InvalidKeyException e) {
-                e.printStackTrace();
-            } catch (NoSuchPaddingException e) {
-                e.printStackTrace();
-            } catch (BadPaddingException e) {
-                e.printStackTrace();
-            } catch (IllegalBlockSizeException e) {
+            } catch (NoSuchAlgorithmException | InvalidKeyException |  NoSuchPaddingException | BadPaddingException | IllegalBlockSizeException e) {
                 e.printStackTrace();
             }
             sendUpdate(xBall,yBall);
-
         }
     }
-
-
-
-    /**
-     * Show on screen a Popup for modifying the secret key
-     */
-    public void edit_secret_key(View view) {
-        //test sendUpdateMessage function
-        sendUpdateMessage(5,5,5,5,false);
-        //showPopup();
-    }
-
-    // move along.. this function is a mess
-    public void showPopup() {
-
-        // Container layout to hold other components
-        LinearLayout llContainer = new LinearLayout(this);
-
-        // Set its orientation to vertical to stack item
-        llContainer.setOrientation(LinearLayout.VERTICAL);
-
-        // Container layout to hold EditText and Button
-        LinearLayout llContainerInline = new LinearLayout(this);
-
-        // Set its orientation to horizontal to place components next to each other
-        llContainerInline.setOrientation(LinearLayout.HORIZONTAL);
-
-        // EditText to get input
-        final EditText etInput = new EditText(this);
-
-        // TextView to show an error message when the user does not provide input
-        final TextView tvError = new TextView(this);
-
-        // For when the user is done
-        Button bDone = new Button(this);
-
-        // If tvError is showing, make it disappear
-        etInput.setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
-                tvError.setVisibility(View.GONE);
-            }
-        });
-
-        // This is what will show in etInput when the Popup is first created
-        etInput.setHint("Insert new Password");
-        etInput.setTextColor(Color.WHITE);
-        // Input type allowed: Numbers
-        //etInput.setRawInputType(Configuration.KEYBOARD_12KEY);
-
-        // Center text inside EditText
-        etInput.setGravity(Gravity.CENTER);
-
-        // tvError should be invisible at first
-        tvError.setVisibility(View.GONE);
-
-        bDone.setText("Done");
-
-        bDone.setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
-
-                // If user didn't input anything, show tvError
-                if (etInput.getText().toString().equals("")) {
-                    //tvError.setText("Please enter a valid value");
-                    tvError.setVisibility(View.VISIBLE);
-                    etInput.setText("");
-
-                    // else, call method `doneInput()` which we will define later
-                } else {
-                    doneInput(etInput.getText().toString());
-                    popupWindow.dismiss();
-                }
-            }
-        });
-
-        // Define LayoutParams for tvError
-        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT);
-
-        layoutParams.topMargin = 20;
-
-        // Define LayoutParams for InlineContainer
-        LinearLayout.LayoutParams layoutParamsForInlineContainer = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT);
-
-        layoutParamsForInlineContainer.topMargin = 30;
-
-        // Define LayoutParams for EditText
-        LinearLayout.LayoutParams layoutParamsForInlineET = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT);
-
-        // Set ET's weight to 1 // Take as much space horizontally as possible
-        layoutParamsForInlineET.weight = 1;
-
-        // Define LayoutParams for Button
-        LinearLayout.LayoutParams layoutParamsForInlineButton = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT);
-        // Set Button's weight to 0
-        layoutParamsForInlineButton.weight = 0;
-
-        // Add etInput to inline container
-        llContainerInline.addView(etInput, layoutParamsForInlineET);
-
-        // Add button with layoutParams // Order is important
-        llContainerInline.addView(bDone, layoutParamsForInlineButton);
-
-        // Add tvError with layoutParams
-        llContainer.addView(tvError, layoutParams);
-
-        // Finally add the inline container to llContainer
-        llContainer.addView(llContainerInline, layoutParamsForInlineContainer);
-
-        // Set gravity
-        llContainer.setGravity(Gravity.CENTER);
-
-        // Set any color to Container's background
-        llContainer.setBackgroundColor(0x95000000);
-
-        // Create PopupWindow
-        popupWindow = new PopupWindow(llContainer,
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT);
-
-        // Should be focusable
-        popupWindow.setFocusable(true);
-
-        // Show the popup window
-        popupWindow.showAtLocation(llContainer, Gravity.CENTER, 0, 0);
-
-    }
-
-    // function called by the pop-up written above ... move along
-    public void doneInput(String input) {
-        KEY = input;
-        ((TextView) findViewById(R.id.password)).setText(KEY);
-        // Do anything else with input!
-    }
-    /**
-     * Send coordinate for the second task. The function takes the values from 'test.csv' and
-     * creates a thread.. therefore, the UI is not busy
-     */
-    public void send_coordinate(View view) {
-
-        Thread_Coordinate task = new Thread_Coordinate(this);
-        task.execute();
-    }
-
-    public class Thread_Coordinate extends AsyncTask<Void, Void, Void> {
-
-        private Context mContext;
-        private int i;
-
-        public Thread_Coordinate (Context context){
-            mContext = context;
-            i = 0;
-        }
-
-        @Override
-        protected void onPreExecute() {
-            /*
-             *    do things before doInBackground() code runs
-             *    such as preparing and showing a Dialog or ProgressBar
-             */
-        }
-
-        @Override
-        protected void onProgressUpdate(Void... values) {
-            /*
-             *    updating data
-             *    such a Dialog or ProgressBar
-             */
-            String str = "Sent coordinate number "+i;
-            Toast.makeText(mContext,str, Toast.LENGTH_SHORT).show();
-
-        }
-
-        @Override
-        protected Void doInBackground(Void... params) {
-            BufferedReader br = null;
-            AssetManager am = mContext.getAssets();
-            String coordinate;
-            try {
-                String sCurrentLine;
-                br = new BufferedReader(new InputStreamReader(am.open("test.csv")));
-                while ((sCurrentLine = br.readLine()) != null) {
-                    i++;
-                    String[] mines = sCurrentLine.split(",");
-                    coordinate = "Coordinate obiettivo:" + mines[1] + ";" + mines[2] + ";";
-                    byte[] bytes = coordinate.getBytes();
-                    send(Payload.fromBytes(bytes));
-                    publishProgress();
-                    SystemClock.sleep(4000);
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-
-            } finally {
-                try {
-                    if (br != null) br.close();
-                } catch (IOException ex) {
-                    ex.printStackTrace();
-                }
-            }
-
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(Void result) {
-            Toast.makeText(mContext,"Coordinate sending completed", Toast.LENGTH_LONG).show();
-        }
-    }
-
-
 
     protected void receiveCoordinates (Payload payload){
         Pattern p = Pattern.compile("-?\\d+");
-
         if(payload.getType() == Payload.Type.BYTES){
             byte[] bytes = payload.asBytes();
             String str_bytes = new String(bytes);
@@ -840,30 +363,21 @@ public class Third extends ConnectionsActivity {//implements SensorEventListener
                 Integer x = Integer.valueOf(m.group());
                 m.find();
                 Integer y = Integer.valueOf(m.group());
-                Pair<Integer,Integer> pair = new Pair<Integer, Integer>(x,y);
+                Pair<Integer,Integer> pair = new Pair<>(x,y);
                 coordinates.add(pair);
             }
         }
     }
 
-
-    /** {@see ConnectionsActivity#onReceive(Endpoint, Payload)} */
-    @Override
-    protected void onReceive(Endpoint endpoint, Payload payload) {
+    @Override protected void onReceive(Endpoint endpoint, Payload payload) {
         if (payload.getType() == Payload.Type.BYTES) {
             byte[] bytes = payload.asBytes();
-            // comment this send if we are not the Groundstation anymore
-            //send(payload);
             String str_bytes = new String(bytes);
-
-            // those are needed if you are a robot!
-
             Integer aux = Character.getNumericValue(str_bytes.charAt(0));
             if((aux >= 0 && aux <=6) && ((str_bytes.charAt(1)=='S') || (str_bytes.charAt(1)=='R'))){
                 if(aux == 0 || aux == robotID) {
                     if(str_bytes.contains("STOP")){
                         logD(String.format("STOP message intercepted %s", str_bytes));
-                        //TODO: ONRECIVE motor stop, operazione annullata, coordinate e TIMESTAMP
                         String x;
                         Calendar calendar = Calendar.getInstance();
                         Long time_long = calendar.getTimeInMillis();
@@ -874,7 +388,6 @@ public class Third extends ConnectionsActivity {//implements SensorEventListener
                             SecretKeySpec key = new SecretKeySpec(KEY.getBytes(), "DES");
                             Cipher c = Cipher.getInstance("DES/ECB/ISO10126Padding");
                             c.init(c.ENCRYPT_MODE, key);
-
                             byte[] ciphertext = c.doFinal(message);
                             send(Payload.fromBytes(ciphertext));
                             System.out.println("CASO TRUE: Mando messaggio cifrato" + x);
@@ -890,7 +403,6 @@ public class Third extends ConnectionsActivity {//implements SensorEventListener
                     }
                 } else {
                     logD(String.format("STOP/RESUME message ignored %s", str_bytes));
-                    // altrimenti lo ignoriamo
                     return;
                 }
             }
@@ -981,7 +493,6 @@ public class Third extends ConnectionsActivity {//implements SensorEventListener
 
     private void motion_stop (Integer n){
         String str;
-
         if (mStop[n]) {
             str = n.toString()+"STOP";
             mStop[n] = false;
@@ -1003,15 +514,12 @@ public class Third extends ConnectionsActivity {//implements SensorEventListener
         motion_stop(value);
     }
 
-    /** {@see ConnectionsActivity#getRequiredPermissions()} */
-    @Override
-    protected String[] getRequiredPermissions() {
+    @Override protected String[] getRequiredPermissions() {
         return join(
                 super.getRequiredPermissions(),
                 Manifest.permission.RECORD_AUDIO);
     }
 
-    /** Joins 2 arrays together. */
     private static String[] join(String[] a, String... b) {
         String[] join = new String[a.length + b.length];
         System.arraycopy(a, 0, join, 0, a.length);
@@ -1019,46 +527,20 @@ public class Third extends ConnectionsActivity {//implements SensorEventListener
         return join;
     }
 
-    /**
-     * Queries the phone's contacts for their own profile, and returns their name. Used when
-     * connecting to another device.
-     */
-    @Override
-    protected String getName() {
+    @Override protected String getName() {
         return mName;
     }
 
-    /** {@see ConnectionsActivity#getServiceId()} */
-    @Override
-    public String getServiceId() {
+    @Override public String getServiceId() {
         return SERVICE_ID;
     }
 
-    /** {@see ConnectionsActivity#getStrategy()} */
-    @Override
-    public Strategy getStrategy() {
+    @Override public Strategy getStrategy() {
         return STRATEGY;
     }
 
-    /** {@see Handler#post()} */
-    protected void post(Runnable r) {
-        mUiHandler.post(r);
-    }
-
-    /** {@see Handler#postDelayed(Runnable, long)} */
-    protected void postDelayed(Runnable r, long duration) {
-        mUiHandler.postDelayed(r, duration);
-    }
-
-    /** {@see Handler#removeCallbacks(Runnable)} */
     protected void removeCallbacks(Runnable r) {
         mUiHandler.removeCallbacks(r);
-    }
-
-    private static CharSequence toColor(String msg, int color) {
-        SpannableString spannable = new SpannableString(msg);
-        spannable.setSpan(new ForegroundColorSpan(color), 0, msg.length(), 0);
-        return spannable;
     }
 
     @SuppressWarnings("unchecked")
@@ -1066,36 +548,52 @@ public class Third extends ConnectionsActivity {//implements SensorEventListener
         return (T) collection.toArray()[new Random().nextInt(collection.size())];
     }
 
-    /**
-     * Provides an implementation of Animator.AnimatorListener so that we only have to override the
-     * method(s) we're interested in.
-     */
+    //On Create
 
-    private abstract static class AnimatorListener implements Animator.AnimatorListener {
-        @Override
-        public void onAnimationStart(Animator animator) {}
+    @Override protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_third);
+        try {
+            BluetoothConnection.BluetoothChannel conn = new BluetoothConnection("Willy").connect();
+            GenEV3<Third.MyCustomApi> ev3 = new GenEV3<>(conn);
+            Button startButton = findViewById(R.id.Start);
+            startButton.setOnClickListener(v -> Prelude.trap(() -> ev3.run(this::legoMainCustomApi, Third.MyCustomApi::new)));
+        } catch (IOException e) {
+            Log.e(TAG, "fatal error: cannot connect to EV3");
+            e.printStackTrace();
+        }
+        mName = "CodeBreakers";
+        mStop = new boolean[6];
+        mOpenCvCameraView = findViewById(R.id.HelloOpenCvView);
+        mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
+        mOpenCvCameraView.setMaxFrameSize(640, 480);
+        mOpenCvCameraView.disableFpsMeter();
+        Arrays.fill(mStop, true);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        list = findViewById(R.id.grid_view);
+        list.setNumColumns(4);
+        ArrayList<String> data = new ArrayList<>();
+        for (int i = 0; i < 4; i++) {
+            for(int j=0; j < 4;j++)
+                data.add("");
+        }
+        adapter = new GridViewCustomAdapter(this, data);
+        list.setAdapter(adapter);
 
-        @Override
-        public void onAnimationEnd(Animator animator) {}
-
-        @Override
-        public void onAnimationCancel(Animator animator) {}
-
-        @Override
-        public void onAnimationRepeat(Animator animator) {}
-    }
-
-    /** States that the UI goes through. */
-    public enum State {
-        UNKNOWN,
-        DISCOVERING,
-        ADVERTISING,
-        CONNECTED
     }
 
     //Robot Movement
 
-    void goForward(EV3.Api api) throws IOException, InterruptedException{
+    void goForward(EV3.Api api) throws IOException, InterruptedException, ExecutionException {
+        final UltrasonicSensor ultraSensor = api.getUltrasonicSensor(EV3.InputPort._1);
+        distance = ultraSensor.getDistance().get();
+        if(distance >= 15 && distance <=40)
+        {
+            ballIsCatched = true;
+        }
+        else {
+            ballIsCatched = false;
+        }
         if(ballIsCatched == false) {
             yCurrentPosition++;
             int i = 1;
@@ -1201,124 +699,151 @@ public class Third extends ConnectionsActivity {//implements SensorEventListener
     }
 
     void goLeft(EV3.Api api, int times) throws  IOException, InterruptedException {
-        xCurrentPosition--;
-        turnLeft(api);
-        int j = 1;
-        while(j!=5) {
-            while (flag == false) { sleep(100); }
-            turnLeft(api);
-            if(j%2==0) {
-                motorLeft.setStepSpeed(30, 0, 160, 0, true);
-                motorRight.setStepSpeed(30, 0, 160, 0, true );
-                motorLeft.waitCompletion();
-                motorRight.waitCompletion();
-            }
-            else {
-                motorRight.setStepSpeed(30, 0, 155, 0, true);
-                motorLeft.setStepSpeed(30, 0, 155, 0, true);
-                motorRight.waitCompletion();
-                motorLeft.waitCompletion();
-            }
-            turnLeft(api);
-            j++;
-        }
-        motorLeft.setSpeed(0);
-        motorRight.setSpeed(0);
-        markZone(xCurrentPosition,yCurrentPosition);
-        for(int time=1;time<times;time++) {
+        if(times!=0) {
             xCurrentPosition--;
-            int i = 1;
-            while(i!=5) {
-                while (flag == false) { sleep(100); }
-                turnLeft(api);
-                if(i%2==0) {
-                    motorLeft.setStepSpeed(30, 0, 161, 0, true);
-                    motorRight.setStepSpeed(30, 0, 161, 0, true );
-                    motorLeft.waitCompletion();
-                    motorRight.waitCompletion();
-                }
-                else {
-                    motorRight.setStepSpeed(30, 0, 161, 0, true);
-                    motorLeft.setStepSpeed(30, 0, 161, 0, true);
-                    motorRight.waitCompletion();
-                    motorLeft.waitCompletion();
+            turnLeft(api);
+            updateMap(xCurrentPosition, yCurrentPosition);
+            int j = 1;
+            while (j != 5) {
+                while (flag == false) {
+                    sleep(100);
                 }
                 turnLeft(api);
-                i++;
+                if (j % 2 == 0) {
+                    motorLeft.setStepSpeed(30, 0, 160, 0, true);
+                    motorRight.setStepSpeed(30, 0, 160, 0, true);
+                    motorLeft.waitCompletion();
+                    motorRight.waitCompletion();
+                } else {
+                    motorRight.setStepSpeed(30, 0, 155, 0, true);
+                    motorLeft.setStepSpeed(30, 0, 155, 0, true);
+                    motorRight.waitCompletion();
+                    motorLeft.waitCompletion();
+                }
+                turnLeft(api);
+                j++;
             }
             motorLeft.setSpeed(0);
             motorRight.setSpeed(0);
-            markZone(xCurrentPosition,yCurrentPosition);
+            markZone(xCurrentPosition, yCurrentPosition);
+            for (int time = 1; time < times; time++) {
+                xCurrentPosition--;
+                updateMap(xCurrentPosition, yCurrentPosition);
+                int i = 1;
+                while (i != 5) {
+                    while (flag == false) {
+                        sleep(100);
+                    }
+                    turnLeft(api);
+                    if (i % 2 == 0) {
+                        motorLeft.setStepSpeed(30, 0, 161, 0, true);
+                        motorRight.setStepSpeed(30, 0, 161, 0, true);
+                        motorLeft.waitCompletion();
+                        motorRight.waitCompletion();
+                    } else {
+                        motorRight.setStepSpeed(30, 0, 161, 0, true);
+                        motorLeft.setStepSpeed(30, 0, 161, 0, true);
+                        motorRight.waitCompletion();
+                        motorLeft.waitCompletion();
+                    }
+                    turnLeft(api);
+                    i++;
+                }
+                motorLeft.setSpeed(0);
+                motorRight.setSpeed(0);
+                markZone(xCurrentPosition, yCurrentPosition);
 
+            }
+            turnFront(api);
         }
-        turnFront(api);
     }
 
     void goRight(EV3.Api api, int times) throws  IOException, InterruptedException {
-        xCurrentPosition++;
-        turnRight(api);
-        int j = 1;
-        while(j!=5) {
-            while (flag == false) { sleep(100); }
-            turnRight(api);
-            if(j%2==0) {
-                motorLeft.setStepSpeed(30, 0, 160, 0, true);
-                motorRight.setStepSpeed(30, 0, 160, 0, true );
-                motorLeft.waitCompletion();
-                motorRight.waitCompletion();
-            }
-            else {
-                motorRight.setStepSpeed(30, 0, 155, 0, true);
-                motorLeft.setStepSpeed(30, 0, 155, 0, true);
-                motorRight.waitCompletion();
-                motorLeft.waitCompletion();
-            }
-            turnRight(api);
-            j++;
-        }
-        for(int time=1;time<times;time++) {
+        if(times!=0) {
             xCurrentPosition++;
-            int i = 1;
-            while(i!=5) {
+            turnRight(api);
+            updateMap(xCurrentPosition,yCurrentPosition);
+            int j = 1;
+            while(j!=5) {
                 while (flag == false) { sleep(100); }
                 turnRight(api);
-                if(i%2==0) {
-                    motorLeft.setStepSpeed(30, 0, 161, 0, true);
-                    motorRight.setStepSpeed(30, 0, 161, 0, true );
+                if(j%2==0) {
+                    motorLeft.setStepSpeed(30, 0, 160, 0, true);
+                    motorRight.setStepSpeed(30, 0, 160, 0, true );
                     motorLeft.waitCompletion();
                     motorRight.waitCompletion();
                 }
                 else {
-                    motorRight.setStepSpeed(30, 0, 161, 0, true);
-                    motorLeft.setStepSpeed(30, 0, 161, 0, true);
+                    motorRight.setStepSpeed(30, 0, 155, 0, true);
+                    motorLeft.setStepSpeed(30, 0, 155, 0, true);
                     motorRight.waitCompletion();
                     motorLeft.waitCompletion();
                 }
                 turnRight(api);
-                i++;
+                j++;
             }
-            motorLeft.setSpeed(0);
-            motorRight.setSpeed(0);
+            for(int time=1;time<times;time++) {
+                xCurrentPosition++;
+                updateMap(xCurrentPosition,yCurrentPosition);
+                int i = 1;
+                while(i!=5) {
+                    while (flag == false) { sleep(100); }
+                    turnRight(api);
+                    if(i%2==0) {
+                        motorLeft.setStepSpeed(30, 0, 161, 0, true);
+                        motorRight.setStepSpeed(30, 0, 161, 0, true );
+                        motorLeft.waitCompletion();
+                        motorRight.waitCompletion();
+                    }
+                    else {
+                        motorRight.setStepSpeed(30, 0, 161, 0, true);
+                        motorLeft.setStepSpeed(30, 0, 161, 0, true);
+                        motorRight.waitCompletion();
+                        motorLeft.waitCompletion();
+                    }
+                    turnRight(api);
+                    i++;
+                }
+                motorLeft.setSpeed(0);
+                motorRight.setSpeed(0);
+            }
+            turnFront(api);
+            markZone(xCurrentPosition,yCurrentPosition);
         }
-        turnFront(api);
-        markZone(xCurrentPosition,yCurrentPosition);
-
     }
 
     void catchBall() throws IOException {
-        motorClaws.setStepSpeed(50,0,2150,0,true);
+        motorClaws.setStepSpeed(50,0,2200,0,true);
         motorClaws.waitCompletion();
         motorClaws.stop();
     }
 
     void releaseBall() throws IOException {
-        motorClaws.setStepSpeed(-50,0,2150,0,true);
+        motorClaws.setStepSpeed(-50,0,2200,0,true);
         motorClaws.waitCompletion();
     }
 
     void goToSafeZone(EV3.Api api) throws  IOException, InterruptedException {
         int xBall = xCurrentPosition;
         int yBall = yCurrentPosition;
+        if(orientation==1){
+            Integer aux_a = (Integer)xBall;
+            Integer aux_b = (Integer)yBall;
+            xBall = aux_b;
+            yBall = n-aux_a;
+        }
+        else if(orientation==2){
+            Integer aux_a = (Integer)xBall;
+            Integer aux_b = (Integer)yBall;
+            xBall = n-aux_a;
+            yBall = m-aux_b;
+        }
+        else if(orientation==3){
+            Integer aux_a = (Integer)xBall;
+            Integer aux_b = (Integer)yBall;
+            xBall = m-aux_b;
+            yBall = aux_a;
+        }
         Pair<Integer,Integer> p1 = new Pair<>(xBall,yBall);
         markZone(xCurrentPosition,yCurrentPosition);
         catchBall();
@@ -1383,7 +908,7 @@ public class Third extends ConnectionsActivity {//implements SensorEventListener
         ballIsCatched = false;
     }
 
-    void stopMotors() throws IOException, InterruptedException {
+    void stopMotors() throws IOException {
         motorRight.stop();
         motorLeft.stop();
         motorClaws.stop();
@@ -1537,27 +1062,30 @@ public class Third extends ConnectionsActivity {//implements SensorEventListener
     //Matrix and Display Map
 
     void updateMap(int x, int y) {
+        int maxim = max(n, m);
         ArrayList<String> data = new ArrayList<>();
-        for (int i = 0; i <= n+1; i++) {
-            for(int j=0;j <= m+1;j++)
-                if(i==(n-y) && x==j){
-                    data.add("O");
-                } else if(i==n+1){
-                    data.add("S");
-                } else if(j>=m+1) {
-                    data.add("\\");
+        for (int i = 0; i <= maxim + 1; i++)
+            for (int j = 0; j <= maxim + 1; j++) {
+                if (i == (m - y) && x == j) {
+                    data.add("R");
                 }
-                else{
+                else if (j > n) {
+                    data.add("\\");
+                } else if (i > m && j <= n) {
+                    data.add("\\");
+                } else {
                     data.add("");
                 }
+            }
 
-        }
         adapter = new GridViewCustomAdapter(this, data);
         runOnUiThread(new Runnable() {
 
             @Override
             public void run() {
-                list.setNumColumns(n+2);
+                int maxim = max(n,m);
+                maxim+=2;
+                list.setNumColumns(maxim);
                 list.setAdapter(adapter);
 
             }
@@ -1585,13 +1113,47 @@ public class Third extends ConnectionsActivity {//implements SensorEventListener
         return true;
     }
 
-    //Distance Sensor
+    void showFinal() {
+        if(orientation == 1 || orientation == 3) {
+            int aux = m;
+            m = n;
+            n = aux;
+        }
 
-    int getDistance(EV3.Api api) throws IOException,ExecutionException, InterruptedException {
-        final UltrasonicSensor ultraSensor = api.getUltrasonicSensor(EV3.InputPort._1);
-        Log.i("",ultraSensor.getDistance().get().toString());
-        distance = Math.round(ultraSensor.getDistance().get());
-        return Math.round(ultraSensor.getDistance().get());
+        ArrayList<String> data = new ArrayList<>();
+        int maxim = max(n, m);
+        for (int i = 0; i <= maxim+1; i++) {
+            for(int j=0; j <= maxim+1;j++) {
+                if ( ((m-coordinates.get(0).second) == i) && (coordinates.get(0).first == j)) {
+                    data.add("O");
+                    if(coordinates.size()>1)
+                        coordinates.remove(0);
+                }
+                else if (j > n) {
+                    data.add("\\");
+                } else if (i > m && j <= n) {
+                    data.add("\\");
+                } else {
+                    data.add("");
+                }
+            }
+        }
+
+        adapter = new GridViewCustomAdapter(this, data);
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                int maxim = max(n,m);
+                maxim+=2;
+                list.setNumColumns(maxim);
+                list.setAdapter(adapter);
+
+            }
+        });
+        Intent intent = new Intent(Third.this, MainActivity.class);
+        intent.putExtra("data",data);
+        intent.putExtra("maxim",maxim);
+        startActivity(intent);
     }
 
     //Robot Main
@@ -1668,6 +1230,21 @@ public class Third extends ConnectionsActivity {//implements SensorEventListener
             turnFront(api);
             ball_catched++;
         }
+        Collections.sort(coordinates, (p1, p2) -> {
+            if (p1.first != p2.first) {
+                return p1.first - p2.first;
+            } else {
+                return p1.second - p2.second;
+            }
+        });
+        Collections.sort(coordinates, (p1, p2) -> {
+            if (p1.second > p2.second) {
+                return p2.second - p1.second;
+            } else {
+                return p1.first - p2.first;
+            }
+        });
+        showFinal();
     }
 
     private static class MyCustomApi extends EV3.Api {
@@ -1685,25 +1262,25 @@ public class Third extends ConnectionsActivity {//implements SensorEventListener
         EditText rows = findViewById(R.id.rows);
         EditText columns = findViewById(R.id.columns);
         EditText robotId = findViewById(R.id.idoftherobot);
-        n = 2;
-        m = 2;
-        robotID = 2;
-    //    robotID=Integer.valueOf(robotId.getText().toString());
-//        n = Integer.valueOf(rows.getText().toString());
-//        m = Integer.valueOf(columns.getText().toString());
+        EditText password = findViewById(R.id.password);
         EditText robotXCoordinate = findViewById(R.id.xRobot);
         EditText robotYCoordinate = findViewById(R.id.yRobot);
-//        xRobotValue = Integer.valueOf(robotXCoordinate.getText().toString());
-//        yRobotValue = Integer.valueOf(robotYCoordinate.getText().toString());
-        xRobotValue = 0;
+        robotID=Integer.valueOf(robotId.getText().toString());
+        n = Integer.valueOf(rows.getText().toString());
+        m = Integer.valueOf(columns.getText().toString());
+        xRobotValue = Integer.valueOf(robotXCoordinate.getText().toString());
+        yRobotValue = Integer.valueOf(robotYCoordinate.getText().toString());
+        KEY = password.getText().toString();
+        orientation = yRobotValue;
         yRobotValue = 0;
         xCurrentPosition = xRobotValue;
         yCurrentPosition = yRobotValue;
+        if(orientation == 1 || orientation == 3) {
+            int aux = m;
+            m = n;
+            n = aux;
+        }
         matrix = constructMatrix(m,n);
-
-        EditText numberOfBalls  = findViewById(R.id.balls);
-//        totalBalls = Integer.valueOf(numberOfBalls.getText().toString());
-        totalBalls = 1;
         legoMain(api);
 
     }

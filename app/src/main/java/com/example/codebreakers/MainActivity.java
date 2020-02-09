@@ -12,8 +12,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
-import java.util.ArrayList;
 
+import java.util.ArrayList;
 import it.unive.dais.legodroid.lib.util.Prelude;
 
 
@@ -30,8 +30,7 @@ public class MainActivity extends AppCompatActivity {
         Button firstRound = findViewById(R.id.FirstRound);
         Button secondRound = findViewById(R.id.SecondRound);
         Button thirdRound = findViewById(R.id.ThirdRound);
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
-                == PackageManager.PERMISSION_DENIED) {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_DENIED) {
             ActivityCompat.requestPermissions(this, new String[] {Manifest.permission.CAMERA}, CAMERA_PERMISSION_CODE);
         }
         firstRound.setOnClickListener(new View.OnClickListener() {
@@ -55,10 +54,9 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(i);
             }
         });
-        // GET THE MATRIX DIMENSIONS
+
         int rows=5;
         int columns=5;
-
 
         // INITIALISE YOUR GRID
         GridView list=(GridView)findViewById(R.id.grid_view);
@@ -72,7 +70,6 @@ public class MainActivity extends AppCompatActivity {
 
         list = (GridView) findViewById(R.id.grid_view);
         list.setAdapter(adapter);
-
 
         Bundle extras = getIntent().getExtras();
         if (extras!=null) {
