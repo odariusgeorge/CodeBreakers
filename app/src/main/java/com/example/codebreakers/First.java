@@ -1,6 +1,11 @@
 package com.example.codebreakers;
 
+import android.content.Context;
 import android.content.Intent;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.speech.RecognizerIntent;
 import android.util.Log;
@@ -17,6 +22,10 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.kircherelectronics.fsensor.filter.averaging.MeanFilter;
+import com.kircherelectronics.fsensor.filter.gyroscope.OrientationGyroscope;
+
+import org.apache.commons.math3.complex.Quaternion;
 import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.OpenCVLoader;
 import org.opencv.core.Core;
@@ -78,6 +87,16 @@ public class First extends AppCompatActivity {
     private static final int CAMERA_PERMISSION_CODE=100;
     private CameraBridgeViewBase mOpenCvCameraView;
 
+    //Sensor
+    private OrientationGyroscope orientationGyroscope = new OrientationGyroscope();
+    private SensorManager sensorManager;
+    private Sensor gyroscopeSensor;
+    private SensorEventListener gyroscopeSensorListener;
+    private float[] fusedOrientation = new float[3];
+    private float[] rotation = new float[3];
+    private MeanFilter meanFilter;
+    private boolean meanFilterEnabled;
+
     private static final String TAG = Prelude.ReTAG("MainActivity");
 
     private void setUpCamera() {
@@ -129,15 +148,42 @@ public class First extends AppCompatActivity {
         mOpenCvCameraView.enableView();
     }
 
-    @Override protected void onCreate(Bundle savedInstanceState) {
-        
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_first);
+        Button start = findViewById(R.id.Start);
         mOpenCvCameraView = findViewById(R.id.HelloOpenCvView);
         txvResult = findViewById(R.id.txvResult);
         mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
         mOpenCvCameraView.setMaxFrameSize(640, 480);
         mOpenCvCameraView.disableFpsMeter();
+        sensorManager =(SensorManager) getSystemService(SENSOR_SERVICE);
+        gyroscopeSensor = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
+        sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+        if(gyroscopeSensor == null) {
+            Log.e(TAG, "Gyroscope sensor not available.");
+            finish();
+        }
+        gyroscopeSensorListener = new SensorEventListener() {@Override
+            public void onSensorChanged(SensorEvent event) {
+                if (event.sensor.getType() == Sensor.TYPE_GYROSCOPE) {
+                    System.arraycopy(event.values, 0, rotation, 0, event.values.length);
+                    if(!orientationGyroscope.isBaseOrientationSet()) {
+                        orientationGyroscope.setBaseOrientation(Quaternion.IDENTITY);
+                    } else {
+                        fusedOrientation = orientationGyroscope.calculateOrientation(rotation, event.timestamp);
+                    }
+                    if(meanFilterEnabled) {
+                        fusedOrientation = meanFilter.filter(fusedOrientation);
+                    }
+                }
+            }
+            @Override
+            public void onAccuracyChanged(Sensor sensor, int i) {
+            }
+        };
+        start.setOnClickListener(view -> System.out.println(String.format(Locale.getDefault(),"%.1f", (Math.toDegrees(fusedOrientation[2]) + 360) % 360)));
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         list = findViewById(R.id.grid_view);
         list.setNumColumns(4);
@@ -147,17 +193,19 @@ public class First extends AppCompatActivity {
                 data.add("");
 
         }
+
         adapter = new GridViewCustomAdapter(this, data);
         list.setAdapter(adapter);
         try {
-            BluetoothConnection.BluetoothChannel conn = new BluetoothConnection("Willy").connect();
-            GenEV3<MyCustomApi> ev3 = new GenEV3<>(conn);
+            BluetoothConnection.BluetoothChannel conn = new BluetoothConnection("Willy").connect(); // replace with your own brick name
+            GenEV3<First.MyCustomApi> ev3 = new GenEV3<>(conn);
             Button startButton = findViewById(R.id.Start);
-            startButton.setOnClickListener(v -> Prelude.trap(() -> ev3.run(this::legoMainCustomApi, MyCustomApi::new)));
+            startButton.setOnClickListener(v -> Prelude.trap(() -> ev3.run(this::legoMainCustomApi, First.MyCustomApi::new)));
         } catch (IOException e) {
             Log.e(TAG, "fatal error: cannot connect to EV3");
             e.printStackTrace();
         }
+
     }
 
     //Robot Movement
@@ -612,12 +660,11 @@ public class First extends AppCompatActivity {
 
     void turnFront(EV3.Api api) {
         int speed = 1;
-        final GyroSensor gyroSensor = api.getGyroSensor(EV3.InputPort._4);
         try {
-            float current_angle = gyroSensor.getAngle().get();
-            while ( abs(current_angle) > 1 )  {
-                if (current_angle > 1) {
-                    if(current_angle > 30) {
+            float current_angle = (float)((Math.toDegrees(fusedOrientation[2]) + 180) % 360);
+            while ( current_angle < 179 || current_angle > 181 )  {
+                if (current_angle > 181) {
+                    if(current_angle > 210) {
                         motorLeft.setSpeed(-5);
                         motorRight.setSpeed(5);
                     }
@@ -627,9 +674,9 @@ public class First extends AppCompatActivity {
                     }
                     motorLeft.start();
                     motorRight.start();
-                    current_angle = gyroSensor.getAngle().get();
-                } else if (current_angle < 1 ) {
-                    if(current_angle > -30) {
+                    current_angle = (float)((Math.toDegrees(fusedOrientation[2]) + 180) % 360);
+                } else if (current_angle < 179 ) {
+                    if(current_angle > 149) {
                         motorLeft.setSpeed(speed);
                         motorRight.setSpeed(-speed);
                     }
@@ -639,11 +686,11 @@ public class First extends AppCompatActivity {
                     }
                     motorLeft.start();
                     motorRight.start();
-                    current_angle = gyroSensor.getAngle().get();
+                    current_angle = (float)((Math.toDegrees(fusedOrientation[2]) + 180) % 360);
                 }
             }
             stopMotors();
-        } catch (IOException | InterruptedException | ExecutionException e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
