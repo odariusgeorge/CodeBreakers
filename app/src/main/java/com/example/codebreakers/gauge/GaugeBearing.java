@@ -381,20 +381,11 @@ public final class GaugeBearing extends View
 		drawRim(backgroundCanvas);
 		drawFace(backgroundCanvas);
 	}
-
-	/**
-	 * Move the hand.
-	 */
 	private void moveHand()
 	{
 		handPosition = handTarget;
 	}
 
-	/**
-	 * Indicate where the hand should be moved to.
-	 * 
-	 * @param bearing
-	 */
 	private void setHandTarget(float bearing)
 	{
 		if (bearing < DEGREE_MIN)

@@ -49,7 +49,7 @@ import it.unive.dais.legodroid.lib.plugs.UltrasonicSensor;
 import it.unive.dais.legodroid.lib.util.Prelude;
 
 
-public class First extends AppCompatActivity {
+public class First extends AppCompatActivity implements SensorEventListener {
 
     //MOTORS
     private static TachoMotor motorLeft;
@@ -96,7 +96,7 @@ public class First extends AppCompatActivity {
     private float[] rotation = new float[3];
     private MeanFilter meanFilter;
     private boolean meanFilterEnabled;
-
+    float current_angle;
     private static final String TAG = Prelude.ReTAG("MainActivity");
 
     private void setUpCamera() {
@@ -136,10 +136,10 @@ public class First extends AppCompatActivity {
                 ballFinder.setOrientation("landscape");
                 ArrayList<Ball> f = ballFinder.findBalls();
                 for (Ball b : f) {
-                    Log.e("ball", String.valueOf(b.center.x));
+                    /*Log.e("ball", String.valueOf(b.center.x));
                     Log.e("ball", String.valueOf(b.center.y));
                     Log.e("ball", String.valueOf(b.radius));
-                    Log.e("ball", b.color);
+                    Log.e("ball", b.color);*/
                 }
 
                 return frameT;
@@ -165,25 +165,7 @@ public class First extends AppCompatActivity {
             Log.e(TAG, "Gyroscope sensor not available.");
             finish();
         }
-        gyroscopeSensorListener = new SensorEventListener() {@Override
-            public void onSensorChanged(SensorEvent event) {
-                if (event.sensor.getType() == Sensor.TYPE_GYROSCOPE) {
-                    System.arraycopy(event.values, 0, rotation, 0, event.values.length);
-                    if(!orientationGyroscope.isBaseOrientationSet()) {
-                        orientationGyroscope.setBaseOrientation(Quaternion.IDENTITY);
-                    } else {
-                        fusedOrientation = orientationGyroscope.calculateOrientation(rotation, event.timestamp);
-                    }
-                    if(meanFilterEnabled) {
-                        fusedOrientation = meanFilter.filter(fusedOrientation);
-                    }
-                }
-            }
-            @Override
-            public void onAccuracyChanged(Sensor sensor, int i) {
-            }
-        };
-        start.setOnClickListener(view -> System.out.println(String.format(Locale.getDefault(),"%.1f", (Math.toDegrees(fusedOrientation[2]) + 360) % 360)));
+
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         list = findViewById(R.id.grid_view);
         list.setNumColumns(4);
@@ -197,7 +179,7 @@ public class First extends AppCompatActivity {
         adapter = new GridViewCustomAdapter(this, data);
         list.setAdapter(adapter);
         try {
-            BluetoothConnection.BluetoothChannel conn = new BluetoothConnection("Willy").connect(); // replace with your own brick name
+            BluetoothConnection.BluetoothChannel conn = new BluetoothConnection("Willy").connect();
             GenEV3<First.MyCustomApi> ev3 = new GenEV3<>(conn);
             Button startButton = findViewById(R.id.Start);
             startButton.setOnClickListener(v -> Prelude.trap(() -> ev3.run(this::legoMainCustomApi, First.MyCustomApi::new)));
@@ -208,6 +190,39 @@ public class First extends AppCompatActivity {
 
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        sensorManager.registerListener(this,
+                gyroscopeSensor, SensorManager.SENSOR_DELAY_NORMAL);
+    }
+
+    @Override
+    public void onSensorChanged(SensorEvent event) {
+        Thread.yield();
+        current_angle = (float)(((Math.toDegrees(fusedOrientation[2]) + 360) +180) % 360);
+        if (event.sensor.getType() == Sensor.TYPE_GYROSCOPE) {
+            System.arraycopy(event.values, 0, rotation, 0, event.values.length);
+            if(!orientationGyroscope.isBaseOrientationSet()) {
+                orientationGyroscope.setBaseOrientation(Quaternion.IDENTITY);
+            } else {
+                fusedOrientation = orientationGyroscope.calculateOrientation(rotation, event.timestamp);
+            }
+            if(meanFilterEnabled) {
+                fusedOrientation = meanFilter.filter(fusedOrientation);
+            }
+            Log.d("GYRO COORDINATES",String.format(Locale.getDefault(),"%.1f", (Math.toDegrees(fusedOrientation[2]) + 180) % 360));
+        }
+    }
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int i) {
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        sensorManager.unregisterListener(this);
+    }
     //Robot Movement
 
     void goForward(EV3.Api api) throws IOException, InterruptedException, ExecutionException {
@@ -215,7 +230,7 @@ public class First extends AppCompatActivity {
             yCurrentPosition++;
             int i = 1;
             while(i!=5) {
-                turnFront(api);
+                turnFront();
                 if(i%2==0) {
                     motorLeft.setStepSpeed(30, 0, 161, 0, true);
                     motorRight.setStepSpeed(30, 0, 161, 0, true );
@@ -228,7 +243,7 @@ public class First extends AppCompatActivity {
                     motorRight.waitCompletion();
                     motorLeft.waitCompletion();
                 }
-                turnFront(api);
+                turnFront();
                 i++;
             }
             motorLeft.setSpeed(0);
@@ -238,7 +253,7 @@ public class First extends AppCompatActivity {
             yCurrentPosition++;
             int i = 1;
             while(i!=5) {
-                turnFront(api);
+                turnFront();
                 if(i%2==0) {
                     motorLeft.setStepSpeed(30, 0, 162, 0, true);
                     motorRight.setStepSpeed(30, 0, 162, 0, true );
@@ -251,7 +266,7 @@ public class First extends AppCompatActivity {
                     motorRight.waitCompletion();
                     motorLeft.waitCompletion();
                 }
-                turnFront(api);
+                turnFront();
                 i++;
             }
             motorLeft.setSpeed(0);
@@ -266,7 +281,7 @@ public class First extends AppCompatActivity {
             yCurrentPosition--;
             int i = 1;
             while(i!=5) {
-                turnFront(api);
+                turnFront();
                 if(i%2==0) {
                     motorLeft.setStepSpeed(-30, 0, 156, 0, true);
                     motorRight.setStepSpeed(-30, 0, 156, 0, true );
@@ -279,7 +294,7 @@ public class First extends AppCompatActivity {
                     motorRight.waitCompletion();
                     motorLeft.waitCompletion();
                 }
-                turnFront(api);
+                turnFront();
                 i++;
             }
             motorLeft.setSpeed(0);
@@ -289,7 +304,7 @@ public class First extends AppCompatActivity {
             yCurrentPosition--;
             int i = 1;
             while(i!=5) {
-                turnFront(api);
+                turnFront();
                 if(i%2==0) {
                     motorLeft.setStepSpeed(-27, 0, 162, 0, true);
                     motorRight.setStepSpeed(-27, 0, 162, 0, true );
@@ -302,7 +317,7 @@ public class First extends AppCompatActivity {
                     motorRight.waitCompletion();
                     motorLeft.waitCompletion();
                 }
-                turnFront(api);
+                turnFront();
                 i++;
             }
             motorLeft.setSpeed(0);
@@ -365,7 +380,7 @@ public class First extends AppCompatActivity {
 
             }
             if(ballIsCatched==false)
-            turnFront(api);
+            turnFront();
             markZone(xCurrentPosition,yCurrentPosition);
         }
     }
@@ -418,7 +433,7 @@ public class First extends AppCompatActivity {
                 motorRight.setSpeed(0);
             }
             if(ballIsCatched==false)
-                turnFront(api);
+                turnFront();
             markZone(xCurrentPosition,yCurrentPosition);
         }
     }
@@ -463,11 +478,11 @@ public class First extends AppCompatActivity {
             i++;
         }
         turn180(api);
-        turnFront(api);
+        turnFront();
         i = 1;
         while(i!=2) {
             if(i%2==0) {
-                turnFront(api);
+                turnFront();
                 motorLeft.setStepSpeed(-30, 0, 160, 0, true);
                 motorRight.setStepSpeed(-30, 0, 160, 0, true );
                 motorLeft.waitCompletion();
@@ -478,11 +493,11 @@ public class First extends AppCompatActivity {
                 motorLeft.setStepSpeed(-30, 0, 160, 0, true);
                 motorRight.waitCompletion();
                 motorLeft.waitCompletion();
-                turnFront(api);
+                turnFront();
             }
             i++;
         }
-        turnFront(api);
+        turnFront();
         ballIsCatched = false;
     }
 
@@ -658,41 +673,24 @@ public class First extends AppCompatActivity {
         }
     }
 
-    void turnFront(EV3.Api api) {
-        int speed = 1;
-        try {
-            float current_angle = (float)((Math.toDegrees(fusedOrientation[2]) + 180) % 360);
-            while ( current_angle < 179 || current_angle > 181 )  {
-                if (current_angle > 181) {
-                    if(current_angle > 210) {
-                        motorLeft.setSpeed(-5);
-                        motorRight.setSpeed(5);
-                    }
-                    else {
-                        motorLeft.setSpeed(-speed);
-                        motorRight.setSpeed(speed);
-                    }
-                    motorLeft.start();
-                    motorRight.start();
-                    current_angle = (float)((Math.toDegrees(fusedOrientation[2]) + 180) % 360);
-                } else if (current_angle < 179 ) {
-                    if(current_angle > 149) {
-                        motorLeft.setSpeed(speed);
-                        motorRight.setSpeed(-speed);
-                    }
-                    else {
-                        motorLeft.setSpeed(5);
-                        motorRight.setSpeed(-5);
-                    }
-                    motorLeft.start();
-                    motorRight.start();
-                    current_angle = (float)((Math.toDegrees(fusedOrientation[2]) + 180) % 360);
+    void turnFront() throws IOException {
+        Thread.yield();
+        int speed = 3;
+        int angle = (int)current_angle;
+            while ( angle < 178 || angle > 182 )  {
+                Thread.yield();
+                if (angle >= 182) {
+                    motorLeft.setStepSpeed(-speed,0,10,0,false);
+                    motorRight.setStepSpeed(speed,0,10,0,false);
+                    angle = (int)current_angle;
+                    Thread.yield();
+                } else if (angle <= 178 ) {
+                    motorLeft.setStepSpeed(speed,0,10,0,false);
+                    motorRight.setStepSpeed(-speed,0,10,0,false);
+                    angle = (int)current_angle;
+                    Thread.yield();
                 }
             }
-            stopMotors();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
     void turn180(EV3.Api api) {
@@ -908,9 +906,9 @@ public class First extends AppCompatActivity {
                     }
                     updateMap(xCurrentPosition, yCurrentPosition);
                 }
-                turnFront(api);
+                turnFront();
                 goRight(api, xRobotValue);
-                turnFront(api);
+                turnFront();
                 updateMap(xCurrentPosition, yCurrentPosition);
                 for (int line = xCurrentPosition; line <= n; line++) {
                     while (checkLine(xCurrentPosition) != true) {
@@ -950,7 +948,7 @@ public class First extends AppCompatActivity {
                     markZone(xCurrentPosition, yCurrentPosition);
                 }
                 goLeft(api, xCurrentPosition - xRobotValue);
-                turnFront(api);
+                turnFront();
             }
 
         Collections.sort(balls_position, (p1, p2) -> {
