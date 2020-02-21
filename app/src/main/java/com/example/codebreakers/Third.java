@@ -1341,7 +1341,7 @@ public class Third extends ConnectionsActivity implements SensorEventListener {
         return Math.round(ultraSensor.getDistance().get());
     }
 
-    //Robot Main
+    //Robot Main TODO: la sfarsit nu se opreste contiuna sa se invarta motoarele ?!? ahaahhah asa si in first 
     private void legoMain(EV3.Api api) throws  IOException, InterruptedException, ExecutionException {
 
         final String TAG = Prelude.ReTAG("legoMain");

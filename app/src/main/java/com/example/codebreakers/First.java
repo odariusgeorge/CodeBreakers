@@ -1071,23 +1071,23 @@ public class First extends AppCompatActivity implements SensorEventListener {
         api.mySpecialCommand();
         EditText rows = findViewById(R.id.rows);
         EditText columns = findViewById(R.id.columns);
-//        n = Integer.valueOf(rows.getText().toString());
-//        m = Integer.valueOf(columns.getText().toString());
-        n = 2;
-        m = 2;
+        n = Integer.valueOf(rows.getText().toString());
+        m = Integer.valueOf(columns.getText().toString());
+        //n = 2;
+        //m = 2;
         EditText robotXCoordinate = findViewById(R.id.xRobot);
         EditText robotYCoordinate = findViewById(R.id.yRobot);
-//        xRobotValue = Integer.valueOf(robotXCoordinate.getText().toString());
-//        yRobotValue = Integer.valueOf(robotYCoordinate.getText().toString());
-        xRobotValue = 1;
-        yRobotValue = 0;
+        xRobotValue = Integer.valueOf(robotXCoordinate.getText().toString());
+        yRobotValue = Integer.valueOf(robotYCoordinate.getText().toString());
+//        xRobotValue = 1;
+//        yRobotValue = 0;
         xCurrentPosition = xRobotValue;
         yRobotValue = 0;
         yCurrentPosition = yRobotValue;
         matrix = constructMatrix(m,n);
         EditText numberOfBalls  = findViewById(R.id.balls);
-//        totalBalls = Integer.valueOf(numberOfBalls.getText().toString());
-        totalBalls = 1;
+        totalBalls = Integer.valueOf(numberOfBalls.getText().toString());
+//        totalBalls = 1;
         legoMain(api);
     }
 
