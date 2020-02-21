@@ -1138,10 +1138,12 @@ public class Third extends ConnectionsActivity implements SensorEventListener {
     }
 
     void turnFront() throws IOException, InterruptedException {
+        while (flag == false) { sleep(100); }
         if(ballIsCatched == false) {
             int speed = 1;
             int angle = (int) best_angle;
             while (angle < 179 || angle > 181) {
+                while (flag == false) { sleep(100); }
                 sleep(100);
                 if (angle > 181) {
                     //motorLeft.setStepSpeed(-speed, 0, 10, 0, false);
@@ -1170,6 +1172,7 @@ public class Third extends ConnectionsActivity implements SensorEventListener {
             int speed = 2;
             int angle = (int) best_angle;
             while (angle < 179 || angle > 181) {
+                while (flag == false) { sleep(100); }
                 sleep(100);
                 if (angle > 181) {
                     //motorLeft.setStepSpeed(-speed, 0, 10, 0, false);
