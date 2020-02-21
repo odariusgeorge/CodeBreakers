@@ -658,7 +658,6 @@ public class Third extends ConnectionsActivity implements SensorEventListener {
             while(i!=5) {
                 Thread.sleep(100);
                 while (flag == false) { sleep(100); }
-
                 turnFront();
                 Thread.sleep(100);
                 if(i%2==0) {
@@ -687,7 +686,6 @@ public class Third extends ConnectionsActivity implements SensorEventListener {
             while(i!=5) {
                 Thread.sleep(100);
                 while (flag == false) { sleep(100); }
-
                 turnFront();
                 Thread.sleep(100);
                 if(i%2==0) {
@@ -772,7 +770,6 @@ public class Third extends ConnectionsActivity implements SensorEventListener {
             motorRight.setSpeed(0);
         }
 
-
     }
 
     void goLeft(EV3.Api api, int times) throws  IOException, InterruptedException {
@@ -785,7 +782,9 @@ public class Third extends ConnectionsActivity implements SensorEventListener {
                 while (flag == false) {
                     sleep(100);
                 }
+                Thread.sleep(100);
                 turnLeft(api);
+                Thread.sleep(100);
                 if (j % 2 == 0) {
                     motorLeft.setStepSpeed(30, 0, 160, 0, true);
                     motorRight.setStepSpeed(30, 0, 160, 0, true);
@@ -797,7 +796,9 @@ public class Third extends ConnectionsActivity implements SensorEventListener {
                     motorRight.waitCompletion();
                     motorLeft.waitCompletion();
                 }
+                Thread.sleep(100);
                 turnLeft(api);
+                Thread.sleep(100);
                 j++;
             }
             motorLeft.setSpeed(0);
@@ -811,7 +812,9 @@ public class Third extends ConnectionsActivity implements SensorEventListener {
                     while (flag == false) {
                         sleep(100);
                     }
+                    Thread.sleep(100);
                     turnLeft(api);
+                    Thread.sleep(100);
                     if (i % 2 == 0) {
                         motorLeft.setStepSpeed(30, 0, 161, 0, true);
                         motorRight.setStepSpeed(30, 0, 161, 0, true);
@@ -823,7 +826,9 @@ public class Third extends ConnectionsActivity implements SensorEventListener {
                         motorRight.waitCompletion();
                         motorLeft.waitCompletion();
                     }
+                    Thread.sleep(100);
                     turnLeft(api);
+                    Thread.sleep(100);
                     i++;
                 }
                 motorLeft.setSpeed(0);
@@ -831,7 +836,10 @@ public class Third extends ConnectionsActivity implements SensorEventListener {
                 markZone(xCurrentPosition, yCurrentPosition);
 
             }
-            turnFront();
+            Thread.sleep(100);
+            if(ballIsCatched==false)
+                turnFront();
+            Thread.sleep(100);
         }
     }
 
@@ -843,7 +851,9 @@ public class Third extends ConnectionsActivity implements SensorEventListener {
             int j = 1;
             while(j!=5) {
                 while (flag == false) { sleep(100); }
+                Thread.sleep(100);
                 turnRight(api);
+                Thread.sleep(100);
                 if(j%2==0) {
                     motorLeft.setStepSpeed(30, 0, 160, 0, true);
                     motorRight.setStepSpeed(30, 0, 160, 0, true );
@@ -856,7 +866,9 @@ public class Third extends ConnectionsActivity implements SensorEventListener {
                     motorRight.waitCompletion();
                     motorLeft.waitCompletion();
                 }
+                Thread.sleep(100);
                 turnRight(api);
+                Thread.sleep(100);
                 j++;
             }
             for(int time=1;time<times;time++) {
@@ -865,7 +877,9 @@ public class Third extends ConnectionsActivity implements SensorEventListener {
                 int i = 1;
                 while(i!=5) {
                     while (flag == false) { sleep(100); }
+                    Thread.sleep(100);
                     turnRight(api);
+                    Thread.sleep(100);
                     if(i%2==0) {
                         motorLeft.setStepSpeed(30, 0, 161, 0, true);
                         motorRight.setStepSpeed(30, 0, 161, 0, true );
@@ -878,81 +892,22 @@ public class Third extends ConnectionsActivity implements SensorEventListener {
                         motorRight.waitCompletion();
                         motorLeft.waitCompletion();
                     }
+                    Thread.sleep(100);
                     turnRight(api);
+                    Thread.sleep(100);
                     i++;
                 }
                 motorLeft.setSpeed(0);
                 motorRight.setSpeed(0);
             }
-            turnFront();
+            Thread.sleep(100);
+            if(ballIsCatched==false)
+                turnFront();
+            Thread.sleep(100);
+
             markZone(xCurrentPosition,yCurrentPosition);
         }
     }
-
-    /*void goToSafeZone(EV3.Api api) throws  IOException, InterruptedException {
-        markZone(xCurrentPosition,yCurrentPosition);
-        catchBall();
-        Pair<Integer,Integer> ball_posistion = new Pair<>(xCurrentPosition,yCurrentPosition);
-        balls_position.add(ball_posistion);
-        while (yCurrentPosition > 0) {
-            Thread.sleep(100);
-            goBack(api);
-            Thread.sleep(100);
-            markZone(xCurrentPosition,yCurrentPosition);
-        }
-        while(xCurrentPosition!=xRobotValue) {
-            if(xCurrentPosition > xRobotValue) {
-                goLeft(api,xCurrentPosition-xRobotValue);
-                markZone(xCurrentPosition,yCurrentPosition);
-            }
-            if(xCurrentPosition < xRobotValue) {
-                goRight(api,xRobotValue-xCurrentPosition);
-                markZone(xCurrentPosition,yCurrentPosition);
-            }
-        }
-        turn180(api);
-        releaseBall();
-        int i = 1;
-        while(i!=2) {
-            if(i%2==0) {
-                turn180(api);
-                motorLeft.setStepSpeed(-30, 0, 160, 0, true);
-                motorRight.setStepSpeed(-30, 0, 160, 0, true );
-                motorLeft.waitCompletion();
-                motorRight.waitCompletion();
-            }
-            else {
-                motorRight.setStepSpeed(-30, 0, 160, 0, true);
-                motorLeft.setStepSpeed(-30, 0, 160, 0, true);
-                motorRight.waitCompletion();
-                motorLeft.waitCompletion();
-                turn180(api);
-            }
-            i++;
-        }
-        turn180(api);
-        turnFront();
-        i = 1;
-        while(i!=2) {
-            if(i%2==0) {
-                turnFront();
-                motorLeft.setStepSpeed(-30, 0, 160, 0, true);
-                motorRight.setStepSpeed(-30, 0, 160, 0, true );
-                motorLeft.waitCompletion();
-                motorRight.waitCompletion();
-            }
-            else {
-                motorRight.setStepSpeed(-30, 0, 160, 0, true);
-                motorLeft.setStepSpeed(-30, 0, 160, 0, true);
-                motorRight.waitCompletion();
-                motorLeft.waitCompletion();
-                turnFront();
-            }
-            i++;
-        }
-        turnFront();
-        ballIsCatched = false;
-    }*/
 
     void catchBall() throws IOException {
         motorClaws.setStepSpeed(50,0,2200,0,true);
@@ -964,7 +919,7 @@ public class Third extends ConnectionsActivity implements SensorEventListener {
         motorClaws.setStepSpeed(-50,0,2200,0,true);
         motorClaws.waitCompletion();
     }
-    //TODO: goBack in sleep
+
     void goToSafeZone(EV3.Api api) throws  IOException, InterruptedException {
         int xBall = xCurrentPosition;
         int yBall = yCurrentPosition;
@@ -1138,32 +1093,22 @@ public class Third extends ConnectionsActivity implements SensorEventListener {
     }
 
     void turnFront() throws IOException, InterruptedException {
-        while (flag == false) { sleep(100); }
         if(ballIsCatched == false) {
-            int speed = 1;
+            int speed = 2;
             int angle = (int) best_angle;
             while (angle < 179 || angle > 181) {
-                while (flag == false) { sleep(100); }
                 sleep(100);
                 if (angle > 181) {
-                    //motorLeft.setStepSpeed(-speed, 0, 10, 0, false);
-                    //motorRight.setStepSpeed(speed, 0, 10, 0, false);
-                    motorLeft.setSpeed(-speed);
-                    motorRight.setSpeed(speed);
-                    motorLeft.start();
-                    motorRight.start();
-                    while (flag == false) { sleep(100); }
+                    while (flag == false) { motorLeft.stop(); motorRight.stop(); sleep(100); }
+                    motorLeft.setStepSpeed(-speed, 0, 10, 0, false);
+                    motorRight.setStepSpeed(speed, 0, 10, 0, false);
                     sleep(100);
                     angle = (int) best_angle;
 
                 } else if (angle < 179) {
-                    //motorLeft.setStepSpeed(speed, 0, 10, 0, false);
-                    //motorRight.setStepSpeed(-speed, 0, 10, 0, false);
-                    motorLeft.setSpeed(speed);
-                    motorRight.setSpeed(-speed);
-                    motorLeft.start();
-                    motorRight.start();
-                    while (flag == false) { sleep(100); }
+                    while (flag == false) { motorLeft.stop(); motorRight.stop(); sleep(100); }
+                    motorLeft.setStepSpeed(speed, 0, 10, 0, false);
+                    motorRight.setStepSpeed(-speed, 0, 10, 0, false);
                     sleep(100);
                     angle = (int) best_angle;
                 }
@@ -1171,27 +1116,21 @@ public class Third extends ConnectionsActivity implements SensorEventListener {
             }
 
         } else {
-            int speed = 2;
+            int speed = 3;
             int angle = (int) best_angle;
             while (angle < 179 || angle > 181) {
-                while (flag == false) { sleep(100); }
                 sleep(100);
                 if (angle > 181) {
-                    //motorLeft.setStepSpeed(-speed, 0, 10, 0, false);
-                    //motorRight.setStepSpeed(speed, 0, 10, 0, false);
-                    motorLeft.setSpeed(-speed);
-                    motorRight.setSpeed(speed);
-                    motorLeft.start();
-                    motorRight.start();
+                    while (flag == false) { motorLeft.stop(); motorRight.stop(); sleep(100); }
+                    motorLeft.setStepSpeed(-speed, 0, 10, 0, false);
+                    motorRight.setStepSpeed(speed, 0, 10, 0, false);
                     sleep(100);
                     angle = (int) best_angle;
+
                 } else if (angle < 179) {
-                    //motorLeft.setStepSpeed(speed, 0, 10, 0, false);
-                    //motorRight.setStepSpeed(-speed, 0, 10, 0, false);
-                    motorLeft.setSpeed(speed);
-                    motorRight.setSpeed(-speed);
-                    motorLeft.start();
-                    motorRight.start();
+                    while (flag == false) { motorLeft.stop(); motorRight.stop(); sleep(100); }
+                    motorLeft.setStepSpeed(speed, 0, 10, 0, false);
+                    motorRight.setStepSpeed(-speed, 0, 10, 0, false);
                     sleep(100);
                     angle = (int) best_angle;
                 }
@@ -1282,23 +1221,36 @@ public class Third extends ConnectionsActivity implements SensorEventListener {
 
         ArrayList<String> data = new ArrayList<>();
         int maxim = max(n, m);
-        for (int i = 0; i <= maxim+1; i++) {
-            for(int j=0; j <= maxim+1;j++) {
-                if ( ((m-coordinates.get(0).second) == i) && (coordinates.get(0).first == j)) {
-                    data.add("O");
-                    if(coordinates.size()>1)
-                        coordinates.remove(0);
+        if(coordinates.isEmpty()) {
+            for (int i = 0; i <= maxim+1; i++) {
+                for (int j = 0; j <= maxim + 1; j++) {
+                    if (j > n) {
+                        data.add("\\");
+                    } else if (i > m && j <= n) {
+                        data.add("\\");
+                    } else {
+                        data.add("");
+                    }
                 }
-                else if (j > n) {
-                    data.add("\\");
-                } else if (i > m && j <= n) {
-                    data.add("\\");
-                } else {
-                    data.add("");
+            }
+        } else {
+            for (int i = 0; i <= maxim+1; i++) {
+                for(int j=0; j <= maxim+1;j++) {
+                    if ( ((m-coordinates.get(0).second) == i) && (coordinates.get(0).first == j)) {
+                        data.add("O");
+                        if(coordinates.size()>1)
+                            coordinates.remove(0);
+                    }
+                    else if (j > n) {
+                        data.add("\\");
+                    } else if (i > m && j <= n) {
+                        data.add("\\");
+                    } else {
+                        data.add("");
+                    }
                 }
             }
         }
-
         adapter = new GridViewCustomAdapter(this, data);
         runOnUiThread(new Runnable() {
             @Override
@@ -1337,7 +1289,7 @@ public class Third extends ConnectionsActivity implements SensorEventListener {
         motorClaws = api.getTachoMotor(EV3.OutputPort.B);
         setUpCamera();
         ball_catched = 0;
-        while (ball_catched!=1) {
+        while (true) {
             for (int line = xCurrentPosition; line >= 0; line--) {
                 while (checkLine(xCurrentPosition) != true) {
                     distance = ultraSensor.getDistance().get();
@@ -1361,7 +1313,20 @@ public class Third extends ConnectionsActivity implements SensorEventListener {
                 if(xCurrentPosition==0) {
                     break;
                 }
+                Thread.sleep(100);
+                turnLeft(api);
+                Thread.sleep(100);
+                distance = ultraSensor.getDistance().get();
+                if (distance >= 15 && distance <= 40) {
+                    ballIsCatched = true;
+                }
                 goLeft(api, 1);
+                markZone(xCurrentPosition,yCurrentPosition);
+                if(ballIsCatched) {
+                    updateMap(xCurrentPosition, yCurrentPosition);
+                    goToSafeZone(api);
+                    ball_catched++;
+                }
                 updateMap(xCurrentPosition,yCurrentPosition);
             }
             turnFront();
@@ -1392,12 +1357,29 @@ public class Third extends ConnectionsActivity implements SensorEventListener {
                 if(xCurrentPosition==n) {
                     break;
                 }
+                Thread.sleep(100);
+                turnRight(api);
+                Thread.sleep(100);
+                distance = ultraSensor.getDistance().get();
+                if (distance >= 15 && distance <= 40) {
+                    ballIsCatched = true;
+                }
                 goRight(api, 1);
                 markZone(xCurrentPosition,yCurrentPosition);
+                if(ballIsCatched) {
+                    updateMap(xCurrentPosition, yCurrentPosition);
+                    goToSafeZone(api);
+                    ball_catched++;
+                }
+                updateMap(xCurrentPosition,yCurrentPosition);
             }
             goLeft(api,xCurrentPosition-xRobotValue);
+            Thread.sleep(100);
             turnFront();
-            ball_catched++;
+            Thread.sleep(100);
+            if(matrix_is_parsed()) {
+                break;
+            }
         }
         Collections.sort(coordinates, (p1, p2) -> {
             if (p1.first != p2.first) {
@@ -1414,6 +1396,15 @@ public class Third extends ConnectionsActivity implements SensorEventListener {
             }
         });
         showFinal();
+    }
+
+    boolean matrix_is_parsed() {
+        for(int i=0;i<=n;i++)
+            for(int j=0;j<=m;j++) {
+                if(matrix[j][i]==0)
+                    return  false;
+            }
+        return true;
     }
 
     private static class MyCustomApi extends EV3.Api {
