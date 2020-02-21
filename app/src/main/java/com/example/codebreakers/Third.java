@@ -1152,6 +1152,7 @@ public class Third extends ConnectionsActivity implements SensorEventListener {
                     motorRight.setSpeed(speed);
                     motorLeft.start();
                     motorRight.start();
+                    while (flag == false) { sleep(100); }
                     sleep(100);
                     angle = (int) best_angle;
 
@@ -1162,6 +1163,7 @@ public class Third extends ConnectionsActivity implements SensorEventListener {
                     motorRight.setSpeed(-speed);
                     motorLeft.start();
                     motorRight.start();
+                    while (flag == false) { sleep(100); }
                     sleep(100);
                     angle = (int) best_angle;
                 }
@@ -1196,49 +1198,6 @@ public class Third extends ConnectionsActivity implements SensorEventListener {
 
             }
         }
-    }
-
-    void turnBackFront() throws IOException, InterruptedException {
-        if(ballIsCatched == false) {
-            int speed = 1;
-            int angle = (int)best_angle;
-            while ( angle < 179 || angle > 181 )  {
-                sleep(100);
-                if (angle > 181) {
-                    motorLeft.setStepSpeed(-speed,0,10,0,false);
-                    motorRight.setStepSpeed(speed,0,10,0,false);
-                    sleep(100);
-                    angle = (int)best_angle;
-                } else if (angle < 179 ) {
-                    motorLeft.setStepSpeed(speed,0,10,0,false);
-                    motorRight.setStepSpeed(-speed,0,10,0,false);
-                    sleep(100);
-                    angle = (int)best_angle;
-                }
-
-            }
-        } else {
-            int speed = 2;
-            int angle = (int)best_angle;
-            while ( angle < 179 || angle > 181 )  {
-                sleep(100);
-                if (angle > 181) {
-                    motorLeft.setStepSpeed(-speed,0,10,0,false);
-                    motorRight.setStepSpeed(speed,0,10,0,false);
-                    sleep(100);
-                    angle = (int)best_angle;
-                } else if (angle < 179 ) {
-                    motorLeft.setStepSpeed(speed,0,10,0,false);
-                    motorRight.setStepSpeed(-speed,0,10,0,false);
-                    sleep(100);
-                    angle = (int)best_angle;
-                }
-
-            }
-        }
-
-
-
     }
 
     void turn180(EV3.Api api) {
@@ -1366,7 +1325,7 @@ public class Third extends ConnectionsActivity implements SensorEventListener {
         return Math.round(ultraSensor.getDistance().get());
     }
 
-    //Robot Main TODO: la sfarsit nu se opreste contiuna sa se invarta motoarele ?!? ahaahhah asa si in first
+    //Robot Main
     private void legoMain(EV3.Api api) throws  IOException, InterruptedException, ExecutionException {
 
         final String TAG = Prelude.ReTAG("legoMain");
