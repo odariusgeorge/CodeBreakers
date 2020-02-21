@@ -37,17 +37,15 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Locale;
 import java.util.concurrent.ExecutionException;
-import static java.lang.Math.abs;
-import static java.lang.Math.max;
 
 import it.unive.dais.legodroid.lib.EV3;
 import it.unive.dais.legodroid.lib.GenEV3;
 import it.unive.dais.legodroid.lib.comm.BluetoothConnection;
-import it.unive.dais.legodroid.lib.plugs.GyroSensor;
 import it.unive.dais.legodroid.lib.plugs.TachoMotor;
 import it.unive.dais.legodroid.lib.plugs.UltrasonicSensor;
 import it.unive.dais.legodroid.lib.util.Prelude;
-import static java.lang.Thread.sleep;
+
+import static java.lang.Math.max;
 
 public class First extends AppCompatActivity implements SensorEventListener {
 
@@ -225,7 +223,9 @@ public class First extends AppCompatActivity implements SensorEventListener {
             yCurrentPosition++;
             int i = 1;
             while(i!=5) {
+                Thread.sleep(100);
                 turnFront();
+                Thread.sleep(100);
                 if(i%2==0) {
                     motorLeft.setStepSpeed(30, 0, 161, 0, true);
                     motorRight.setStepSpeed(30, 0, 161, 0, true );
@@ -238,7 +238,9 @@ public class First extends AppCompatActivity implements SensorEventListener {
                     motorRight.waitCompletion();
                     motorLeft.waitCompletion();
                 }
+                Thread.sleep(100);
                 turnFront();
+                Thread.sleep(100);
                 i++;
             }
             motorLeft.setSpeed(0);
@@ -248,7 +250,9 @@ public class First extends AppCompatActivity implements SensorEventListener {
             yCurrentPosition++;
             int i = 1;
             while(i!=5) {
+                Thread.sleep(100);
                 turnFront();
+                Thread.sleep(100);
                 if(i%2==0) {
                     motorLeft.setStepSpeed(30, 0, 162, 0, true);
                     motorRight.setStepSpeed(30, 0, 162, 0, true );
@@ -261,7 +265,9 @@ public class First extends AppCompatActivity implements SensorEventListener {
                     motorRight.waitCompletion();
                     motorLeft.waitCompletion();
                 }
+                Thread.sleep(100);
                 turnFront();
+                Thread.sleep(100);
                 i++;
             }
             motorLeft.setSpeed(0);
@@ -276,7 +282,9 @@ public class First extends AppCompatActivity implements SensorEventListener {
             yCurrentPosition--;
             int i = 1;
             while(i!=5) {
+                Thread.sleep(100);
                 turnBackFront();
+                Thread.sleep(100);
                 if(i%2==0) {
                     motorLeft.setStepSpeed(-30, 0, 156, 0, true);
                     motorRight.setStepSpeed(-30, 0, 156, 0, true );
@@ -289,7 +297,9 @@ public class First extends AppCompatActivity implements SensorEventListener {
                     motorRight.waitCompletion();
                     motorLeft.waitCompletion();
                 }
+                Thread.sleep(100);
                 turnBackFront();
+                Thread.sleep(100);
                 i++;
             }
             motorLeft.setSpeed(0);
@@ -299,7 +309,9 @@ public class First extends AppCompatActivity implements SensorEventListener {
             yCurrentPosition--;
             int i = 1;
             while(i!=5) {
+                Thread.sleep(100);
                 turnBackFront();
+                Thread.sleep(100);
                 if(i%2==0) {
                     motorLeft.setStepSpeed(-27, 0, 162, 0, true);
                     motorRight.setStepSpeed(-27, 0, 162, 0, true );
@@ -312,7 +324,9 @@ public class First extends AppCompatActivity implements SensorEventListener {
                     motorRight.waitCompletion();
                     motorLeft.waitCompletion();
                 }
+                Thread.sleep(100);
                 turnBackFront();
+                Thread.sleep(100);
                 i++;
             }
             motorLeft.setSpeed(0);
@@ -439,7 +453,9 @@ public class First extends AppCompatActivity implements SensorEventListener {
         Pair<Integer,Integer> ball_posistion = new Pair<>(xCurrentPosition,yCurrentPosition);
         balls_position.add(ball_posistion);
         while (yCurrentPosition > 0) {
+            Thread.sleep(100);
             goBack(api);
+            Thread.sleep(100);
             markZone(xCurrentPosition,yCurrentPosition);
         }
         while(xCurrentPosition!=xRobotValue) {
@@ -604,7 +620,7 @@ public class First extends AppCompatActivity implements SensorEventListener {
                     }
                     motorLeft.start();
                     motorRight.start();
-                    Thread.sleep(500);
+                    Thread.sleep(100);
                     current_angle = best_angle;
                 } else if (current_angle < 89 ) {
                     if(current_angle > -59) {
@@ -617,7 +633,7 @@ public class First extends AppCompatActivity implements SensorEventListener {
                     }
                     motorLeft.start();
                     motorRight.start();
-                    Thread.sleep(500);
+                    Thread.sleep(100);
                     current_angle = best_angle;
                 }
             }
@@ -643,7 +659,7 @@ public class First extends AppCompatActivity implements SensorEventListener {
                     }
                     motorLeft.start();
                     motorRight.start();
-                    Thread.sleep(500);
+                    Thread.sleep(100);
                     current_angle = best_angle;
                 } else if (current_angle < 269 ) {
                     if(current_angle > 300) {
@@ -656,7 +672,7 @@ public class First extends AppCompatActivity implements SensorEventListener {
                     }
                     motorLeft.start();
                     motorRight.start();
-                    Thread.sleep(500);
+                    Thread.sleep(100);
                     current_angle = best_angle;
                 }
             }
@@ -667,8 +683,67 @@ public class First extends AppCompatActivity implements SensorEventListener {
     }
 
     void turnFront() throws IOException, InterruptedException {
-        int speed = 2;
-        int angle = (int)best_angle;
+        if(ballIsCatched == false) {
+            int speed = 1;
+            int angle = (int) best_angle;
+            while (angle < 179 || angle > 181) {
+                Thread.sleep(100);
+                if (angle > 181) {
+                    //motorLeft.setStepSpeed(-speed, 0, 10, 0, false);
+                    //motorRight.setStepSpeed(speed, 0, 10, 0, false);
+                    motorLeft.setSpeed(-speed);
+                    motorRight.setSpeed(speed);
+                    motorLeft.start();
+                    motorRight.start();
+                    Thread.sleep(100);
+                    angle = (int) best_angle;
+
+                } else if (angle < 179) {
+                    //motorLeft.setStepSpeed(speed, 0, 10, 0, false);
+                    //motorRight.setStepSpeed(-speed, 0, 10, 0, false);
+                    motorLeft.setSpeed(speed);
+                    motorRight.setSpeed(-speed);
+                    motorLeft.start();
+                    motorRight.start();
+                    Thread.sleep(100);
+                    angle = (int) best_angle;
+                }
+
+            }
+
+        } else {
+            int speed = 2;
+            int angle = (int) best_angle;
+            while (angle < 179 || angle > 181) {
+                Thread.sleep(100);
+                if (angle > 181) {
+                    //motorLeft.setStepSpeed(-speed, 0, 10, 0, false);
+                    //motorRight.setStepSpeed(speed, 0, 10, 0, false);
+                    motorLeft.setSpeed(-speed);
+                    motorRight.setSpeed(speed);
+                    motorLeft.start();
+                    motorRight.start();
+                    Thread.sleep(100);
+                    angle = (int) best_angle;
+                } else if (angle < 179) {
+                    //motorLeft.setStepSpeed(speed, 0, 10, 0, false);
+                    //motorRight.setStepSpeed(-speed, 0, 10, 0, false);
+                    motorLeft.setSpeed(speed);
+                    motorRight.setSpeed(-speed);
+                    motorLeft.start();
+                    motorRight.start();
+                    Thread.sleep(100);
+                    angle = (int) best_angle;
+                }
+
+            }
+        }
+    }
+
+    void turnBackFront() throws IOException, InterruptedException {
+        if(ballIsCatched == false) {
+            int speed = 1;
+            int angle = (int)best_angle;
             while ( angle < 179 || angle > 181 )  {
                 Thread.sleep(100);
                 if (angle > 181) {
@@ -684,28 +759,26 @@ public class First extends AppCompatActivity implements SensorEventListener {
                 }
 
             }
+        } else {
+            int speed = 2;
+            int angle = (int)best_angle;
+            while ( angle < 179 || angle > 181 )  {
+                Thread.sleep(100);
+                if (angle > 181) {
+                    motorLeft.setStepSpeed(-speed,0,10,0,false);
+                    motorRight.setStepSpeed(speed,0,10,0,false);
+                    Thread.sleep(100);
+                    angle = (int)best_angle;
+                } else if (angle < 179 ) {
+                    motorLeft.setStepSpeed(speed,0,10,0,false);
+                    motorRight.setStepSpeed(-speed,0,10,0,false);
+                    Thread.sleep(100);
+                    angle = (int)best_angle;
+                }
 
-
-    }
-
-    void turnBackFront() throws IOException, InterruptedException {
-        int speed = 2;
-        int angle = (int)best_angle;
-        while ( angle < 179 || angle > 181 )  {
-            Thread.sleep(3000);
-            if (angle > 181) {
-                motorLeft.setStepSpeed(-speed,0,10,0,false);
-                motorRight.setStepSpeed(speed,0,10,0,false);
-                Thread.sleep(3000);
-                angle = (int)best_angle;
-            } else if (angle < 179 ) {
-                motorLeft.setStepSpeed(speed,0,10,0,false);
-                motorRight.setStepSpeed(-speed,0,10,0,false);
-                Thread.sleep(3000);
-                angle = (int)best_angle;
             }
-
         }
+
 
 
     }
@@ -713,14 +786,14 @@ public class First extends AppCompatActivity implements SensorEventListener {
     void turn180(EV3.Api api) {
         int speed = 5;
         try {
-            Thread.sleep(500);
+            Thread.sleep(100);
             float current_angle = best_angle;
-            while (current_angle > 8) {
+            while (current_angle > 4) {
                 motorLeft.setSpeed(-speed);
                 motorRight.setSpeed(speed);
                 motorLeft.start();
                 motorRight.start();
-                Thread.sleep(500);
+                Thread.sleep(100);
                 current_angle = best_angle;
             }
             stopMotors();
@@ -1000,13 +1073,13 @@ public class First extends AppCompatActivity implements SensorEventListener {
         EditText columns = findViewById(R.id.columns);
 //        n = Integer.valueOf(rows.getText().toString());
 //        m = Integer.valueOf(columns.getText().toString());
-        n = 0;
-        m = 5;
+        n = 2;
+        m = 2;
         EditText robotXCoordinate = findViewById(R.id.xRobot);
         EditText robotYCoordinate = findViewById(R.id.yRobot);
 //        xRobotValue = Integer.valueOf(robotXCoordinate.getText().toString());
 //        yRobotValue = Integer.valueOf(robotYCoordinate.getText().toString());
-        xRobotValue = 0;
+        xRobotValue = 1;
         yRobotValue = 0;
         xCurrentPosition = xRobotValue;
         yRobotValue = 0;
